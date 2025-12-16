@@ -192,6 +192,109 @@ const WeeklyTaskOrganizer = () => {
     alert("Week duplicated! (Demo feature)");
   };
 
+  // Export tasks to WhatsApp format (copy to clipboard)
+  const exportToWhatsApp = () => {
+    const priorityEmoji = { high: "🔴", medium: "🟠", low: "🟢" };
+    let text = "📋 *Weekly Task Organizer*\n\n";
+
+    days.forEach((day) => {
+      const dayTasks = tasks[day] || [];
+      if (dayTasks.length > 0) {
+        text += `*${day}*\n`;
+        dayTasks.forEach((task) => {
+          const status = task.completed ? "✅" : "⬜";
+          const priority = priorityEmoji[task.priority] || "🟠";
+          text += `${status} ${priority} ${task.text}\n`;
+        });
+        text += "\n";
+      }
+    });
+
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        alert("✅ Tasks copied to clipboard! Paste in WhatsApp to share.");
+      })
+      .catch(() => {
+        // Fallback for older browsers
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        alert("✅ Tasks copied to clipboard! Paste in WhatsApp to share.");
+      });
+  };
+
+  // Export tasks to JSON file (backup)
+  const exportToJSON = () => {
+    const exportData = {
+      version: "1.0",
+      exportDate: new Date().toISOString(),
+      tasks: tasks,
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `weekly-tasks-backup-${
+      new Date().toISOString().split("T")[0]
+    }.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Import tasks from JSON file
+  const importFromJSON = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importData = JSON.parse(e.target.result);
+
+        // Validate the imported data
+        if (!importData.tasks) {
+          alert("❌ Invalid file format. Please select a valid backup file.");
+          return;
+        }
+
+        // Check if all days exist in the imported data
+        const isValid = days.every((day) =>
+          Array.isArray(importData.tasks[day])
+        );
+        if (!isValid) {
+          alert("❌ Invalid file format. The file is missing some days.");
+          return;
+        }
+
+        if (
+          window.confirm(
+            "⚠️ This will replace ALL current tasks. Are you sure?"
+          )
+        ) {
+          setTasks(importData.tasks);
+          alert("✅ Tasks imported successfully!");
+        }
+      } catch (error) {
+        alert(
+          "❌ Error reading file. Please make sure it's a valid JSON file."
+        );
+      }
+    };
+    reader.readAsText(file);
+
+    // Reset the input so the same file can be selected again
+    event.target.value = "";
+  };
+
   const reorderTasks = (day, fromIndex, toIndex) => {
     setTasks((prev) => {
       const newDayTasks = [...prev[day]];
@@ -493,12 +596,32 @@ const WeeklyTaskOrganizer = () => {
                   >
                     📝 Bulk Add
                   </button>
+
+                  {/* Export/Import Section */}
+                  <h4 className="font-bold text-purple-600 mb-2 mt-4">
+                    Export / Import
+                  </h4>
                   <button
-                    onClick={duplicateWeek}
-                    className="w-full p-2 bg-white border-2 border-purple-600 text-purple-600 rounded-lg font-semibold hover:bg-purple-600 hover:text-white transition-all text-sm"
+                    onClick={exportToWhatsApp}
+                    className="w-full p-2 mb-2 bg-white border-2 border-green-500 text-green-600 rounded-lg font-semibold hover:bg-green-500 hover:text-white transition-all text-sm"
                   >
-                    📋 Duplicate Week
+                    📱 WhatsApp
                   </button>
+                  <button
+                    onClick={exportToJSON}
+                    className="w-full p-2 mb-2 bg-white border-2 border-blue-500 text-blue-600 rounded-lg font-semibold hover:bg-blue-500 hover:text-white transition-all text-sm"
+                  >
+                    � Backup
+                  </button>
+                  <label className="w-full p-2 mb-2 bg-white border-2 border-orange-500 text-orange-600 rounded-lg font-semibold hover:bg-orange-500 hover:text-white transition-all text-sm cursor-pointer text-center block">
+                    📂 Restore
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={importFromJSON}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
                 {/* Mobile Actions Menu (simplified) */}
                 <div className="mt-4 lg:hidden flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -506,14 +629,35 @@ const WeeklyTaskOrganizer = () => {
                     onClick={clearCompleted}
                     className="whitespace-nowrap px-3 py-2 bg-white border border-purple-600 text-purple-600 rounded-lg text-sm font-medium"
                   >
-                    🗑️ Clear Done
+                    🗑️ Clear
                   </button>
                   <button
                     onClick={() => setShowBulkModal(true)}
                     className="whitespace-nowrap px-3 py-2 bg-white border border-purple-600 text-purple-600 rounded-lg text-sm font-medium"
                   >
-                    📝 Bulk Add
+                    📝 Bulk
                   </button>
+                  <button
+                    onClick={exportToWhatsApp}
+                    className="whitespace-nowrap px-3 py-2 bg-white border border-green-500 text-green-600 rounded-lg text-sm font-medium"
+                  >
+                    📱 WhatsApp
+                  </button>
+                  <button
+                    onClick={exportToJSON}
+                    className="whitespace-nowrap px-3 py-2 bg-white border border-blue-500 text-blue-600 rounded-lg text-sm font-medium"
+                  >
+                    💾 Backup
+                  </button>
+                  <label className="whitespace-nowrap px-3 py-2 bg-white border border-orange-500 text-orange-600 rounded-lg text-sm font-medium cursor-pointer">
+                    📂 Restore
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={importFromJSON}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
               </div>
 
