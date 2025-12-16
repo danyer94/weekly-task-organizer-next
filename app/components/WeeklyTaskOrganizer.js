@@ -111,6 +111,12 @@ const WeeklyTaskOrganizer = () => {
     });
   };
 
+  const selectAllTasks = () => {
+    const dayTasks = tasks[currentAdminDay] || [];
+    const allIds = dayTasks.map((t) => t.id);
+    setSelectedTasks(new Set(allIds));
+  };
+
   const moveOrCopyTasks = (targetDays, isMove) => {
     const tasksToProcess = tasks[currentAdminDay].filter((t) =>
       selectedTasks.has(t.id)
@@ -695,35 +701,46 @@ const WeeklyTaskOrganizer = () => {
                   </div>
                 </div>
 
-                {selectedTasks.size > 0 && (
-                  <div className="bg-purple-50 p-4 rounded-lg mb-4 flex flex-wrap gap-2 items-center animate-fade-in">
-                    <span className="font-bold text-purple-600 mr-2">
-                      Selected: {selectedTasks.size}
-                    </span>
+                {/* Selection Toolbar - Always visible when there are tasks */}
+                {tasks[currentAdminDay]?.length > 0 && (
+                  <div className="bg-purple-50 p-3 rounded-lg mb-4 flex flex-wrap gap-2 items-center">
                     <button
-                      onClick={() => setShowMoveModal(true)}
-                      className="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium"
+                      onClick={selectAllTasks}
+                      className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium"
                     >
-                      📤 Move
+                      ☑️ Select All
                     </button>
-                    <button
-                      onClick={() => setShowCopyModal(true)}
-                      className="px-3 py-1.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm font-medium"
-                    >
-                      📋 Copy
-                    </button>
-                    <button
-                      onClick={deleteSelected}
-                      className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium"
-                    >
-                      🗑️ Delete
-                    </button>
-                    <button
-                      onClick={() => setSelectedTasks(new Set())}
-                      className="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 text-sm font-medium"
-                    >
-                      ✖ Clear
-                    </button>
+                    {selectedTasks.size > 0 && (
+                      <>
+                        <span className="font-bold text-purple-600 mx-2">
+                          | {selectedTasks.size} selected
+                        </span>
+                        <button
+                          onClick={() => setShowMoveModal(true)}
+                          className="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium"
+                        >
+                          📤 Move
+                        </button>
+                        <button
+                          onClick={() => setShowCopyModal(true)}
+                          className="px-3 py-1.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 text-sm font-medium"
+                        >
+                          📋 Copy
+                        </button>
+                        <button
+                          onClick={deleteSelected}
+                          className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium"
+                        >
+                          🗑️ Delete
+                        </button>
+                        <button
+                          onClick={() => setSelectedTasks(new Set())}
+                          className="px-3 py-1.5 bg-gray-400 text-white rounded-lg hover:bg-gray-500 text-sm font-medium"
+                        >
+                          ✖ Clear
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
 
