@@ -90,7 +90,7 @@ const WeeklyTaskOrganizer = () => {
     updateTasks((prev) => ({
       ...prev,
       [currentAdminDay]: [
-        ...prev[currentAdminDay],
+        ...(prev[currentAdminDay] || []),
         {
           id: Date.now(),
           text: newTaskText,
@@ -105,14 +105,14 @@ const WeeklyTaskOrganizer = () => {
   const deleteTask = (day, id) => {
     updateTasks((prev) => ({
       ...prev,
-      [day]: prev[day].filter((t) => t.id !== id),
+      [day]: (prev[day] || []).filter((t) => t.id !== id),
     }));
   };
 
   const toggleComplete = (day, id) => {
     updateTasks((prev) => ({
       ...prev,
-      [day]: prev[day].map((t) =>
+      [day]: (prev[day] || []).map((t) =>
         t.id === id ? { ...t, completed: !t.completed } : t
       ),
     }));
@@ -121,7 +121,9 @@ const WeeklyTaskOrganizer = () => {
   const editTask = (day, id, newText) => {
     updateTasks((prev) => ({
       ...prev,
-      [day]: prev[day].map((t) => (t.id === id ? { ...t, text: newText } : t)),
+      [day]: (prev[day] || []).map((t) =>
+        t.id === id ? { ...t, text: newText } : t
+      ),
     }));
     setEditingTaskId(null);
   };
@@ -145,7 +147,8 @@ const WeeklyTaskOrganizer = () => {
   };
 
   const moveOrCopyTasks = (targetDays, isMove) => {
-    const tasksToProcess = tasks[currentAdminDay].filter((t) =>
+    const currentDayTasks = tasks[currentAdminDay] || [];
+    const tasksToProcess = currentDayTasks.filter((t) =>
       selectedTasks.has(t.id)
     );
 
@@ -153,16 +156,22 @@ const WeeklyTaskOrganizer = () => {
       const newTasks = { ...prev };
 
       targetDays.forEach((day) => {
-        tasksToProcess.forEach((task) => {
-          newTasks[day] = [
-            ...newTasks[day],
-            { ...task, id: Date.now() + Math.random(), completed: false },
-          ];
-        });
+        // Ensure the target day has an array and clone it to avoid mutation issues
+        const currentTargetTasks = [...(newTasks[day] || [])];
+
+        // Append all new tasks at once to avoid overwriting in loop
+        const tasksToAdd = tasksToProcess.map((task) => ({
+          ...task,
+          id: Date.now() + Math.random(), // Ensure unique ID
+          completed: false, // Reset completion status when moving/copying
+        }));
+
+        newTasks[day] = [...currentTargetTasks, ...tasksToAdd];
       });
 
       if (isMove) {
-        newTasks[currentAdminDay] = newTasks[currentAdminDay].filter(
+        const sourceTasks = newTasks[currentAdminDay] || [];
+        newTasks[currentAdminDay] = sourceTasks.filter(
           (t) => !selectedTasks.has(t.id)
         );
       }
@@ -179,7 +188,7 @@ const WeeklyTaskOrganizer = () => {
     if (!window.confirm(`Delete ${selectedTasks.size} task(s)?`)) return;
     updateTasks((prev) => ({
       ...prev,
-      [currentAdminDay]: prev[currentAdminDay].filter(
+      [currentAdminDay]: (prev[currentAdminDay] || []).filter(
         (t) => !selectedTasks.has(t.id)
       ),
     }));
@@ -299,21 +308,29 @@ const WeeklyTaskOrganizer = () => {
           return;
         }
 
-        // Check if all days exist in the imported data
-        const isValid = days.every((day) =>
-          Array.isArray(importData.tasks[day])
-        );
-        if (!isValid) {
-          alert("❌ Invalid file format. The file is missing some days.");
+        // Check if tasks object exists (relaxed validation for Firebase data)
+        if (typeof importData.tasks !== "object") {
+          alert("❌ Invalid file format. Tasks data is missing.");
           return;
         }
+
+        // Normalize data to ensure all days exist
+        const normalizedTasks = days.reduce(
+          (acc, day) => ({
+            ...acc,
+            [day]: Array.isArray(importData.tasks[day])
+              ? importData.tasks[day]
+              : [],
+          }),
+          {}
+        );
 
         if (
           window.confirm(
             "⚠️ This will replace ALL current tasks. Are you sure?"
           )
         ) {
-          updateTasks(() => importData.tasks);
+          updateTasks(() => normalizedTasks);
           alert("✅ Tasks imported successfully!");
         }
       } catch (error) {
@@ -329,8 +346,8 @@ const WeeklyTaskOrganizer = () => {
   };
 
   const reorderTasks = (day, fromIndex, toIndex) => {
-    setTasks((prev) => {
-      const newDayTasks = [...prev[day]];
+    updateTasks((prev) => {
+      const newDayTasks = [...(prev[day] || [])];
       const [movedTask] = newDayTasks.splice(fromIndex, 1);
       newDayTasks.splice(toIndex, 0, movedTask);
       return { ...prev, [day]: newDayTasks };
