@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { saveTasks, subscribeToTasks } from "@/lib/firebase";
 
 const WeeklyTaskOrganizer = () => {
   const days = [
@@ -14,8 +15,10 @@ const WeeklyTaskOrganizer = () => {
 
   // Track if we're on the client to prevent hydration mismatch
   const [isClient, setIsClient] = useState(false);
+  const [syncStatus, setSyncStatus] = useState("connecting"); // "connecting", "synced", "offline", "error"
+  const isLocalChange = useRef(false);
 
-  // Initialize with empty state - will be populated from localStorage on client
+  // Initialize with empty state - will be populated from Firebase
   const [tasks, setTasks] = useState(
     days.reduce((acc, day) => ({ ...acc, [day]: [] }), {})
   );
@@ -33,34 +36,58 @@ const WeeklyTaskOrganizer = () => {
   const [priority, setPriority] = useState("medium");
   const [draggedTask, setDraggedTask] = useState(null);
 
-  // Client-side initialization - runs only once after mount
+  // Client-side initialization and Firebase subscription
   useEffect(() => {
     setIsClient(true);
-
-    // Load tasks from localStorage
-    const saved = localStorage.getItem("weeklyTasks");
-    if (saved) {
-      setTasks(JSON.parse(saved));
-    }
 
     // Set current day
     const dayIndex = new Date().getDay();
     const currentDay = days[dayIndex === 0 ? 6 : dayIndex - 1];
     setCurrentAdminDay(currentDay);
     setCurrentUserDay(currentDay);
+
+    // Subscribe to Firebase real-time updates
+    const unsubscribe = subscribeToTasks((data) => {
+      if (data) {
+        // Only update if this is not our own local change
+        if (!isLocalChange.current) {
+          setTasks(data);
+        }
+        isLocalChange.current = false;
+        setSyncStatus("synced");
+      } else {
+        // Initialize empty database
+        const emptyTasks = days.reduce(
+          (acc, day) => ({ ...acc, [day]: [] }),
+          {}
+        );
+        saveTasks(emptyTasks);
+        setSyncStatus("synced");
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // Save tasks to localStorage whenever they change (but only on client)
+  // Save tasks to Firebase whenever they change (but only on client and for local changes)
   useEffect(() => {
-    if (isClient) {
-      localStorage.setItem("weeklyTasks", JSON.stringify(tasks));
+    if (isClient && isLocalChange.current) {
+      saveTasks(tasks).then((success) => {
+        setSyncStatus(success ? "synced" : "error");
+      });
     }
   }, [tasks, isClient]);
+
+  // Helper to update tasks and mark as local change
+  const updateTasks = (updater) => {
+    isLocalChange.current = true;
+    setTasks(updater);
+  };
 
   const addTask = () => {
     if (!newTaskText.trim()) return;
 
-    setTasks((prev) => ({
+    updateTasks((prev) => ({
       ...prev,
       [currentAdminDay]: [
         ...prev[currentAdminDay],
@@ -76,14 +103,14 @@ const WeeklyTaskOrganizer = () => {
   };
 
   const deleteTask = (day, id) => {
-    setTasks((prev) => ({
+    updateTasks((prev) => ({
       ...prev,
       [day]: prev[day].filter((t) => t.id !== id),
     }));
   };
 
   const toggleComplete = (day, id) => {
-    setTasks((prev) => ({
+    updateTasks((prev) => ({
       ...prev,
       [day]: prev[day].map((t) =>
         t.id === id ? { ...t, completed: !t.completed } : t
@@ -92,7 +119,7 @@ const WeeklyTaskOrganizer = () => {
   };
 
   const editTask = (day, id, newText) => {
-    setTasks((prev) => ({
+    updateTasks((prev) => ({
       ...prev,
       [day]: prev[day].map((t) => (t.id === id ? { ...t, text: newText } : t)),
     }));
@@ -122,7 +149,7 @@ const WeeklyTaskOrganizer = () => {
       selectedTasks.has(t.id)
     );
 
-    setTasks((prev) => {
+    updateTasks((prev) => {
       const newTasks = { ...prev };
 
       targetDays.forEach((day) => {
@@ -150,7 +177,7 @@ const WeeklyTaskOrganizer = () => {
 
   const deleteSelected = () => {
     if (!window.confirm(`Delete ${selectedTasks.size} task(s)?`)) return;
-    setTasks((prev) => ({
+    updateTasks((prev) => ({
       ...prev,
       [currentAdminDay]: prev[currentAdminDay].filter(
         (t) => !selectedTasks.has(t.id)
@@ -161,7 +188,7 @@ const WeeklyTaskOrganizer = () => {
 
   const clearCompleted = () => {
     if (!window.confirm("Clear all completed tasks from all days?")) return;
-    setTasks((prev) => {
+    updateTasks((prev) => {
       const newTasks = {};
       Object.keys(prev).forEach((day) => {
         newTasks[day] = prev[day].filter((t) => !t.completed);
@@ -172,7 +199,7 @@ const WeeklyTaskOrganizer = () => {
 
   const bulkAddTasks = () => {
     const lines = bulkTasksText.split("\n").filter((l) => l.trim());
-    setTasks((prev) => ({
+    updateTasks((prev) => ({
       ...prev,
       [currentAdminDay]: [
         ...prev[currentAdminDay],
@@ -286,7 +313,7 @@ const WeeklyTaskOrganizer = () => {
             "⚠️ This will replace ALL current tasks. Are you sure?"
           )
         ) {
-          setTasks(importData.tasks);
+          updateTasks(() => importData.tasks);
           alert("✅ Tasks imported successfully!");
         }
       } catch (error) {
@@ -508,9 +535,31 @@ const WeeklyTaskOrganizer = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 font-sans p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-white text-center mb-8 drop-shadow-lg">
-          📋 Weekly Task Organizer
-        </h1>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-white text-center drop-shadow-lg">
+            📋 Weekly Task Organizer
+          </h1>
+          {/* Sync Status Indicator */}
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-semibold ${
+              syncStatus === "synced"
+                ? "bg-green-500 text-white"
+                : syncStatus === "connecting"
+                ? "bg-yellow-500 text-black"
+                : syncStatus === "error"
+                ? "bg-red-500 text-white"
+                : "bg-gray-500 text-white"
+            }`}
+          >
+            {syncStatus === "synced"
+              ? "🟢 Synced"
+              : syncStatus === "connecting"
+              ? "🟡 Connecting..."
+              : syncStatus === "error"
+              ? "🔴 Error"
+              : "⚪ Offline"}
+          </span>
+        </div>
 
         <div className="flex justify-center gap-4 mb-8">
           <button
