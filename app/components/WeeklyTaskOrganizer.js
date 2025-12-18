@@ -35,6 +35,7 @@ const WeeklyTaskOrganizer = () => {
   const [bulkTasksText, setBulkTasksText] = useState("");
   const [priority, setPriority] = useState("medium");
   const [draggedTask, setDraggedTask] = useState(null);
+  const [groupByPriority, setGroupByPriority] = useState(true);
 
   // Client-side initialization and Firebase subscription
   useEffect(() => {
@@ -425,6 +426,75 @@ const WeeklyTaskOrganizer = () => {
     );
   };
 
+  const renderTaskList = (day, isAdmin) => {
+    const dayTasks = tasks[day] || [];
+    if (dayTasks.length === 0) {
+      return (
+        <div className="text-center text-gray-400 py-12 italic">
+          No tasks for this day
+        </div>
+      );
+    }
+
+    if (groupByPriority) {
+      const groups = { high: [], medium: [], low: [] };
+      dayTasks.forEach((task, index) => {
+        if (groups[task.priority]) {
+          groups[task.priority].push({ task, index });
+        } else {
+          groups.medium.push({ task, index });
+        }
+      });
+
+      const priorities = [
+        { key: "high", label: "🔴 High Priority" },
+        { key: "medium", label: "🟠 Medium Priority" },
+        { key: "low", label: "🟢 Low Priority" },
+      ];
+
+      return (
+        <div className="space-y-6">
+          {priorities.map((p) => {
+            const groupTasks = groups[p.key];
+            if (groupTasks.length === 0) return null;
+            return (
+              <div key={p.key}>
+                <h4 className="text-sm font-bold text-gray-500 mb-2 uppercase tracking-wide">
+                  {p.label}
+                </h4>
+                <ul className="space-y-2">
+                  {groupTasks.map(({ task, index }) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      day={day}
+                      index={index} // Original index for reordering
+                      isAdmin={isAdmin}
+                    />
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    return (
+      <ul className="space-y-2">
+        {dayTasks.map((task, index) => (
+          <TaskItem
+            key={task.id}
+            task={task}
+            day={day}
+            index={index}
+            isAdmin={isAdmin}
+          />
+        ))}
+      </ul>
+    );
+  };
+
   const TaskItem = ({ task, day, index, isAdmin }) => {
     const [editText, setEditText] = useState(task.text);
     const [editPriority, setEditPriority] = useState(task.priority);
@@ -452,6 +522,14 @@ const WeeklyTaskOrganizer = () => {
         onDragOver={(e) => e.preventDefault()}
         onDrop={() => {
           if (draggedTask && draggedTask.day === day) {
+            // If grouped, prevent cross-priority drops
+            if (
+              groupByPriority &&
+              draggedTask.task.priority !== task.priority
+            ) {
+              setDraggedTask(null);
+              return;
+            }
             reorderTasks(day, draggedTask.index, index);
           }
           setDraggedTask(null);
@@ -831,23 +909,19 @@ const WeeklyTaskOrganizer = () => {
                   </div>
                 )}
 
-                <ul className="space-y-2">
-                  {tasks[currentAdminDay]?.length > 0 ? (
-                    tasks[currentAdminDay].map((task, index) => (
-                      <TaskItem
-                        key={task.id}
-                        task={task}
-                        day={currentAdminDay}
-                        index={index}
-                        isAdmin={true}
-                      />
-                    ))
-                  ) : (
-                    <div className="text-center text-gray-400 py-12 italic">
-                      No tasks for this day
-                    </div>
-                  )}
-                </ul>
+                {/* View Options Toggle */}
+                <div className="flex justify-end mb-2">
+                  <button
+                    onClick={() => setGroupByPriority(!groupByPriority)}
+                    className="text-xs font-bold text-purple-600 bg-purple-100 px-3 py-1 rounded-full hover:bg-purple-200 transition-colors"
+                  >
+                    {groupByPriority
+                      ? "🗂️ Grouped by Priority"
+                      : "🔢 Custom Order"}
+                  </button>
+                </div>
+
+                {renderTaskList(currentAdminDay, true)}
               </div>
             </div>
           </div>
@@ -876,23 +950,17 @@ const WeeklyTaskOrganizer = () => {
               {currentUserDay}
             </div>
 
-            <ul className="space-y-2">
-              {tasks[currentUserDay]?.length > 0 ? (
-                tasks[currentUserDay].map((task, index) => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    day={currentUserDay}
-                    index={index}
-                    isAdmin={false}
-                  />
-                ))
-              ) : (
-                <div className="text-center text-gray-400 py-12 italic">
-                  No tasks for this day
-                </div>
-              )}
-            </ul>
+            {/* View Options Toggle */}
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={() => setGroupByPriority(!groupByPriority)}
+                className="text-xs font-bold text-purple-600 bg-purple-100 px-3 py-1 rounded-full hover:bg-purple-200 transition-colors"
+              >
+                {groupByPriority ? "🗂️ Grouped by Priority" : "🔢 Custom Order"}
+              </button>
+            </div>
+
+            {renderTaskList(currentUserDay, false)}
           </div>
         )}
 
