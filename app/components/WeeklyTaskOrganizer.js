@@ -118,11 +118,13 @@ const WeeklyTaskOrganizer = () => {
     }));
   };
 
-  const editTask = (day, id, newText) => {
+  const editTask = (day, id, newText, newPriority) => {
     updateTasks((prev) => ({
       ...prev,
       [day]: (prev[day] || []).map((t) =>
-        t.id === id ? { ...t, text: newText } : t
+        t.id === id
+          ? { ...t, text: newText, priority: newPriority || t.priority }
+          : t
       ),
     }));
     setEditingTaskId(null);
@@ -425,8 +427,17 @@ const WeeklyTaskOrganizer = () => {
 
   const TaskItem = ({ task, day, index, isAdmin }) => {
     const [editText, setEditText] = useState(task.text);
+    const [editPriority, setEditPriority] = useState(task.priority);
     const isEditing = editingTaskId === task.id;
     const isSelected = selectedTasks.has(task.id);
+
+    // Sync state with task when not editing (resets on cancel/save)
+    useEffect(() => {
+      if (!isEditing) {
+        setEditText(task.text);
+        setEditPriority(task.priority);
+      }
+    }, [isEditing, task]);
 
     const priorityColors = {
       high: "border-l-red-500",
@@ -475,19 +486,29 @@ const WeeklyTaskOrganizer = () => {
           )}
           {isEditing ? (
             <div className="flex-1 flex gap-2">
+              <select
+                value={editPriority}
+                onChange={(e) => setEditPriority(e.target.value)}
+                className="p-2 border-2 border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:border-purple-600"
+              >
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟠 Medium</option>
+                <option value="high">🔴 High</option>
+              </select>
               <input
                 type="text"
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") editTask(day, task.id, editText);
+                  if (e.key === "Enter")
+                    editTask(day, task.id, editText, editPriority);
                   if (e.key === "Escape") setEditingTaskId(null);
                 }}
                 className="flex-1 p-2 border-2 border-purple-600 rounded-lg focus:outline-none"
                 autoFocus
               />
               <button
-                onClick={() => editTask(day, task.id, editText)}
+                onClick={() => editTask(day, task.id, editText, editPriority)}
                 className="px-3 py-1 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
               >
                 💾
