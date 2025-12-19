@@ -48,10 +48,27 @@ interface Task {
 
 ## 4. Key Features & Functionalities
 
-### 4.1. Roles & Modes
+### 4.1. Roles & Views
 
-- **Administrator (👨‍💼)**: Full control. Can add, edit, delete, move, and copy tasks.
-- **User (Ramon) (👤)**: Execution mode. Can only mark tasks as complete.
+#### Administrator (👨‍💼)
+
+- **Layout**: 3-Column Grid.
+  - **Left Sidebar**:
+    - Vertical Day Navigation with task counts.
+    - Weekly Stats.
+    - Quick Actions (Export/Import, Bulk Add).
+  - **Main Area**:
+    - Task list for the selected day.
+    - Task input area.
+- **Capabilities**: Full control (CRUD, Move, Copy, Reorder).
+
+#### User (Ramon) (👤)
+
+- **Layout**: Single Column (Full Width).
+  - Horizontal Day Navigation.
+  - Simplified Task List.
+  - **No Quick Actions** or admin controls.
+- **Capabilities**: Can only toggle task completion.
 
 ### 4.2. Task Management
 

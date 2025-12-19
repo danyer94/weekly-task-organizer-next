@@ -55,25 +55,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
   return (
     <div className="lg:col-span-9 space-y-6">
       <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-purple-600">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-          <div className="flex overflow-x-auto pb-2 sm:pb-0 gap-2 w-full sm:w-auto">
-            {days.map((day) => (
-              <button
-                key={day}
-                onClick={() => onDayChange(day)}
-                className={`px-4 py-2 rounded-lg font-bold transition-all whitespace-nowrap ${
-                  currentDay === day
-                    ? "bg-purple-600 text-white shadow-lg scale-105"
-                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                }`}
-              >
-                {day}
-              </button>
-            ))}
-          </div>
-          <div className="text-right hidden sm:block">
-            <h2 className="text-2xl font-bold text-gray-800">{currentDay}</h2>
-            <p className="text-purple-600 font-medium">Weekly Overview</p>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+             <h2 className="text-2xl font-bold text-gray-800">{currentDay}</h2>
+             <p className="text-purple-600 font-medium">Weekly Overview</p>
           </div>
         </div>
 

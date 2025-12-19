@@ -4,8 +4,7 @@ import { useWeeklyTasks, DAYS } from "@/hooks/useWeeklyTasks";
 import { Day, Priority } from "@/types";
 import { AdminView } from "./AdminView";
 import { UserView } from "./UserView";
-import { QuickActions } from "./QuickActions";
-import { TaskStats } from "./TaskStats";
+import { Sidebar } from "./Sidebar"; // Correctly imported
 import { DaySelectionModal } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
 
@@ -129,72 +128,75 @@ const WeeklyTaskOrganizer: React.FC = () => {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Main Content */}
           {isAdmin ? (
-            <AdminView
-              currentDay={currentAdminDay}
-              days={DAYS}
-              onDayChange={setCurrentAdminDay}
-              newTaskText={newTaskText}
-              setNewTaskText={setNewTaskText}
-              priority={priority}
-              setPriority={setPriority}
-              onAddTask={handleAddTask}
-              groupByPriority={groupByPriority}
-              setGroupByPriority={setGroupByPriority}
-              selectedTasks={selectedTasks}
-              tasks={tasks}
-              onToggleSelection={handleToggleSelection}
-              onEdit={editTask}
-              onDragStart={(task, index, day) => {
-                setDraggedTask({ task, index, day });
-              }}
-              onDrop={(targetDay, targetIndex) => {
-                if (draggedTask && draggedTask.day === targetDay) {
-                  // If grouped, prevent cross-priority drops (optional check, TaskItem enforces it too but good to have)
-                  if (groupByPriority && draggedTask.task.priority !== tasks[targetDay]?.[targetIndex]?.priority) {
-                     // Note: Logic for priority grouping check might be complex here without passing strict filtered indices. 
-                     // For now trust TaskList/TaskItem to handle visual restrictions, but business logic is:
-                     reorderTasks(targetDay, draggedTask.index, targetIndex);
-                  } else {
-                     reorderTasks(targetDay, draggedTask.index, targetIndex);
-                  }
-                }
-                setDraggedTask(null);
-              }}
-              onDeleteSelected={handleDeleteSelected}
-              onSelectAll={handleSelectAll}
-              onMoveClick={() => setShowMoveModal(true)}
-              onCopyClick={() => setShowCopyModal(true)}
-              editingTaskId={editingTaskId}
-              setEditingTaskId={setEditingTaskId}
-            />
-          ) : (
-            <UserView
-              currentDay={currentUserDay}
-              days={DAYS}
-              onDayChange={setCurrentUserDay}
-              tasks={tasks}
-              onToggleComplete={toggleComplete}
-              groupByPriority={groupByPriority}
-              setGroupByPriority={setGroupByPriority}
-            />
-          )}
+            <>
+              {/* Sidebar (Left Column) */}
+              <div className="lg:col-span-3">
+                 <Sidebar
+                   days={DAYS}
+                   currentDay={currentAdminDay}
+                   onDayChange={setCurrentAdminDay}
+                   tasks={tasks}
+                   stats={stats}
+                   quickActionsProps={{
+                      onClearCompleted: clearCompleted,
+                      onBulkAdd: () => setShowBulkModal(true),
+                      onExportWhatsApp: exportToWhatsApp,
+                      onExportJSON: exportToJSON,
+                      onImportJSON: (e: any) => {
+                        if (e.target.files?.[0]) importFromJSON(e.target.files[0]);
+                      }
+                   }}
+                 />
+              </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-3 space-y-6">
-            <QuickActions
-              onClearCompleted={clearCompleted}
-              onBulkAdd={() => setShowBulkModal(true)}
-              onExportWhatsApp={exportToWhatsApp}
-              onExportJSON={exportToJSON}
-              onImportJSON={(e) => {
-                if (e.target.files?.[0]) importFromJSON(e.target.files[0]);
-              }}
-              className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-purple-600 sticky top-4"
-            />
-            {isAdmin && <TaskStats total={stats.total} completed={stats.completed} />}
-          </div>
+              {/* Main Content (Right Column) */}
+              <AdminView
+                currentDay={currentAdminDay}
+                days={DAYS}
+                onDayChange={setCurrentAdminDay}
+                newTaskText={newTaskText}
+                setNewTaskText={setNewTaskText}
+                priority={priority}
+                setPriority={setPriority}
+                onAddTask={handleAddTask}
+                groupByPriority={groupByPriority}
+                setGroupByPriority={setGroupByPriority}
+                selectedTasks={selectedTasks}
+                tasks={tasks}
+                onToggleSelection={handleToggleSelection}
+                onEdit={editTask}
+                onDragStart={(task, index, day) => {
+                  setDraggedTask({ task, index, day });
+                }}
+                onDrop={(targetDay, targetIndex) => {
+                  if (draggedTask && draggedTask.day === targetDay) {
+                    reorderTasks(targetDay, draggedTask.index, targetIndex);
+                  }
+                  setDraggedTask(null);
+                }}
+                onDeleteSelected={handleDeleteSelected}
+                onSelectAll={handleSelectAll}
+                onMoveClick={() => setShowMoveModal(true)}
+                onCopyClick={() => setShowCopyModal(true)}
+                editingTaskId={editingTaskId}
+                setEditingTaskId={setEditingTaskId}
+              />
+            </>
+          ) : (
+            // User View (Full Width)
+            <div className="lg:col-span-12">
+               <UserView
+                currentDay={currentUserDay}
+                days={DAYS}
+                onDayChange={setCurrentUserDay}
+                tasks={tasks}
+                onToggleComplete={toggleComplete}
+                groupByPriority={groupByPriority}
+                setGroupByPriority={setGroupByPriority}
+              />
+            </div>
+          )}
         </div>
       </div>
 
