@@ -4,7 +4,8 @@ import { useWeeklyTasks, DAYS } from "@/hooks/useWeeklyTasks";
 import { Day, Priority } from "@/types";
 import { AdminView } from "./AdminView";
 import { UserView } from "./UserView";
-import { Sidebar } from "./Sidebar"; // Correctly imported
+import { Sidebar } from "./Sidebar";
+import { ThemeToggle } from "./ThemeToggle"; // Correctly imported
 import { DaySelectionModal } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
 
@@ -89,27 +90,29 @@ const WeeklyTaskOrganizer: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 font-sans">
+    <div className="min-h-screen bg-bg-main p-4 font-sans transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <header className="flex justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-sm">
+        <header className="flex justify-between items-center mb-8 bg-bg-surface p-4 rounded-xl shadow-sm border border-border-subtle">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-sapphire-500 to-sapphire-300 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold text-text-brand">
               Weekly Task Organizer
             </h1>
-            <div className="flex items-center gap-2 px-3 py-1 bg-whisper-200 rounded-full text-xs font-medium">
+            <div className="flex items-center gap-2 px-3 py-1 bg-bg-main rounded-full text-xs font-medium border border-border-subtle">
               <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
-              <span className="capitalize">{syncStatus}</span>
+              <span className="capitalize text-text-secondary">{syncStatus}</span>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <ThemeToggle />
+            
             <button
               onClick={() => setIsAdmin(true)}
               className={`px-4 py-2 rounded-lg font-bold transition-all ${
                 isAdmin
                   ? "bg-sapphire-500 text-white shadow-md"
-                  : "bg-whisper-200 text-gray-600 hover:bg-whisper-300"
+                  : "bg-bg-main text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-subtle"
               }`}
             >
               👨‍💼 Administrator
@@ -119,7 +122,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
               className={`px-4 py-2 rounded-lg font-bold transition-all ${
                 !isAdmin
                   ? "bg-sapphire-500 text-white shadow-md"
-                  : "bg-whisper-200 text-gray-600 hover:bg-whisper-300"
+                  : "bg-bg-main text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-subtle"
               }`}
             >
               👷 Ramon

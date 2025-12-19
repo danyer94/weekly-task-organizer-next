@@ -23,12 +23,12 @@ export const UserView: React.FC<UserViewProps> = ({
 }) => {
   return (
     <div className="lg:col-span-9 space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-sapphire-600">
+      <div className="bg-bg-surface rounded-xl shadow-lg p-6 border-t-4 border-border-brand">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-sapphire-800 mb-2">
+          <h2 className="text-3xl font-bold text-text-brand mb-2">
             Hey Ramon! 👋
           </h2>
-          <p className="text-gray-600">Here are your tasks for today.</p>
+          <p className="text-text-secondary">Here are your tasks for today.</p>
         </div>
 
         <div className="flex overflow-x-auto pb-4 gap-3 mb-6">
@@ -42,12 +42,12 @@ export const UserView: React.FC<UserViewProps> = ({
                 onClick={() => onDayChange(day)}
                 className={`flex-shrink-0 w-32 p-3 rounded-xl border-2 transition-all ${
                   currentDay === day
-                    ? "border-sapphire-600 bg-sapphire-50 shadow-md"
-                    : "border-gray-100 bg-white text-gray-400 hover:border-sapphire-200"
+                    ? "border-border-brand bg-bg-main shadow-md"
+                    : "border-border-subtle bg-bg-surface text-text-secondary hover:border-border-brand"
                 }`}
               >
-                <div className="font-bold mb-1">{day}</div>
-                <div className="text-xs">
+                <div className="font-bold mb-1 text-text-primary">{day}</div>
+                <div className="text-xs text-text-secondary">
                   {completed}/{dayTasks.length} tasks
                 </div>
               </button>
@@ -55,14 +55,14 @@ export const UserView: React.FC<UserViewProps> = ({
           })}
         </div>
 
-        <div className="bg-sapphire-50 rounded-xl p-6 min-h-[400px]">
+        <div className="bg-bg-main rounded-xl p-6 min-h-[400px]">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-2xl font-bold text-gray-800">{currentDay}</h3>
+            <h3 className="text-2xl font-bold text-text-primary">{currentDay}</h3>
             
             {/* View Toggle */}
             <button
               onClick={() => setGroupByPriority(!groupByPriority)}
-              className="text-xs font-bold text-sapphire-600 bg-sapphire-100 px-3 py-1 rounded-full hover:bg-sapphire-200 transition-colors"
+              className="text-xs font-bold text-text-brand bg-sapphire-50 dark:bg-sapphire-900 px-3 py-1 rounded-full hover:bg-sapphire-100 dark:hover:bg-sapphire-800 transition-colors"
             >
               {groupByPriority ? "🗂️ Grouped by Priority" : "🔢 Custom Order"}
             </button>

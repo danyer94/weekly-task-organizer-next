@@ -72,10 +72,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       onDrop={handleDrop}
       className={`flex items-center justify-between p-4 rounded-lg mb-2 border-l-4 transition-all hover:shadow-md ${
         task.completed
-          ? "bg-green-50 " + priorityColors[task.priority]
-          : "bg-sapphire-50 " + priorityColors[task.priority]
-      } ${isSelected ? "ring-2 ring-sapphire-600" : ""} ${
-        isAdmin ? "hover:bg-sapphire-100 cursor-move" : ""
+          ? "bg-green-50 dark:bg-green-900/20 " + priorityColors[task.priority]
+          : "bg-bg-surface border-border-subtle " + priorityColors[task.priority]
+      } ${isSelected ? "ring-2 ring-border-brand" : ""} ${
+        isAdmin ? "hover:bg-bg-main cursor-move" : ""
       }`}
     >
       <div className="flex items-center flex-1 gap-3">
@@ -85,9 +85,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               type="checkbox"
               checked={isSelected}
               onChange={() => onToggleSelection(task.id)}
-              className="w-5 h-5 text-sapphire-600 rounded focus:ring-sapphire-500 cursor-pointer"
+              className="w-5 h-5 text-text-brand rounded focus:ring-border-brand cursor-pointer"
             />
-            <span className="text-gray-400 cursor-grab">⋮⋮</span>
+            <span className="text-text-secondary cursor-grab">⋮⋮</span>
           </div>
         )}
         {!isAdmin && onToggleComplete && (
@@ -137,7 +137,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           <div className="flex-1">
             <span
               className={`text-lg ${
-                task.completed ? "line-through text-gray-500" : "text-gray-800"
+                task.completed ? "line-through text-text-secondary" : "text-text-primary"
               }`}
             >
               {task.text}

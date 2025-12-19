@@ -1,25 +1,82 @@
 @import "tailwindcss";
 
 @theme {
-  /* User Palette Mapping */
-  /* Primary Blue Range */
-  --color-sapphire-50: #f0f7fb; /* Very light tint for backgrounds */
-  --color-sapphire-100: #dbeafe; 
-  --color-sapphire-200: #A8C4EC; /* User Provided: Light Blue */
+  /* --- PALETTE DEFINITIONS (Raw Colors) --- */
+  
+  /* Sapphire Scale (Blue/Brand) */
+  --color-sapphire-50: #f0f7fb;
+  --color-sapphire-100: #dbeafe;
+  --color-sapphire-200: #A8C4EC;
   --color-sapphire-300: #7da0d6;
-  --color-sapphire-400: #5379AE; /* User Provided: Muted Blue */
-  --color-sapphire-500: #0474C4; /* User Provided: Bright Blue (Primary) */
+  --color-sapphire-400: #5379AE;
+  --color-sapphire-500: #0474C4;
   --color-sapphire-600: #0360a3;
-  --color-sapphire-700: #06457F; /* User Provided: Dark Blue */
-  --color-sapphire-800: #2C444C; /* User Provided: Dark Slate */
-  --color-sapphire-900: #262B40; /* User Provided: Dark Navy/Black */
+  --color-sapphire-700: #06457F;
+  --color-sapphire-800: #2C444C;
+  --color-sapphire-900: #262B40;
   --color-sapphire-950: #1a1e2e;
 
-  /* Whisper / Neutrals */
-  --color-whisper-50: #f8fafc;
-  --color-whisper-100: #f1f5f9;
-  --color-whisper-200: #e2e8f0;
-  --color-whisper-900: #262B40; /* Match User Darkest */
+  /* Neutrals */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  /* --- SEMANTIC TOKENS (Theming) --- */
+  
+  /* Backgrounds */
+  --color-bg-main: var(--bg-main);       /* App Background */
+  --color-bg-surface: var(--bg-surface); /* Card/Panel Background */
+  --color-bg-sidebar: var(--bg-sidebar); /* Sidebar Background */
+  
+  /* Text */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-brand: var(--text-brand);
+  
+  /* Borders */
+  --color-border-subtle: var(--border-subtle);
+  --color-border-brand: var(--border-brand);
+}
+
+/* --- THEME CONFIGURATION --- */
+
+@layer base {
+  :root {
+    /* LIGHT MODE MAPPING */
+    --bg-main: var(--color-sapphire-50);
+    --bg-surface: var(--color-white);
+    --bg-sidebar: var(--color-white);
+    
+    --text-primary: var(--color-gray-800);
+    --text-secondary: var(--color-gray-600);
+    --text-brand: var(--color-sapphire-600);
+    
+    --border-subtle: var(--color-gray-200);
+    --border-brand: var(--color-sapphire-500);
+  }
+
+  .dark {
+    /* DARK MODE MAPPING */
+    --bg-main: var(--color-sapphire-950);
+    --bg-surface: var(--color-sapphire-900);
+    --bg-sidebar: var(--color-sapphire-900);
+    
+    --text-primary: var(--color-sapphire-50);
+    --text-secondary: var(--color-sapphire-200);
+    --text-brand: var(--color-sapphire-400);
+    
+    --border-subtle: var(--color-sapphire-800);
+    --border-brand: var(--color-sapphire-400);
+  }
 }
 
 /* Custom utilities */
@@ -36,6 +93,7 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--color-whisper-100);
-  color: var(--color-whisper-900);
+  background-color: var(--color-bg-main);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s, color 0.3s;
 }

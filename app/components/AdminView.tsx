@@ -54,11 +54,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
 }) => {
   return (
     <div className="lg:col-span-9 space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-sapphire-600">
+      <div className="bg-bg-surface rounded-xl shadow-lg p-6 border-t-4 border-border-brand border bg-border-surface">
         <div className="flex justify-between items-center mb-6">
           <div>
-             <h2 className="text-2xl font-bold text-gray-800">{currentDay}</h2>
-             <p className="text-sapphire-600 font-medium">Weekly Overview</p>
+             <h2 className="text-2xl font-bold text-text-primary">{currentDay}</h2>
+             <p className="text-text-brand font-medium">Weekly Overview</p>
           </div>
         </div>
 
@@ -67,7 +67,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value as Priority)}
-            className="p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-sapphire-600 bg-white"
+            className="p-3 border-2 border-border-subtle rounded-xl focus:outline-none focus:border-border-brand bg-bg-surface text-text-primary"
           >
             <option value="high">🔴 High</option>
             <option value="medium">🟠 Medium</option>
@@ -79,11 +79,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
             onChange={(e) => setNewTaskText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && onAddTask()}
             placeholder="Add new task..."
-            className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-sapphire-600 transition-colors"
+            className="flex-1 p-3 border-2 border-border-subtle rounded-xl focus:outline-none focus:border-border-brand transition-colors bg-bg-surface text-text-primary placeholder-text-secondary"
           />
           <button
             onClick={onAddTask}
-            className="bg-sapphire-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-sapphire-700 hover:shadow-lg transition-all transform active:scale-95"
+            className="bg-sapphire-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-sapphire-600 hover:shadow-lg transition-all transform active:scale-95"
           >
             Add Task
           </button>
@@ -91,8 +91,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
         {/* Selection Actions Toolbar */}
         {selectedTasks.size > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4 p-2 bg-sapphire-50 rounded-lg animate-fade-in">
-            <span className="flex items-center text-sm font-bold text-sapphire-800 mr-2">
+          <div className="flex flex-wrap gap-2 mb-4 p-2 bg-bg-main rounded-lg animate-fade-in border border-border-subtle">
+            <span className="flex items-center text-sm font-bold text-text-brand mr-2">
               {selectedTasks.size} selected
             </span>
             <button
@@ -121,7 +121,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
            {/* Select All Button */}
            <button
             onClick={onSelectAll}
-            className="text-xs font-bold text-gray-500 hover:text-sapphire-600 bg-gray-100 px-3 py-1 rounded-full hover:bg-sapphire-50 transition-colors"
+            className="text-xs font-bold text-text-secondary hover:text-text-brand bg-bg-main px-3 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-border-subtle"
           >
             ☑️ Select All
           </button>
@@ -129,7 +129,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
           {/* View Toggle */}
           <button
             onClick={() => setGroupByPriority(!groupByPriority)}
-            className="text-xs font-bold text-sapphire-600 bg-sapphire-100 px-3 py-1 rounded-full hover:bg-sapphire-200 transition-colors"
+            className="text-xs font-bold text-text-brand bg-sapphire-50 dark:bg-sapphire-900 px-3 py-1 rounded-full hover:bg-sapphire-100 dark:hover:bg-sapphire-800 transition-colors"
           >
             {groupByPriority ? "🗂️ Grouped by Priority" : "🔢 Custom Order"}
           </button>
