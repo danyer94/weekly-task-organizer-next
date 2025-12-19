@@ -23,9 +23,9 @@ export const UserView: React.FC<UserViewProps> = ({
 }) => {
   return (
     <div className="lg:col-span-9 space-y-6">
-      <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-purple-600">
+      <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-sapphire-600">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-purple-800 mb-2">
+          <h2 className="text-3xl font-bold text-sapphire-800 mb-2">
             Hey Ramon! 👋
           </h2>
           <p className="text-gray-600">Here are your tasks for today.</p>
@@ -42,8 +42,8 @@ export const UserView: React.FC<UserViewProps> = ({
                 onClick={() => onDayChange(day)}
                 className={`flex-shrink-0 w-32 p-3 rounded-xl border-2 transition-all ${
                   currentDay === day
-                    ? "border-purple-600 bg-purple-50 shadow-md"
-                    : "border-gray-100 bg-white text-gray-400 hover:border-purple-200"
+                    ? "border-sapphire-600 bg-sapphire-50 shadow-md"
+                    : "border-gray-100 bg-white text-gray-400 hover:border-sapphire-200"
                 }`}
               >
                 <div className="font-bold mb-1">{day}</div>
@@ -55,14 +55,14 @@ export const UserView: React.FC<UserViewProps> = ({
           })}
         </div>
 
-        <div className="bg-purple-50 rounded-xl p-6 min-h-[400px]">
+        <div className="bg-sapphire-50 rounded-xl p-6 min-h-[400px]">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-2xl font-bold text-gray-800">{currentDay}</h3>
             
             {/* View Toggle */}
             <button
               onClick={() => setGroupByPriority(!groupByPriority)}
-              className="text-xs font-bold text-purple-600 bg-purple-100 px-3 py-1 rounded-full hover:bg-purple-200 transition-colors"
+              className="text-xs font-bold text-sapphire-600 bg-sapphire-100 px-3 py-1 rounded-full hover:bg-sapphire-200 transition-colors"
             >
               {groupByPriority ? "🗂️ Grouped by Priority" : "🔢 Custom Order"}
             </button>

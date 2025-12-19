@@ -98,4 +98,4 @@ interface Task {
 - **Logic Separation**: UI is in `app/components`, Logic is in `hooks/useWeeklyTasks.ts`. Modify the hook for business rule changes, modify components for UI changes.
 - **Type Safety**: strict TypeScript usage. Use `Task`, `Day`, `Priority` from `@/types`.
 - **Firebase**: Helper functions in `lib/firebase.ts` return typed Promises.
-- **Styling**: Tailwind CSS v4. Standard purple/white theme consistency.
+- **Styling**: Tailwind CSS v4. "Sapphire Nightfall" theme (User-defined Blue Palette).

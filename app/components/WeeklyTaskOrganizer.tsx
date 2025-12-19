@@ -94,10 +94,10 @@ const WeeklyTaskOrganizer: React.FC = () => {
         {/* Header */}
         <header className="flex justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-sapphire-500 to-sapphire-300 bg-clip-text text-transparent">
               Weekly Task Organizer
             </h1>
-            <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-xs font-medium">
+            <div className="flex items-center gap-2 px-3 py-1 bg-whisper-200 rounded-full text-xs font-medium">
               <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
               <span className="capitalize">{syncStatus}</span>
             </div>
@@ -108,8 +108,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
               onClick={() => setIsAdmin(true)}
               className={`px-4 py-2 rounded-lg font-bold transition-all ${
                 isAdmin
-                  ? "bg-purple-600 text-white shadow-md"
-                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  ? "bg-sapphire-500 text-white shadow-md"
+                  : "bg-whisper-200 text-gray-600 hover:bg-whisper-300"
               }`}
             >
               👨‍💼 Administrator
@@ -118,8 +118,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
               onClick={() => setIsAdmin(false)}
               className={`px-4 py-2 rounded-lg font-bold transition-all ${
                 !isAdmin
-                  ? "bg-purple-600 text-white shadow-md"
-                  : "bg-gray-200 text-gray-600 hover:bg-gray-300"
+                  ? "bg-sapphire-500 text-white shadow-md"
+                  : "bg-whisper-200 text-gray-600 hover:bg-whisper-300"
               }`}
             >
               👷 Ramon

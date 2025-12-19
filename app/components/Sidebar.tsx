@@ -23,8 +23,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div className="space-y-6">
       {/* Days Navigation */}
-      <div className="bg-white rounded-xl shadow-lg p-4">
-        <h4 className="font-bold text-purple-600 mb-3 px-2">Days</h4>
+      <div className="bg-white rounded-xl shadow-lg p-4 font-sans">
+        <h4 className="font-bold text-sapphire-600 mb-3 px-2">Days</h4>
         <div className="space-y-2">
           {days.map((day) => {
             const dayTasks = tasks[day] || [];
@@ -39,13 +39,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => onDayChange(day)}
                 className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
                   isActive
-                    ? "bg-purple-600 text-white shadow-md"
-                    : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                    ? "bg-sapphire-600 text-white shadow-md"
+                    : "bg-sapphire-50 text-sapphire-700 hover:bg-sapphire-100"
                 }`}
               >
                 <span className="font-medium">{day}</span>
                 <span className={`text-xs px-2 py-1 rounded-full font-bold ${
-                  isActive ? "bg-white text-purple-600" : "bg-black text-white"
+                  isActive ? "bg-white text-sapphire-600" : "bg-sapphire-900 text-white"
                 }`}>
                   {completedCount}/{totalCount}
                 </span>

@@ -73,9 +73,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       className={`flex items-center justify-between p-4 rounded-lg mb-2 border-l-4 transition-all hover:shadow-md ${
         task.completed
           ? "bg-green-50 " + priorityColors[task.priority]
-          : "bg-purple-50 " + priorityColors[task.priority]
-      } ${isSelected ? "ring-2 ring-purple-600" : ""} ${
-        isAdmin ? "hover:bg-purple-100 cursor-move" : ""
+          : "bg-sapphire-50 " + priorityColors[task.priority]
+      } ${isSelected ? "ring-2 ring-sapphire-600" : ""} ${
+        isAdmin ? "hover:bg-sapphire-100 cursor-move" : ""
       }`}
     >
       <div className="flex items-center flex-1 gap-3">
@@ -85,7 +85,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               type="checkbox"
               checked={isSelected}
               onChange={() => onToggleSelection(task.id)}
-              className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 cursor-pointer"
+              className="w-5 h-5 text-sapphire-600 rounded focus:ring-sapphire-500 cursor-pointer"
             />
             <span className="text-gray-400 cursor-grab">⋮⋮</span>
           </div>
@@ -103,7 +103,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             <select
               value={editPriority}
               onChange={(e) => setEditPriority(e.target.value as Priority)}
-              className="p-2 border-2 border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:border-purple-600"
+              className="p-2 border-2 border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:border-sapphire-600"
             >
               <option value="low">🟢 Low</option>
               <option value="medium">🟠 Medium</option>
@@ -117,12 +117,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 if (e.key === "Enter") handleEditSubmit();
                 if (e.key === "Escape") setEditingTaskId(null);
               }}
-              className="flex-1 p-2 border-2 border-purple-600 rounded-lg focus:outline-none"
+              className="flex-1 p-2 border-2 border-sapphire-600 rounded-lg focus:outline-none"
               autoFocus
             />
             <button
               onClick={handleEditSubmit}
-              className="px-3 py-1 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700"
+              className="px-3 py-1 bg-sapphire-600 text-white rounded-lg text-sm hover:bg-sapphire-700"
             >
               💾
             </button>
@@ -149,7 +149,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       {isAdmin && !isEditing && setEditingTaskId && (
         <button
           onClick={() => setEditingTaskId(task.id)}
-          className="text-gray-400 hover:text-purple-600 p-2 transition-colors"
+          className="text-gray-400 hover:text-sapphire-600 p-2 transition-colors"
         >
           ✏️
         </button>
