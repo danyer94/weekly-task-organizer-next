@@ -22,7 +22,7 @@ const database = getDatabase(app);
 export const tasksRef = ref(database, "tasks");
 
 // Helper function to save tasks
-export const saveTasks = async (tasks) => {
+export const saveTasks = async (tasks: any): Promise<boolean> => {
   try {
     await set(tasksRef, tasks);
     return true;
@@ -33,7 +33,7 @@ export const saveTasks = async (tasks) => {
 };
 
 // Subscribe to task changes
-export const subscribeToTasks = (callback) => {
+export const subscribeToTasks = (callback: (data: any) => void) => {
   return onValue(tasksRef, (snapshot) => {
     const data = snapshot.val();
     callback(data);

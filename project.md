@@ -10,29 +10,39 @@
 - **UI Library**: React
 - **Styling**: Tailwind CSS v4
 - **Database**: Firebase Realtime Database
-- **Language**: JavaScript
+- **Language**: TypeScript
 
 ## 3. Core Architecture
 
 ### File Structure
 
-- `app/page.js`: Main entry point, loads the `WeeklyTaskOrganizer` component dynamically (client-side only).
-- `app/components/WeeklyTaskOrganizer.js`: Monolithic component containing all UI logic, state management, and business logic.
-- `lib/firebase.js`: Firebase configuration and helper functions (`saveTasks`, `subscribeToTasks`).
-- `app/globals.css`: Global styles and Tailwind imports.
+- `app/layout.tsx`: Root layout configuration.
+- `app/page.tsx`: Home page entry point, loads `WeeklyTaskOrganizer`.
+- `app/components/`:
+  - `WeeklyTaskOrganizer.tsx`: Main container hooking logic to view components.
+  - `AdminView.tsx`: Dashboard for the Administrator role.
+  - `UserView.tsx`: Dashboard for the User role.
+  - `TaskItem.tsx`: Atomic component for individual tasks.
+  - `TaskList.tsx`: List rendering logic (grouped vs flat).
+  - `QuickActions.tsx`: Export/Import and bulk action buttons.
+  - `TaskStats.tsx`: Statistics display.
+  - `DaySelectionModal.tsx` & `BulkAddModal.tsx`: UI modals.
+- `hooks/useWeeklyTasks.ts`: **Core Business Logic**. Handles state, Firebase sync, and CRUD operations.
+- `lib/firebase.ts`: Firebase configuration and typed helper functions.
+- `types/index.ts`: Shared type definitions (`Task`, `Day`, `Priority`).
 
 ### Data Model
 
-Tasks are stored as an object where keys are day names (e.g., "Monday") and values are arrays of task objects.
+Tasks are stored as a mapped object (`TasksByDay`) where keys are day names and values are arrays of tasks.
 
-**Task Object Structure:**
+**Task Interface:**
 
-```json
-{
-  "id": 1734567890123,
-  "text": "Task description",
-  "completed": false,
-  "priority": "high" // "high" | "medium" | "low"
+```typescript
+interface Task {
+  id: number;
+  text: string;
+  completed: boolean;
+  priority: "high" | "medium" | "low";
 }
 ```
 
@@ -41,53 +51,34 @@ Tasks are stored as an object where keys are day names (e.g., "Monday") and valu
 ### 4.1. Roles & Modes
 
 - **Administrator (👨‍💼)**: Full control. Can add, edit, delete, move, and copy tasks.
-- **User (Ramon) (👤)**: Execution mode. Can only mark tasks as complete/incomplete. Interface is simplified.
+- **User (Ramon) (👤)**: Execution mode. Can only mark tasks as complete.
 
 ### 4.2. Task Management
 
-- **Add Task**: Inputs for text and priority selection.
-- **Edit Task**: In-place editing of text and priority.
-- **Delete Task**: Individual deletion or bulk deletion of selected tasks.
+- **Add/Edit/Delete**: Full CRUD operations.
 - **Priority**: Three levels (High 🔴, Medium 🟠, Low 🟢).
-- **Completion**: Checkbox to toggle status.
+- **Completion**: Toggleable status.
 
 ### 4.3. Views & Ordering
 
-- **Grouped by Priority (Default)**: Tasks are displayed in sections (High -> Medium -> Low).
-  - _Constraint_: Drag-and-drop is restricted to within the same priority group.
-- **Custom Order**: Flat list view where tasks can be reordered freely via drag-and-drop.
-- **Toggle**: A button switches between these two views.
+- **Grouped by Priority**: High -> Medium -> Low sections. Drag-and-drop restricted to same group.
+- **Custom Order**: Flat list, free drag-and-drop reordering.
+- **Toggle**: Handled by `TaskList.tsx`.
 
-### 4.4. Bulk Operations via Selection
+### 4.4. Bulk Operations
 
-- **Select All**: Button to select all tasks for a specific day.
-- **Move/Copy**: Selected tasks can be moved or copied to one or multiple target days.
-  - _Logic_: Uses a robust non-destructive append strategy.
-- **Bulk Add**: text area to add multiple tasks at once (one per line).
+- **Select All**: Selects all tasks in the current view.
+- **Move/Copy**: Multi-task operations to other days.
+- **Bulk Add**: Paste list of tasks to add multiple at once.
 
 ### 4.5. Data Synchronization
 
-- **Real-time Sync**: Uses Firebase `onValue` listener to sync state across devices instantly.
-- **Optimistic Updates**: Local state calls `updateTasks`, which updates local state immediately and pushes to Firebase.
-- **Offline/Error Handling**: UI indicator shows connection status (🟢 Synced, 🟡 Connecting, 🔴 Error).
-- **Edge Cases**: Handles sparse data (null/undefined arrays) from Firebase seamlessly.
+- **Real-time Sync**: `useWeeklyTasks` subscribes to Firebase changes.
+- **Optimistic UI**: Local state updates immediately; logic handles preventing sync loops via `isLocalChange` ref.
 
-### 4.6. Import / Export
+## 5. Implementation Notes for AI Agents
 
-- **WhatsApp Export**: Generates a formatted string with emojis representing status and priority, copies to clipboard.
-- **JSON Backup**: Downloads a full state backup file.
-- **JSON Restore**: Restores state from a backup file (with validation).
-
-## 5. Important Code Functions (`WeeklyTaskOrganizer.js`)
-
-- `renderTaskList(day, isAdmin)`: Logic to render tasks either grouped by priority or as a plain list based on `groupByPriority` state.
-- `updateTasks(updater)`: Central wrapper for `setTasks` that flags changes as "local" to prevent circular sync loops with Firebase.
-- `moveOrCopyTasks(targetDays, isMove)`: Handles the logic for duplicating/moving selected tasks to target days.
-- `reorderTasks(day, fromIndex, toIndex)`: Handles drag-and-drop reordering logic.
-
-## 6. Implementation Notes for AI Agents
-
-- **Props/State**: The component relies heavily on local state (`tasks`, `selectedTasks`, `groupByPriority`).
-- **Safety**: Always ensure array access is safe (e.g., `(prev[day] || [])`) as Firebase may return null for empty nodes.
-- **Modals**: Custom inline modals are used for "Move/Copy" and "Bulk Add".
-- **Styling**: Uses standard Tailwind utility classes; ensure consistency with the existing purple/white theme.
+- **Logic Separation**: UI is in `app/components`, Logic is in `hooks/useWeeklyTasks.ts`. Modify the hook for business rule changes, modify components for UI changes.
+- **Type Safety**: strict TypeScript usage. Use `Task`, `Day`, `Priority` from `@/types`.
+- **Firebase**: Helper functions in `lib/firebase.ts` return typed Promises.
+- **Styling**: Tailwind CSS v4. Standard purple/white theme consistency.
