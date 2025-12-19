@@ -67,7 +67,14 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const handleSelectAll = () => {
     const dayTasks = tasks[currentAdminDay] || [];
     const ids = dayTasks.map((t) => t.id);
-    setSelectedTasks(new Set(ids));
+    
+    const allSelected = ids.length > 0 && ids.every((id) => selectedTasks.has(id));
+
+    if (allSelected) {
+      setSelectedTasks(new Set());
+    } else {
+      setSelectedTasks(new Set(ids));
+    }
   };
 
   const handleDeleteSelected = () => {

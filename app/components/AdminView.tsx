@@ -118,12 +118,14 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
         {/* Task List Header with Options */}
         <div className="flex justify-between items-center mb-2">
-           {/* Select All Button */}
+           {/* Select All / Deselect All Button */}
            <button
             onClick={onSelectAll}
             className="text-xs font-bold text-text-secondary hover:text-text-brand bg-bg-main px-3 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-border-subtle"
           >
-            ☑️ Select All
+            {(tasks[currentDay] || []).length > 0 && (tasks[currentDay] || []).every((t: any) => selectedTasks.has(t.id)) 
+              ? "☒ Unselect All" 
+              : "☑️ Select All"}
           </button>
 
           {/* View Toggle */}
