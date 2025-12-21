@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FilePlus2, CheckCircle2, XCircle } from "lucide-react";
 
 interface BulkAddModalProps {
   isOpen: boolean;
@@ -16,11 +17,12 @@ export const BulkAddModal: React.FC<BulkAddModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-xl shadow-2xl w-96 transform transition-all scale-100">
-        <h3 className="text-xl font-bold text-sapphire-700 mb-4">
-          Bulk Add Tasks
-        </h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+      <div className="bg-bg-surface p-6 rounded-xl shadow-2xl w-96 transform transition-all scale-100 border border-border-subtle">
+        <div className="flex items-center gap-2 mb-4 text-text-brand">
+          <FilePlus2 className="w-6 h-6" />
+          <h3 className="text-xl font-bold">Bulk Add Tasks</h3>
+        </div>
         <p className="text-sm text-gray-500 mb-2">
           Paste multiple tasks (one per line)
         </p>
@@ -33,18 +35,20 @@ export const BulkAddModal: React.FC<BulkAddModalProps> = ({
         <div className="flex gap-2 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 font-medium transition-colors"
+            className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 font-medium transition-colors flex items-center gap-2"
           >
-            Cancel
+            <XCircle className="w-4 h-4" />
+            <span>Cancel</span>
           </button>
           <button
             onClick={() => {
               onConfirm(text);
               setText("");
             }}
-            className="px-4 py-2 bg-sapphire-600 text-white rounded-lg hover:bg-sapphire-700 font-medium transition-colors"
+            className="px-4 py-2 bg-sapphire-600 text-white rounded-lg hover:bg-sapphire-700 font-medium transition-colors flex items-center gap-2"
           >
-            Add Tasks
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Add Tasks</span>
           </button>
         </div>
       </div>

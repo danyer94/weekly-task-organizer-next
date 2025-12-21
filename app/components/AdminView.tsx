@@ -1,6 +1,16 @@
 import React from "react";
 import { Day, Priority } from "@/types";
 import { TaskList } from "./TaskList";
+import { PrioritySelector } from "./PrioritySelector";
+import { 
+  Plus, 
+  Trash2, 
+  ArrowRight, 
+  Copy, 
+  SquareCheck, 
+  SquareX, 
+  Layers 
+} from "lucide-react";
 
 interface AdminViewProps {
   currentDay: Day;
@@ -62,17 +72,12 @@ export const AdminView: React.FC<AdminViewProps> = ({
           </div>
         </div>
 
-        {/* Input Area */}
         <div className="flex gap-2 mb-6">
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as Priority)}
-            className="p-3 border-2 border-border-subtle rounded-xl focus:outline-none focus:border-border-brand bg-bg-surface text-text-primary"
-          >
-            <option value="high">🔴 High</option>
-            <option value="medium">🟠 Medium</option>
-            <option value="low">🟢 Low</option>
-          </select>
+          <PrioritySelector 
+            priority={priority} 
+            setPriority={setPriority} 
+            className="min-w-[180px]"
+          />
           <input
             type="text"
             value={newTaskText}
@@ -83,9 +88,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
           />
           <button
             onClick={onAddTask}
-            className="bg-sapphire-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-sapphire-600 hover:shadow-lg transition-all transform active:scale-95"
+            className="bg-sapphire-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-sapphire-600 hover:shadow-lg transition-all transform active:scale-95 flex items-center gap-2"
           >
-            Add Task
+            <Plus className="w-5 h-5" />
+            <span>Add Task</span>
           </button>
         </div>
 
@@ -97,21 +103,24 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </span>
             <button
               onClick={onDeleteSelected}
-              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex items-center gap-1.5"
             >
-              🗑️ Delete
+              <Trash2 className="w-4 h-4" />
+              <span>Delete</span>
             </button>
             <button
               onClick={onMoveClick}
-              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+              className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm flex items-center gap-1.5"
             >
-              ➡️ Move
+              <ArrowRight className="w-4 h-4" />
+              <span>Move</span>
             </button>
             <button
               onClick={onCopyClick}
-              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm flex items-center gap-1.5"
             >
-              📋 Copy
+              <Copy className="w-4 h-4" />
+              <span>Copy</span>
             </button>
           </div>
         )}
@@ -121,19 +130,20 @@ export const AdminView: React.FC<AdminViewProps> = ({
            {/* Select All / Deselect All Button */}
            <button
             onClick={onSelectAll}
-            className="text-xs font-bold text-text-secondary hover:text-text-brand bg-bg-main px-3 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-border-subtle"
+            className="text-xs font-bold text-text-secondary hover:text-text-brand bg-bg-main px-3 py-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-transparent hover:border-border-subtle flex items-center gap-1.5"
           >
             {(tasks[currentDay] || []).length > 0 && (tasks[currentDay] || []).every((t: any) => selectedTasks.has(t.id)) 
-              ? "☒ Unselect All" 
-              : "☑️ Select All"}
+              ? <><SquareX className="w-3.5 h-3.5" /> Unselect All</>
+              : <><SquareCheck className="w-3.5 h-3.5" /> Select All</>}
           </button>
 
           {/* View Toggle */}
           <button
             onClick={() => setGroupByPriority(!groupByPriority)}
-            className="text-xs font-bold text-text-brand bg-sapphire-50 dark:bg-sapphire-900 px-3 py-1 rounded-full hover:bg-sapphire-100 dark:hover:bg-sapphire-800 transition-colors"
+            className="text-xs font-bold text-text-brand bg-sapphire-50 dark:bg-sapphire-900 px-3 py-1 rounded-full hover:bg-sapphire-100 dark:hover:bg-sapphire-800 transition-colors flex items-center gap-1.5"
           >
-            {groupByPriority ? "🗂️ Grouped by Priority" : "🔢 Custom Order"}
+            <Layers className="w-3.5 h-3.5" />
+            <span>{groupByPriority ? "Grouped by Priority" : "Custom Order"}</span>
           </button>
         </div>
 

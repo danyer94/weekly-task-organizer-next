@@ -8,6 +8,7 @@ import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle"; // Correctly imported
 import { DaySelectionModal } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
+import { ShieldCheck, User } from "lucide-react";
 
 const WeeklyTaskOrganizer: React.FC = () => {
   // Logic Hook
@@ -116,23 +117,25 @@ const WeeklyTaskOrganizer: React.FC = () => {
             
             <button
               onClick={() => setIsAdmin(true)}
-              className={`px-4 py-2 rounded-lg font-bold transition-all ${
+              className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 ${
                 isAdmin
                   ? "bg-sapphire-500 text-white shadow-md"
                   : "bg-bg-main text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-subtle"
               }`}
             >
-              👨‍💼 Administrator
+              <ShieldCheck className="w-4 h-4" />
+              <span>Administrator</span>
             </button>
             <button
               onClick={() => setIsAdmin(false)}
-              className={`px-4 py-2 rounded-lg font-bold transition-all ${
+              className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 ${
                 !isAdmin
                   ? "bg-sapphire-500 text-white shadow-md"
                   : "bg-bg-main text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-subtle"
               }`}
             >
-              👷 Ramon
+              <User className="w-4 h-4" />
+              <span>Ramon</span>
             </button>
           </div>
         </header>

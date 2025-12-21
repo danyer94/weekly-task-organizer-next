@@ -1,6 +1,7 @@
 import React from "react";
 import { Day } from "@/types";
 import { TaskList } from "./TaskList";
+import { Layers, Sparkles } from "lucide-react";
 
 interface UserViewProps {
   currentDay: Day;
@@ -25,8 +26,9 @@ export const UserView: React.FC<UserViewProps> = ({
     <div className="lg:col-span-9 space-y-6">
       <div className="bg-bg-surface rounded-xl shadow-lg p-6 border-t-4 border-border-brand">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-text-brand mb-2">
-            Hey Ramon! 👋
+          <h2 className="text-3xl font-bold text-text-brand mb-2 flex items-center justify-center gap-2">
+            <span>Hey Ramon!</span>
+            <Sparkles className="w-8 h-8 text-amber-500" />
           </h2>
           <p className="text-text-secondary">Here are your tasks for today.</p>
         </div>
@@ -62,9 +64,10 @@ export const UserView: React.FC<UserViewProps> = ({
             {/* View Toggle */}
             <button
               onClick={() => setGroupByPriority(!groupByPriority)}
-              className="text-xs font-bold text-text-brand bg-sapphire-50 dark:bg-sapphire-900 px-3 py-1 rounded-full hover:bg-sapphire-100 dark:hover:bg-sapphire-800 transition-colors"
+              className="text-xs font-bold text-text-brand bg-sapphire-50 dark:bg-sapphire-900 px-3 py-1 rounded-full hover:bg-sapphire-100 dark:hover:bg-sapphire-800 transition-colors flex items-center gap-1.5"
             >
-              {groupByPriority ? "🗂️ Grouped by Priority" : "🔢 Custom Order"}
+              <Layers className="w-3.5 h-3.5" />
+              <span>{groupByPriority ? "Grouped by Priority" : "Custom Order"}</span>
             </button>
           </div>
 

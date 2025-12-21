@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Task, Day, Priority } from "@/types";
+import { PrioritySelector } from "./PrioritySelector";
+import { Pencil, Save, X, GripVertical, Check } from "lucide-react";
 
 interface TaskItemProps {
   task: Task;
@@ -61,7 +63,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   };
 
   const handleEditSubmit = () => {
-    if (onEdit) onEdit(day, task.id, editText, editPriority);
+    if (onEdit) {
+      onEdit(day, task.id, editText, editPriority);
+      if (setEditingTaskId) setEditingTaskId(null);
+    }
   };
 
   return (
@@ -87,7 +92,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               onChange={() => onToggleSelection(task.id)}
               className="w-5 h-5 text-text-brand rounded focus:ring-border-brand cursor-pointer"
             />
-            <span className="text-text-secondary cursor-grab">⋮⋮</span>
+            <GripVertical className="w-4 h-4 text-text-secondary cursor-grab" />
           </div>
         )}
         {!isAdmin && onToggleComplete && (
@@ -99,16 +104,13 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           />
         )}
         {isEditing && setEditingTaskId ? (
-          <div className="flex-1 flex gap-2">
-            <select
-              value={editPriority}
-              onChange={(e) => setEditPriority(e.target.value as Priority)}
-              className="p-2 border-2 border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:border-sapphire-600"
-            >
-              <option value="low">🟢 Low</option>
-              <option value="medium">🟠 Medium</option>
-              <option value="high">🔴 High</option>
-            </select>
+          <div className="flex-1 flex gap-2 animate-fade-in items-center">
+            <PrioritySelector 
+              priority={editPriority} 
+              setPriority={setEditPriority} 
+              isSmall 
+              className="min-w-[110px]"
+            />
             <input
               type="text"
               value={editText}
@@ -122,15 +124,17 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             />
             <button
               onClick={handleEditSubmit}
-              className="px-3 py-1 bg-sapphire-600 text-white rounded-lg text-sm hover:bg-sapphire-700"
+              className="px-3 py-1 bg-sapphire-600 text-white rounded-lg text-sm hover:bg-sapphire-700 transition-colors"
+              title="Save"
             >
-              💾
+              <Save className="w-4 h-4" />
             </button>
             <button
               onClick={() => setEditingTaskId(null)}
-              className="px-3 py-1 bg-gray-400 text-white rounded-lg text-sm hover:bg-gray-500"
+              className="px-3 py-1 bg-gray-400 text-white rounded-lg text-sm hover:bg-gray-500 transition-colors"
+              title="Cancel"
             >
-              ✖
+              <X className="w-4 h-4" />
             </button>
           </div>
         ) : (
@@ -150,8 +154,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         <button
           onClick={() => setEditingTaskId(task.id)}
           className="text-gray-400 hover:text-sapphire-600 p-2 transition-colors"
+          title="Edit"
         >
-          ✏️
+          <Pencil className="w-4 h-4" />
         </button>
       )}
     </li>

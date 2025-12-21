@@ -1,6 +1,7 @@
 import React from "react";
 import { Task, Day } from "@/types";
 import { TaskItem } from "./TaskItem";
+import { Circle } from "lucide-react";
 
 interface TaskListProps {
   day: Day;
@@ -68,9 +69,9 @@ export const TaskList: React.FC<TaskListProps> = ({
     });
 
     const priorities = [
-      { key: "high", label: "🔴 High Priority" },
-      { key: "medium", label: "🟠 Medium Priority" },
-      { key: "low", label: "🟢 Low Priority" },
+      { key: "high", label: "High Priority", color: "text-red-500" },
+      { key: "medium", label: "Medium Priority", color: "text-orange-500" },
+      { key: "low", label: "Low Priority", color: "text-green-500" },
     ];
 
     return (
@@ -80,8 +81,9 @@ export const TaskList: React.FC<TaskListProps> = ({
           if (groupTasks.length === 0) return null;
           return (
             <div key={p.key}>
-              <h4 className="text-sm font-bold text-gray-500 mb-2 uppercase tracking-wide">
-                {p.label}
+              <h4 className="text-sm font-bold text-text-secondary mb-3 uppercase tracking-wider flex items-center gap-2">
+                <Circle className={`w-3 h-3 fill-current ${p.color}`} />
+                <span>{p.label}</span>
               </h4>
               <ul className="space-y-2">
                 {groupTasks.map(({ task, index }) => (

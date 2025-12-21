@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Sun, Moon } from "lucide-react";
 
 export const ThemeToggle: React.FC = () => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -40,7 +41,11 @@ export const ThemeToggle: React.FC = () => {
           theme === "dark" ? "translate-x-16 left-1" : "translate-x-0 left-1"
         }`}
       >
-        {theme === "dark" ? "🌙" : "☀️"}
+        {theme === "dark" ? (
+          <Moon className="w-3.5 h-3.5 text-sapphire-900" />
+        ) : (
+          <Sun className="w-3.5 h-3.5 text-amber-500" />
+        )}
       </div>
       <span
         className={`absolute top-0 bottom-0 flex items-center text-[10px] font-bold transition-opacity duration-300 ${
