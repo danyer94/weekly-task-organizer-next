@@ -34,8 +34,8 @@ export const DaySelectionModal: React.FC<DaySelectionModalProps> = ({
               key={day}
               className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
                 selectedDays.includes(day)
-                  ? "border-sapphire-600 bg-sapphire-50"
-                  : "border-gray-200 hover:border-sapphire-300"
+                  ? "border-sapphire-600 bg-sapphire-50 dark:bg-sapphire-900/30"
+                  : "border-border-subtle bg-bg-surface hover:border-sapphire-400 dark:hover:border-sapphire-500"
               }`}
             >
               <input
@@ -48,9 +48,9 @@ export const DaySelectionModal: React.FC<DaySelectionModalProps> = ({
                     setSelectedDays(selectedDays.filter((d) => d !== day));
                   }
                 }}
-                className="mr-2 text-sapphire-600 focus:ring-sapphire-600 border-gray-300 rounded"
+                className="mr-2 text-sapphire-600 focus:ring-sapphire-600 border-border-subtle rounded"
               />
-              <span className="text-gray-700">{day}</span>
+              <span className="text-text-primary font-medium">{day}</span>
             </label>
           ))}
         </div>
