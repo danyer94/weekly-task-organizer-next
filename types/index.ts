@@ -14,6 +14,15 @@ export interface Task {
   text: string;
   completed: boolean;
   priority: Priority;
+  /**
+   * Optional calendar event information.
+   * If present, indicates this task has been added to Google Calendar.
+   */
+  calendarEvent?: {
+    date: string; // YYYY-MM-DD
+    startTime?: string; // HH:mm format
+    endTime?: string; // HH:mm format
+  };
 }
 
 export type TasksByDay = {
@@ -24,4 +33,31 @@ export interface GroupedTasks {
   high: { task: Task; index: number }[];
   medium: { task: Task; index: number }[];
   low: { task: Task; index: number }[];
+}
+
+// Minimal payload used to create calendar events (Google Calendar or via MCP)
+export interface CalendarEventPayload {
+  /**
+   * Human readable title for the event.
+   * For now we will usually map this from a task text.
+   */
+  summary: string;
+  /**
+   * Optional longer description.
+   */
+  description?: string;
+  /**
+   * Event date in ISO format YYYY-MM-DD.
+   */
+  date: string;
+  /**
+   * Optional start time in HH:mm format (24-hour).
+   * If provided, the event will have a specific time instead of being all-day.
+   */
+  startTime?: string;
+  /**
+   * Optional end time in HH:mm format (24-hour).
+   * If not provided and startTime is set, defaults to 1 hour after startTime.
+   */
+  endTime?: string;
 }

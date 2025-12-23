@@ -1,14 +1,21 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useWeeklyTasks, DAYS } from "@/hooks/useWeeklyTasks";
-import { Day, Priority } from "@/types";
+import { Day, Priority, Task } from "@/types";
 import { AdminView } from "./AdminView";
 import { UserView } from "./UserView";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle"; // Correctly imported
 import { DaySelectionModal } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
+import { CalendarEventModal } from "./CalendarEventModal";
 import { ShieldCheck, User } from "lucide-react";
+import { taskToCalendarEvent } from "@/lib/calendarMapper";
+import {
+  connectGoogleCalendar,
+  createTaskEventForRamon,
+  getGoogleConnectionStatus,
+} from "@/lib/calendarClient";
 
 const WeeklyTaskOrganizer: React.FC = () => {
   // Logic Hook
@@ -18,7 +25,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
     syncStatus,
     addTask,
     deleteTask,
-    itemOperations: { toggleComplete, editTask },
+    itemOperations: { toggleComplete, editTask, updateTaskCalendarEvent },
     reorderTasks,
     bulkOperations: {
       deleteSelected,
@@ -42,11 +49,37 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [draggedTask, setDraggedTask] = useState<{ task: any; index: number; day: Day } | null>(null);
+  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  const [isCheckingGoogle, setIsCheckingGoogle] = useState(true);
 
   // Modal State
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [selectedTaskForCalendar, setSelectedTaskForCalendar] = useState<{
+    day: Day;
+    task: Task;
+  } | null>(null);
+
+  // Check Google Calendar connection status on mount
+  useEffect(() => {
+    let active = true;
+    const checkStatus = async () => {
+      try {
+        const connected = await getGoogleConnectionStatus();
+        if (active) {
+          setIsGoogleConnected(connected);
+        }
+      } finally {
+        if (active) setIsCheckingGoogle(false);
+      }
+    };
+    checkStatus();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (!isClient) return null;
 
@@ -90,6 +123,50 @@ const WeeklyTaskOrganizer: React.FC = () => {
     setShowCopyModal(false);
   };
 
+  const handleCreateCalendarEvent = (day: Day, task: Task) => {
+    if (!isGoogleConnected) {
+      alert("Please connect Google Calendar first.");
+      return;
+    }
+    setSelectedTaskForCalendar({ day, task });
+    setShowCalendarModal(true);
+  };
+
+  const handleConfirmCalendarEvent = async (
+    startTime: string,
+    endTime: string
+  ) => {
+    if (!selectedTaskForCalendar) return;
+
+    try {
+      const { day, task } = selectedTaskForCalendar;
+      // If both times are empty strings, it's an all-day event (pass undefined)
+      // Otherwise, use the provided times
+      const payload = taskToCalendarEvent(
+        day,
+        task,
+        startTime.trim() || undefined,
+        endTime.trim() || undefined
+      );
+      await createTaskEventForRamon(payload);
+      
+      // Update the task with calendar event information
+      updateTaskCalendarEvent(day, task.id, {
+        date: payload.date,
+        startTime: payload.startTime,
+        endTime: payload.endTime,
+      });
+      
+      alert("✅ Calendar event created for this task!");
+    } catch (error) {
+      console.error(error);
+      alert("❌ Failed to create calendar event. Check the console for details.");
+    } finally {
+      setShowCalendarModal(false);
+      setSelectedTaskForCalendar(null);
+    }
+  };
+
   // Sync Indicator Color
   const getSyncColor = () => {
     if (syncStatus === "synced") return "bg-green-500";
@@ -114,7 +191,28 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
           <div className="flex gap-2 items-center">
             <ThemeToggle />
-            
+
+            {isAdmin && (
+              <button
+                onClick={() => connectGoogleCalendar().catch(() => {
+                  alert("❌ Failed to start Google Calendar connection.");
+                })}
+                className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 ${
+                  isGoogleConnected
+                    ? "bg-emerald-500 text-white shadow-md"
+                    : "bg-bg-main text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-subtle"
+                }`}
+              >
+                <span>
+                  {isCheckingGoogle
+                    ? "Checking Google..."
+                    : isGoogleConnected
+                    ? "Google Connected"
+                    : "Connect Google Calendar"}
+                </span>
+              </button>
+            )}
+
             <button
               onClick={() => setIsAdmin(true)}
               className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 ${
@@ -194,6 +292,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 onCopyClick={() => setShowCopyModal(true)}
                 editingTaskId={editingTaskId}
                 setEditingTaskId={setEditingTaskId}
+                onCreateCalendarEvent={handleCreateCalendarEvent}
               />
             </>
           ) : (
@@ -236,6 +335,21 @@ const WeeklyTaskOrganizer: React.FC = () => {
           setShowBulkModal(false);
         }}
       />
+      {selectedTaskForCalendar && (
+        <CalendarEventModal
+          isOpen={showCalendarModal}
+          onClose={() => {
+            setShowCalendarModal(false);
+            setSelectedTaskForCalendar(null);
+          }}
+          onConfirm={handleConfirmCalendarEvent}
+          taskText={selectedTaskForCalendar.task.text}
+          day={selectedTaskForCalendar.day}
+          initialStartTime={selectedTaskForCalendar.task.calendarEvent?.startTime}
+          initialEndTime={selectedTaskForCalendar.task.calendarEvent?.endTime}
+          isEditMode={!!selectedTaskForCalendar.task.calendarEvent}
+        />
+      )}
     </div>
   );
 };

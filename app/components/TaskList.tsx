@@ -16,6 +16,7 @@ interface TaskListProps {
   onDrop?: (targetDay: Day, targetIndex: number) => void;
   editingTaskId: number | null;
   setEditingTaskId?: (id: number | null) => void;
+   onCreateCalendarEvent?: (day: Day, task: Task) => void;
 }
 
 export const TaskList: React.FC<TaskListProps> = ({
@@ -31,6 +32,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   onDrop,
   editingTaskId,
   setEditingTaskId,
+  onCreateCalendarEvent,
 }) => {
   if (tasks.length === 0) {
     return (
@@ -50,7 +52,8 @@ export const TaskList: React.FC<TaskListProps> = ({
     onDragStart,
     onDrop,
     editingTaskId,
-    setEditingTaskId,
+  setEditingTaskId,
+  onCreateCalendarEvent,
   };
 
   if (groupByPriority) {
