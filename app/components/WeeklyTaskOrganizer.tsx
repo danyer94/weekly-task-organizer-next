@@ -9,7 +9,7 @@ import { ThemeToggle } from "./ThemeToggle"; // Correctly imported
 import { DaySelectionModal } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
 import { CalendarEventModal } from "./CalendarEventModal";
-import { ShieldCheck, User, RefreshCw } from "lucide-react";
+import { ShieldCheck, User, RefreshCw, Calendar as CalendarIcon } from "lucide-react";
 import { taskToCalendarEvent } from "@/lib/calendarMapper";
 import {
   connectGoogleCalendar,
@@ -21,6 +21,9 @@ import {
 } from "@/lib/calendarClient";
 
 const WeeklyTaskOrganizer: React.FC = () => {
+  // Date State
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
   // Logic Hook
   const {
     tasks,
@@ -38,7 +41,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
     },
     ioOperations: { exportToWhatsApp, exportToJSON, importFromJSON },
     stats,
-  } = useWeeklyTasks();
+  } = useWeeklyTasks(selectedDate);
 
   // UI State
   const [isAdmin, setIsAdmin] = useState(true);
@@ -149,7 +152,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
         day,
         task,
         startTime.trim() || undefined,
-        endTime.trim() || undefined
+        endTime.trim() || undefined,
+        selectedDate
       );
       
       // If editing and event exists, delete old event first
@@ -374,6 +378,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
                         if (e.target.files?.[0]) importFromJSON(e.target.files[0]);
                       }
                    }}
+                   selectedDate={selectedDate}
+                   onDateChange={setSelectedDate}
                  />
               </div>
 
@@ -423,6 +429,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 onToggleComplete={toggleComplete}
                 groupByPriority={groupByPriority}
                 setGroupByPriority={setGroupByPriority}
+                selectedDate={selectedDate}
+                onDateChange={setSelectedDate}
               />
             </div>
           )}

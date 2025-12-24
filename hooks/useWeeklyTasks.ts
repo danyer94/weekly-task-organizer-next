@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { saveTasks, subscribeToTasks } from "@/lib/firebase"; // Ensure this internal path works or use relative
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { saveTasks, subscribeToTasks, getLegacyTasks } from "@/lib/firebase"; // Ensure this internal path works or use relative
 import { Task, Day, Priority, TasksByDay } from "@/types";
+import { getWeekPath } from "@/lib/calendarMapper";
+import { format, startOfWeek, endOfWeek } from "date-fns";
 
 export const DAYS: Day[] = [
   "Monday",
@@ -12,21 +14,40 @@ export const DAYS: Day[] = [
   "Sunday",
 ];
 
-export const useWeeklyTasks = () => {
+export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
+  // Path for current selection
+  const currentPath = useMemo(() => getWeekPath(selectedDate), [selectedDate]);
+
   // State
   const [tasks, setTasks] = useState<TasksByDay>({});
   const [isClient, setIsClient] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<number>(Date.now());
   const [syncStatus, setSyncStatus] = useState<
     "synced" | "connecting" | "error"
   >("connecting");
   const isLocalChange = useRef(false);
+  const hasMigrated = useRef(false);
 
-  // Initialize client-side state
+  // Migration & Initialization
   useEffect(() => {
     setIsClient(true);
 
-    // Subscribe to Firebase
+    const initialize = async () => {
+      if (hasMigrated.current) return;
+
+      const legacy = await getLegacyTasks();
+      if (legacy) {
+        console.log("Legacy tasks found, migrating...");
+        await saveTasks(legacy, currentPath);
+        hasMigrated.current = true;
+      }
+    };
+
+    initialize();
+  }, [currentPath]);
+
+  // Subscribe to Firebase at current path
+  useEffect(() => {
+    setSyncStatus("connecting");
     const unsubscribe = subscribeToTasks((data) => {
       if (isLocalChange.current) {
         isLocalChange.current = false;
@@ -37,16 +58,15 @@ export const useWeeklyTasks = () => {
         setTasks(data);
         setSyncStatus("synced");
       } else {
-        // Initialize empty state if DB is empty
         const initialTasks: TasksByDay = {};
         DAYS.forEach((day) => (initialTasks[day] = []));
         setTasks(initialTasks);
         setSyncStatus("synced");
       }
-    });
+    }, currentPath);
 
-    return () => unsubscribe(); // Cleanup subscription if possible (depends on implementation)
-  }, []);
+    return () => unsubscribe();
+  }, [currentPath]);
 
   // Helper to update tasks and sync to Firebase
   const updateTasks = useCallback(
@@ -54,14 +74,14 @@ export const useWeeklyTasks = () => {
       isLocalChange.current = true;
       setTasks((prev) => {
         const newTasks = updater(prev);
-        saveTasks(newTasks)
+        saveTasks(newTasks, currentPath)
           .then((success) => setSyncStatus(success ? "synced" : "error"))
           .catch(() => setSyncStatus("error"));
         return newTasks;
       });
       setSyncStatus("connecting");
     },
-    []
+    [currentPath]
   );
 
   // --- Task Operations ---
@@ -233,8 +253,13 @@ export const useWeeklyTasks = () => {
   // --- Import / Export ---
 
   const exportToWhatsApp = () => {
+    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
     const priorityEmoji = { high: "🔴", medium: "🟠", low: "🟢" };
-    let text = "📋 *Weekly Task Organizer*\n\n";
+    let text = `📋 *Weekly Task Organizer (${format(
+      weekStart,
+      "MMM d"
+    )} - ${format(weekEnd, "MMM d")})*\n\n`;
 
     DAYS.forEach((day) => {
       const dayTasks = tasks[day] || [];
@@ -257,8 +282,9 @@ export const useWeeklyTasks = () => {
 
   const exportToJSON = () => {
     const exportData = {
-      version: "1.0",
+      version: "1.1",
       exportDate: new Date().toISOString(),
+      weekPath: currentPath,
       tasks,
     };
     const blob = new Blob([JSON.stringify(exportData, null, 2)], {

@@ -21,25 +21,44 @@ const database = getDatabase(app);
 // Reference to tasks in the database
 export const tasksRef = ref(database, "tasks");
 
-// Helper function to save tasks
-export const saveTasks = async (tasks: any): Promise<boolean> => {
+// Helper function to save tasks to a specific path (e.g. "weeks/2024/52")
+export const saveTasks = async (
+  tasks: any,
+  path: string = "tasks"
+): Promise<boolean> => {
   try {
     // Firebase doesn't allow undefined values. We sanitize by removing them.
     const sanitizedTasks = JSON.parse(JSON.stringify(tasks));
-    await set(tasksRef, sanitizedTasks);
+    await set(ref(database, path), sanitizedTasks);
     return true;
   } catch (error) {
-    console.error("Error saving tasks:", error);
+    console.error(`Error saving tasks to ${path}:`, error);
     return false;
   }
 };
 
-// Subscribe to task changes
-export const subscribeToTasks = (callback: (data: any) => void) => {
-  return onValue(tasksRef, (snapshot) => {
+// Subscribe to task changes at a specific path
+export const subscribeToTasks = (
+  callback: (data: any) => void,
+  path: string = "tasks"
+) => {
+  const targetRef = ref(database, path);
+  return onValue(targetRef, (snapshot) => {
     const data = snapshot.val();
     callback(data);
   });
+};
+
+// Helper to check for legacy tasks and migrate them
+export const getLegacyTasks = async (): Promise<any | null> => {
+  try {
+    const snapshot = await (
+      await import("firebase/database")
+    ).get(ref(database, "tasks"));
+    return snapshot.exists() ? snapshot.val() : null;
+  } catch {
+    return null;
+  }
 };
 
 export { database };

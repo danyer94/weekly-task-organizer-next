@@ -2,6 +2,7 @@ import React from "react";
 import { Day } from "@/types";
 import { TaskList } from "./TaskList";
 import { Layers, Sparkles } from "lucide-react";
+import { DatePicker } from "./DatePicker";
 
 interface UserViewProps {
   currentDay: Day;
@@ -11,6 +12,8 @@ interface UserViewProps {
   onToggleComplete: (day: Day, id: number) => void;
   groupByPriority: boolean;
   setGroupByPriority: (val: boolean) => void;
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
 }
 
 export const UserView: React.FC<UserViewProps> = ({
@@ -21,6 +24,8 @@ export const UserView: React.FC<UserViewProps> = ({
   onToggleComplete,
   groupByPriority,
   setGroupByPriority,
+  selectedDate,
+  onDateChange,
 }) => {
   return (
     <div className="lg:col-span-9 space-y-6">
@@ -30,7 +35,11 @@ export const UserView: React.FC<UserViewProps> = ({
             <span>Hey Ramon!</span>
             <Sparkles className="w-8 h-8 text-amber-500" />
           </h2>
-          <p className="text-text-secondary">Here are your tasks for today.</p>
+          <p className="text-text-secondary mb-6">Here are your tasks for today.</p>
+          
+          <div className="max-w-xs mx-auto">
+            <DatePicker selectedDate={selectedDate} onChange={onDateChange} />
+          </div>
         </div>
 
         <div className="flex overflow-x-auto pb-4 gap-3 mb-6">

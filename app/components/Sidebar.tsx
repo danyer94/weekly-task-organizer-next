@@ -2,6 +2,7 @@ import React from "react";
 import { Day } from "@/types";
 import { QuickActions } from "./QuickActions";
 import { TaskStats } from "./TaskStats";
+import { DatePicker } from "./DatePicker";
 
 interface SidebarProps {
   days: Day[];
@@ -9,7 +10,9 @@ interface SidebarProps {
   onDayChange: (day: Day) => void;
   tasks: any;
   stats: { total: number; completed: number };
-  quickActionsProps: any; // Passing through props for QuickActions
+  quickActionsProps: any;
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -19,9 +22,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   tasks,
   stats,
   quickActionsProps,
+  selectedDate,
+  onDateChange,
 }) => {
   return (
     <div className="space-y-6">
+      {/* Date Selection */}
+      <DatePicker 
+        selectedDate={selectedDate} 
+        onChange={onDateChange} 
+      />
+
       {/* Days Navigation */}
       <div className="bg-bg-surface rounded-xl shadow-lg p-4 font-sans border border-border-subtle">
         <h4 className="font-bold text-text-brand mb-3 px-2">Days</h4>
