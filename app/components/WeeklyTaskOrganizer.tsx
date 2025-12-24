@@ -9,12 +9,15 @@ import { ThemeToggle } from "./ThemeToggle"; // Correctly imported
 import { DaySelectionModal } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
 import { CalendarEventModal } from "./CalendarEventModal";
-import { ShieldCheck, User } from "lucide-react";
+import { ShieldCheck, User, RefreshCw } from "lucide-react";
 import { taskToCalendarEvent } from "@/lib/calendarMapper";
 import {
   connectGoogleCalendar,
   createTaskEventForRamon,
+  deleteTaskEventForRamon,
   getGoogleConnectionStatus,
+  syncCalendarEvents,
+  type SyncEvent,
 } from "@/lib/calendarClient";
 
 const WeeklyTaskOrganizer: React.FC = () => {
@@ -148,10 +151,21 @@ const WeeklyTaskOrganizer: React.FC = () => {
         startTime.trim() || undefined,
         endTime.trim() || undefined
       );
-      await createTaskEventForRamon(payload);
+      
+      // If editing and event exists, delete old event first
+      if (task.calendarEvent?.eventId) {
+        try {
+          await deleteTaskEventForRamon(task.calendarEvent.eventId);
+        } catch (error) {
+          console.warn("Failed to delete old event, continuing with creation", error);
+        }
+      }
+      
+      const { eventId } = await createTaskEventForRamon(payload);
       
       // Update the task with calendar event information
       updateTaskCalendarEvent(day, task.id, {
+        eventId,
         date: payload.date,
         startTime: payload.startTime,
         endTime: payload.endTime,
@@ -164,6 +178,96 @@ const WeeklyTaskOrganizer: React.FC = () => {
     } finally {
       setShowCalendarModal(false);
       setSelectedTaskForCalendar(null);
+    }
+  };
+
+  const handleDeleteCalendarEvent = async (day: Day, task: Task) => {
+    if (!task.calendarEvent?.eventId) return;
+
+    if (!window.confirm("Are you sure you want to delete this event from Google Calendar?")) {
+      return;
+    }
+
+    try {
+      await deleteTaskEventForRamon(task.calendarEvent.eventId);
+      updateTaskCalendarEvent(day, task.id, null);
+      alert("✅ Calendar event deleted!");
+    } catch (error) {
+      console.error(error);
+      alert("❌ Failed to delete calendar event. Check the console for details.");
+    }
+  };
+
+  const handleSyncCalendar = async () => {
+    if (!isGoogleConnected) {
+      alert("Please connect Google Calendar first.");
+      return;
+    }
+
+    try {
+      // Collect all tasks with calendar events
+      const eventsToSync: SyncEvent[] = [];
+      Object.entries(tasks).forEach(([day, dayTasks]) => {
+        dayTasks?.forEach((task) => {
+          if (task.calendarEvent?.eventId) {
+            eventsToSync.push({
+              eventId: task.calendarEvent.eventId,
+              taskId: task.id,
+              day: day as Day,
+            });
+          }
+        });
+      });
+
+      if (eventsToSync.length === 0) {
+        alert("No calendar events to sync.");
+        return;
+      }
+
+      const { results } = await syncCalendarEvents(eventsToSync);
+
+      let deletedCount = 0;
+      let updatedCount = 0;
+
+      // Process sync results
+      results.forEach((result) => {
+        const day = result.day as Day;
+
+        if (result.deleted) {
+          // Event was deleted from Google Calendar, remove from task
+          updateTaskCalendarEvent(day, result.taskId, null);
+          deletedCount++;
+        } else if (result.updated && result.exists) {
+          // Event was modified, update task
+          const task = tasks[day]?.find((t) => t.id === result.taskId);
+          if (task && result.updated) {
+            // Only update if the event was modified after last sync
+            const lastSynced = task.calendarEvent?.lastSynced || 0;
+            const eventModified = result.updated.lastModified || 0;
+
+            if (eventModified > lastSynced) {
+              updateTaskCalendarEvent(day, result.taskId, {
+                eventId: result.eventId,
+                date: result.updated.date,
+                startTime: result.updated.startTime,
+                endTime: result.updated.endTime,
+              });
+              updatedCount++;
+            }
+          }
+        }
+      });
+
+      if (deletedCount > 0 || updatedCount > 0) {
+        alert(
+          `✅ Sync complete! ${deletedCount} event(s) deleted, ${updatedCount} event(s) updated.`
+        );
+      } else {
+        alert("✅ Sync complete! All events are up to date.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("❌ Failed to sync calendar events. Check the console for details.");
     }
   };
 
@@ -193,24 +297,36 @@ const WeeklyTaskOrganizer: React.FC = () => {
             <ThemeToggle />
 
             {isAdmin && (
-              <button
-                onClick={() => connectGoogleCalendar().catch(() => {
-                  alert("❌ Failed to start Google Calendar connection.");
-                })}
-                className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 ${
-                  isGoogleConnected
-                    ? "bg-emerald-500 text-white shadow-md"
-                    : "bg-bg-main text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-subtle"
-                }`}
-              >
-                <span>
-                  {isCheckingGoogle
-                    ? "Checking Google..."
-                    : isGoogleConnected
-                    ? "Google Connected"
-                    : "Connect Google Calendar"}
-                </span>
-              </button>
+              <>
+                <button
+                  onClick={() => connectGoogleCalendar().catch(() => {
+                    alert("❌ Failed to start Google Calendar connection.");
+                  })}
+                  className={`px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 ${
+                    isGoogleConnected
+                      ? "bg-emerald-500 text-white shadow-md"
+                      : "bg-bg-main text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-subtle"
+                  }`}
+                >
+                  <span>
+                    {isCheckingGoogle
+                      ? "Checking Google..."
+                      : isGoogleConnected
+                      ? "Google Connected"
+                      : "Connect Google Calendar"}
+                  </span>
+                </button>
+                {isGoogleConnected && (
+                  <button
+                    onClick={handleSyncCalendar}
+                    className="px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 bg-sapphire-500 text-white shadow-md hover:bg-sapphire-600"
+                    title="Sync calendar events"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span>Sync Calendar</span>
+                  </button>
+                )}
+              </>
             )}
 
             <button
@@ -293,6 +409,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 editingTaskId={editingTaskId}
                 setEditingTaskId={setEditingTaskId}
                 onCreateCalendarEvent={handleCreateCalendarEvent}
+                onDeleteCalendarEvent={handleDeleteCalendarEvent}
               />
             </>
           ) : (

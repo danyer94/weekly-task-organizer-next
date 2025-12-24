@@ -78,7 +78,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
           {/* Task Info */}
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-1">
-              Tarea
+              Task
             </label>
             <p className="text-text-primary bg-bg-main p-3 rounded-lg border border-border-subtle">
               {taskText}
@@ -87,7 +87,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-1">
-              Día
+              Day
             </label>
             <p className="text-text-primary bg-bg-main p-3 rounded-lg border border-border-subtle">
               {day}
@@ -107,7 +107,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
               htmlFor="allDay"
               className="text-text-primary font-medium cursor-pointer"
             >
-              Evento de día completo
+              All-day event
             </label>
           </div>
 
@@ -119,7 +119,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
                   htmlFor="startTime"
                   className="block text-sm font-medium text-text-secondary mb-2"
                 >
-                  Hora de inicio
+                  Start time
                 </label>
                 <input
                   type="time"
@@ -135,7 +135,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
                   htmlFor="endTime"
                   className="block text-sm font-medium text-text-secondary mb-2"
                 >
-                  Hora de fin
+                  End time
                 </label>
                 <input
                   type="time"
@@ -152,7 +152,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
           {/* Validation: End time should be after start time */}
           {!isAllDay && startTime >= endTime && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-red-600 dark:text-red-400">
-              ⚠️ La hora de fin debe ser posterior a la hora de inicio
+              ⚠️ End time must be after start time
             </div>
           )}
 
@@ -163,14 +163,14 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
               onClick={onClose}
               className="flex-1 px-4 py-3 bg-bg-main text-text-primary rounded-lg font-medium hover:bg-bg-sidebar transition-colors border border-border-subtle"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               disabled={!isAllDay && startTime >= endTime}
               className="flex-1 px-4 py-3 bg-sapphire-500 text-white rounded-lg font-medium hover:bg-sapphire-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isEditMode ? "Actualizar Evento" : "Crear Evento"}
+              {isEditMode ? "Update Event" : "Create Event"}
             </button>
           </div>
         </form>

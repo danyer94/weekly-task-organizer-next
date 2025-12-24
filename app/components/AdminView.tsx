@@ -37,6 +37,7 @@ interface AdminViewProps {
   editingTaskId: number | null;
   setEditingTaskId: (id: number | null) => void;
   onCreateCalendarEvent?: (day: Day, task: Task) => void;
+  onDeleteCalendarEvent?: (day: Day, task: Task) => void;
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({
@@ -63,6 +64,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
   editingTaskId,
   setEditingTaskId,
   onCreateCalendarEvent,
+  onDeleteCalendarEvent,
 }) => {
   return (
     <div className="lg:col-span-9 space-y-6">
@@ -162,6 +164,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
           editingTaskId={editingTaskId}
           setEditingTaskId={setEditingTaskId}
           onCreateCalendarEvent={onCreateCalendarEvent}
+          onDeleteCalendarEvent={onDeleteCalendarEvent}
         />
       </div>
     </div>

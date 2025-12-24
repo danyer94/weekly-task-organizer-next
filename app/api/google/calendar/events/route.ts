@@ -1,9 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CalendarEventPayload } from "@/types";
-import { createGoogleCalendarEventForUser } from "@/lib/googleCalendar";
+import {
+  createGoogleCalendarEventForUser,
+  deleteGoogleCalendarEvent,
+} from "@/lib/googleCalendar";
 
 // Usuario fijo para este proyecto
 const RAMON_USER_ID = "ramon";
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const eventId = searchParams.get("eventId");
+
+    if (!eventId) {
+      return NextResponse.json(
+        { error: "Missing eventId parameter" },
+        { status: 400 }
+      );
+    }
+
+    await deleteGoogleCalendarEvent(RAMON_USER_ID, eventId);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete Google Calendar event", error);
+    return NextResponse.json(
+      { error: "Failed to delete Google Calendar event" },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {

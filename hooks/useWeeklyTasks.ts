@@ -117,12 +117,24 @@ export const useWeeklyTasks = () => {
   const updateTaskCalendarEvent = (
     day: Day,
     id: number,
-    calendarEvent: { date: string; startTime?: string; endTime?: string } | null
+    calendarEvent: {
+      eventId: string;
+      date: string;
+      startTime?: string;
+      endTime?: string;
+    } | null
   ) => {
     updateTasks((prev) => ({
       ...prev,
       [day]: (prev[day] || []).map((t) =>
-        t.id === id ? { ...t, calendarEvent: calendarEvent || undefined } : t
+        t.id === id
+          ? {
+              ...t,
+              calendarEvent: calendarEvent
+                ? { ...calendarEvent, lastSynced: Date.now() }
+                : undefined,
+            }
+          : t
       ),
     }));
   };

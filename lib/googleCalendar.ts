@@ -124,6 +124,72 @@ export const getAuthorizedClientForUser = async (
   return client;
 };
 
+export const deleteGoogleCalendarEvent = async (
+  userId: string,
+  eventId: string
+): Promise<void> => {
+  const client = await getAuthorizedClientForUser(userId);
+  if (!client) {
+    throw new Error("Google account is not connected for this user");
+  }
+
+  const calendar = google.calendar({ version: "v3", auth: client });
+
+  await calendar.events.delete({
+    calendarId: "primary",
+    eventId: eventId,
+  });
+};
+
+export const getGoogleCalendarEvent = async (
+  userId: string,
+  eventId: string
+) => {
+  const client = await getAuthorizedClientForUser(userId);
+  if (!client) {
+    throw new Error("Google account is not connected for this user");
+  }
+
+  const calendar = google.calendar({ version: "v3", auth: client });
+
+  try {
+    const response = await calendar.events.get({
+      calendarId: "primary",
+      eventId: eventId,
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.code === 404) {
+      return null; // Event not found
+    }
+    throw error;
+  }
+};
+
+export const listGoogleCalendarEvents = async (
+  userId: string,
+  timeMin?: string,
+  timeMax?: string
+) => {
+  const client = await getAuthorizedClientForUser(userId);
+  if (!client) {
+    throw new Error("Google account is not connected for this user");
+  }
+
+  const calendar = google.calendar({ version: "v3", auth: client });
+
+  const response = await calendar.events.list({
+    calendarId: "primary",
+    timeMin: timeMin || new Date().toISOString(),
+    timeMax: timeMax,
+    maxResults: 100,
+    singleEvents: true,
+    orderBy: "startTime",
+  });
+
+  return response.data.items || [];
+};
+
 export const createGoogleCalendarEventForUser = async (
   userId: string,
   payload: CalendarEventPayload

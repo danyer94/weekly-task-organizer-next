@@ -19,9 +19,11 @@ export interface Task {
    * If present, indicates this task has been added to Google Calendar.
    */
   calendarEvent?: {
+    eventId: string; // Google Calendar event ID
     date: string; // YYYY-MM-DD
     startTime?: string; // HH:mm format
     endTime?: string; // HH:mm format
+    lastSynced?: number; // Timestamp of last sync
   };
 }
 

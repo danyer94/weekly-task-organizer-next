@@ -28,7 +28,7 @@ export const getGoogleConnectionStatus = async (): Promise<boolean> => {
 
 export const createTaskEventForRamon = async (
   payload: CalendarEventPayload
-): Promise<void> => {
+): Promise<{ eventId: string }> => {
   const res = await fetch("/api/google/calendar/events", {
     method: "POST",
     headers: {
@@ -41,6 +41,60 @@ export const createTaskEventForRamon = async (
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || "Failed to create calendar event");
   }
+
+  const data = (await res.json()) as { event: { id: string } };
+  return { eventId: data.event.id };
 };
 
+export const deleteTaskEventForRamon = async (
+  eventId: string
+): Promise<void> => {
+  const res = await fetch(`/api/google/calendar/events?eventId=${eventId}`, {
+    method: "DELETE",
+  });
 
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to delete calendar event");
+  }
+};
+
+export interface SyncEvent {
+  eventId: string;
+  taskId: number;
+  day: string;
+}
+
+export interface SyncResult {
+  eventId: string;
+  taskId: number;
+  day: string;
+  exists: boolean;
+  deleted?: boolean;
+  updated?: {
+    date: string;
+    startTime?: string;
+    endTime?: string;
+    lastModified: number | null;
+  };
+  error?: string;
+}
+
+export const syncCalendarEvents = async (
+  events: SyncEvent[]
+): Promise<{ results: SyncResult[] }> => {
+  const res = await fetch("/api/google/calendar/sync", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ events }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to sync calendar events");
+  }
+
+  return await res.json();
+};
