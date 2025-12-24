@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Task, Day, Priority } from "@/types";
 import { PrioritySelector } from "./PrioritySelector";
-import { Pencil, Save, X, GripVertical, Check } from "lucide-react";
+import { Pencil, Save, X, GripVertical, Check, CalendarPlus, CalendarCheck, Trash2 } from "lucide-react";
 
 interface TaskItemProps {
   task: Task;
@@ -17,6 +17,8 @@ interface TaskItemProps {
   onDrop?: (targetDay: Day, targetIndex: number) => void;
   editingTaskId?: number | null;
   setEditingTaskId?: (id: number | null) => void;
+  onCreateCalendarEvent?: (day: Day, task: Task) => void;
+  onDeleteCalendarEvent?: (day: Day, task: Task) => void;
 }
 
 export const TaskItem: React.FC<TaskItemProps> = ({
@@ -33,6 +35,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   onDrop,
   editingTaskId,
   setEditingTaskId,
+  onCreateCalendarEvent,
+  onDeleteCalendarEvent,
 }) => {
   const [editText, setEditText] = useState(task.text);
   const [editPriority, setEditPriority] = useState<Priority>(task.priority);
@@ -138,7 +142,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             </button>
           </div>
         ) : (
-          <div className="flex-1">
+          <div className="flex-1 flex items-center gap-2">
             <span
               className={`text-lg ${
                 task.completed ? "line-through text-text-secondary" : "text-text-primary"
@@ -146,18 +150,66 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             >
               {task.text}
             </span>
+            {task.calendarEvent && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => onCreateCalendarEvent?.(day, task)}
+                  className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-full border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors cursor-pointer"
+                  title="Click to edit event time"
+                >
+                  <CalendarCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                    {task.calendarEvent.startTime
+                      ? `${task.calendarEvent.startTime}${task.calendarEvent.endTime ? ` - ${task.calendarEvent.endTime}` : ""}`
+                      : "All day"}
+                  </span>
+                </button>
+                {onDeleteCalendarEvent && (
+                  <button
+                    onClick={() => onDeleteCalendarEvent(day, task)}
+                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                    title="Delete from calendar"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {isAdmin && !isEditing && setEditingTaskId && (
-        <button
-          onClick={() => setEditingTaskId(task.id)}
-          className="text-gray-400 hover:text-sapphire-600 p-2 transition-colors"
-          title="Edit"
-        >
-          <Pencil className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          {onCreateCalendarEvent && (
+            <button
+              onClick={() => onCreateCalendarEvent(day, task)}
+              className={`p-2 transition-colors ${
+                task.calendarEvent
+                  ? "text-emerald-600 hover:text-emerald-700"
+                  : "text-gray-400 hover:text-emerald-600"
+              }`}
+              title={
+                task.calendarEvent
+                  ? `Calendar event: ${task.calendarEvent.startTime || "All day"}`
+                  : "Create calendar event"
+              }
+            >
+              {task.calendarEvent ? (
+                <CalendarCheck className="w-4 h-4" />
+              ) : (
+                <CalendarPlus className="w-4 h-4" />
+              )}
+            </button>
+          )}
+          <button
+            onClick={() => setEditingTaskId(task.id)}
+            className="text-gray-400 hover:text-sapphire-600 p-2 transition-colors"
+            title="Edit"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        </div>
       )}
     </li>
   );

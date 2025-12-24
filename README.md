@@ -1,24 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Weekly Task Organizer
+
+A Next.js web application for managing weekly tasks with real-time synchronization, priority management, and Google Calendar integration.
+
+## Features
+
+- 📋 **Task Management**: Create, edit, delete, and organize tasks by day and priority
+- 👥 **Dual Roles**: Administrator view (full control) and User view (Ramon - task completion only)
+- 🔄 **Real-time Sync**: Firebase Realtime Database synchronization
+- 📅 **Google Calendar Integration**: Convert tasks to Google Calendar events
+- 🎨 **Modern UI**: Tailwind CSS v4 with "Sapphire Nightfall" theme
+- 📊 **Statistics**: Weekly task completion tracking
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ installed
+- Firebase project configured (see `project.md` for details)
+- Google Cloud project with Calendar API enabled (see `GOOGLE_CLOUD_SETUP.md` for detailed instructions)
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd weekly-task-organizer-next
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+3. Set up environment variables:
+   - Copy `.env.local.example` to `.env.local` (if exists) or create `.env.local`
+   - Add your Firebase configuration variables
+   - Add your Google OAuth credentials (see `GOOGLE_CLOUD_SETUP.md`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Run the development server:
+```bash
+npm run dev
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Google Calendar Setup
+
+**📖 For detailed step-by-step instructions on configuring Google Cloud Console and OAuth credentials, see [GOOGLE_CLOUD_SETUP.md](./GOOGLE_CLOUD_SETUP.md)**
+
+Quick summary:
+1. Create a Google Cloud project
+2. Enable Google Calendar API
+3. Configure OAuth consent screen
+4. Create OAuth 2.0 credentials (Web application)
+5. Add redirect URI: `http://localhost:3000/api/google/auth/callback`
+6. Copy Client ID and Client Secret to `.env.local`
+
+## Project Documentation
+
+- **[project.md](./project.md)**: Complete project context, architecture, and implementation notes
+- **[GOOGLE_CLOUD_SETUP.md](./GOOGLE_CLOUD_SETUP.md)**: Detailed Google Cloud Console setup guide
 
 ## Learn More
 

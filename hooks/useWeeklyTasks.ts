@@ -114,6 +114,37 @@ export const useWeeklyTasks = () => {
     }));
   };
 
+  const updateTaskCalendarEvent = (
+    day: Day,
+    id: number,
+    calendarEvent: {
+      eventId: string;
+      date: string;
+      startTime?: string;
+      endTime?: string;
+    } | null
+  ) => {
+    updateTasks((prev) => ({
+      ...prev,
+      [day]: (prev[day] || []).map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              calendarEvent: calendarEvent
+                ? {
+                    eventId: calendarEvent.eventId,
+                    date: calendarEvent.date,
+                    startTime: calendarEvent.startTime ?? null,
+                    endTime: calendarEvent.endTime ?? null,
+                    lastSynced: Date.now(),
+                  }
+                : null,
+            }
+          : t
+      ),
+    }));
+  };
+
   const reorderTasks = (day: Day, fromIndex: number, toIndex: number) => {
     updateTasks((prev) => {
       const newDayTasks = [...(prev[day] || [])];
@@ -283,7 +314,7 @@ export const useWeeklyTasks = () => {
     syncStatus,
     addTask,
     deleteTask,
-    itemOperations: { toggleComplete, editTask }, // grouping for cleaner props
+    itemOperations: { toggleComplete, editTask, updateTaskCalendarEvent }, // grouping for cleaner props
     reorderTasks,
     bulkOperations: {
       deleteSelected,
