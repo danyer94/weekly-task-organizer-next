@@ -1,7 +1,7 @@
 import { CalendarEventPayload } from "@/types";
 
-// Cliente ligero que se usa en componentes de cliente para
-// hablar con las rutas API relacionadas con Google Calendar.
+// Lightweight client used in client components to
+// talk to the API routes related to Google Calendar.
 
 export const connectGoogleCalendar = async () => {
   const res = await fetch("/api/google/auth/url");

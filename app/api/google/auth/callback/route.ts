@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeCodeForTokens, saveUserTokens } from "@/lib/googleCalendar";
 
-// For ahora asumimos un único usuario fijo: Ramon.
+// For now, we assume a single fixed user: Ramon.
 const RAMON_USER_ID = "ramon";
 
 export async function GET(request: NextRequest) {
