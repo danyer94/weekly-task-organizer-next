@@ -49,9 +49,12 @@ export const createTaskEventForRamon = async (
 export const deleteTaskEventForRamon = async (
   eventId: string
 ): Promise<void> => {
-  const res = await fetch(`/api/google/calendar/events?eventId=${eventId}`, {
-    method: "DELETE",
-  });
+  const res = await fetch(
+    `/api/google/calendar/events?eventId=${encodeURIComponent(eventId)}`,
+    {
+      method: "DELETE",
+    }
+  );
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));

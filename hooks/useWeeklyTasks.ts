@@ -131,8 +131,14 @@ export const useWeeklyTasks = () => {
           ? {
               ...t,
               calendarEvent: calendarEvent
-                ? { ...calendarEvent, lastSynced: Date.now() }
-                : undefined,
+                ? {
+                    eventId: calendarEvent.eventId,
+                    date: calendarEvent.date,
+                    startTime: calendarEvent.startTime ?? null,
+                    endTime: calendarEvent.endTime ?? null,
+                    lastSynced: Date.now(),
+                  }
+                : null,
             }
           : t
       ),

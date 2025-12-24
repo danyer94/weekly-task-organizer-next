@@ -24,7 +24,9 @@ export const tasksRef = ref(database, "tasks");
 // Helper function to save tasks
 export const saveTasks = async (tasks: any): Promise<boolean> => {
   try {
-    await set(tasksRef, tasks);
+    // Firebase doesn't allow undefined values. We sanitize by removing them.
+    const sanitizedTasks = JSON.parse(JSON.stringify(tasks));
+    await set(tasksRef, sanitizedTasks);
     return true;
   } catch (error) {
     console.error("Error saving tasks:", error);

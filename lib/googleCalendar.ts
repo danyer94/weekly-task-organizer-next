@@ -135,10 +135,21 @@ export const deleteGoogleCalendarEvent = async (
 
   const calendar = google.calendar({ version: "v3", auth: client });
 
-  await calendar.events.delete({
-    calendarId: "primary",
-    eventId: eventId,
-  });
+  try {
+    await calendar.events.delete({
+      calendarId: "primary",
+      eventId: eventId,
+    });
+  } catch (error: any) {
+    // If the event is already deleted (404) or gone (410), we can consider the deletion successful
+    if (error.code === 404 || error.code === 410) {
+      console.warn(
+        `Event ${eventId} already deleted or not found in Google Calendar.`
+      );
+      return;
+    }
+    throw error;
+  }
 };
 
 export const getGoogleCalendarEvent = async (

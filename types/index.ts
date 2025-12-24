@@ -21,10 +21,10 @@ export interface Task {
   calendarEvent?: {
     eventId: string; // Google Calendar event ID
     date: string; // YYYY-MM-DD
-    startTime?: string; // HH:mm format
-    endTime?: string; // HH:mm format
-    lastSynced?: number; // Timestamp of last sync
-  };
+    startTime?: string | null; // HH:mm format
+    endTime?: string | null; // HH:mm format
+    lastSynced?: number | null; // Timestamp of last sync
+  } | null;
 }
 
 export type TasksByDay = {
