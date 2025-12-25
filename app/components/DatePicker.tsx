@@ -101,7 +101,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
     <div className={`relative ${className}`} ref={containerRef}>
       <button
         onClick={togglePicker}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-bg-surface rounded-xl border border-border-subtle hover:border-border-hover transition-all group shadow-sm"
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-bg-surface/80 rounded-xl border border-border-subtle hover:border-border-hover transition-all group shadow-sm hover:-translate-y-0.5"
       >
         <div className="flex items-center gap-2 overflow-hidden">
           <CalendarIcon className="w-4 h-4 text-text-tertiary group-hover:text-text-brand shrink-0" />
@@ -118,7 +118,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-bg-surface rounded-2xl border border-border-subtle shadow-xl z-[100] animate-in fade-in zoom-in duration-200 backdrop-blur-md">
+        <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-bg-surface/90 rounded-2xl border border-border-subtle shadow-xl z-[100] animate-in fade-in zoom-in duration-200 backdrop-blur-md">
           <div className="flex items-center justify-between mb-4">
             <button onClick={prevMonth} className="p-1 hover:bg-bg-main rounded-lg text-text-secondary">
               <ChevronLeft className="w-5 h-5" />

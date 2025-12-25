@@ -41,7 +41,7 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between border-2 border-border-subtle rounded-xl bg-bg-surface text-text-primary focus:border-border-brand transition-all hover:border-border-brand ${
+        className={`w-full flex items-center justify-between border border-border-subtle rounded-xl bg-bg-surface/80 text-text-primary focus:border-border-brand transition-all hover:border-border-hover ${
           isSmall ? "p-2 sm:p-2.5 text-sm" : "p-3"
         }`}
       >
@@ -53,7 +53,7 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-bg-surface border-2 border-border-subtle rounded-xl shadow-xl z-[60] overflow-hidden animate-fade-in">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-bg-surface/90 border border-border-subtle rounded-xl shadow-xl z-[60] overflow-hidden animate-fade-in backdrop-blur">
           {priorities.map((p) => (
             <button
               key={p.value}
@@ -62,7 +62,7 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
                 setPriority(p.value);
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center gap-2 hover:bg-bg-main transition-colors ${
+              className={`w-full flex items-center gap-2 hover:bg-bg-main/70 transition-colors ${
                 priority === p.value ? "bg-bg-main" : ""
               } ${isSmall ? "p-2 text-sm" : "p-3"}`}
             >

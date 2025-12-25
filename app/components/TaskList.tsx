@@ -38,7 +38,7 @@ export const TaskList: React.FC<TaskListProps> = ({
 }) => {
   if (tasks.length === 0) {
     return (
-      <div className="text-center text-gray-400 py-12 italic">
+      <div className="text-center text-text-tertiary py-12 italic">
         No tasks for this day
       </div>
     );
@@ -87,7 +87,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           if (groupTasks.length === 0) return null;
           return (
             <div key={p.key}>
-              <h4 className="text-sm font-bold text-text-secondary mb-3 uppercase tracking-wider flex items-center gap-2">
+              <h4 className="text-sm font-bold text-text-secondary mb-3 uppercase tracking-[0.3em] flex items-center gap-2">
                 <Circle className={`w-3 h-3 fill-current ${p.color}`} />
                 <span>{p.label}</span>
               </h4>

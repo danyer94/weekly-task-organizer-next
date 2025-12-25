@@ -37,7 +37,7 @@ export const ThemeToggle: React.FC = () => {
       aria-label="Toggle Theme"
     >
       <div
-        className={`absolute top-1 bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center text-xs z-10 ${
+        className={`absolute top-1 bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center text-xs z-10 glow-ring ${
           theme === "dark" ? "translate-x-16 left-1" : "translate-x-0 left-1"
         }`}
       >

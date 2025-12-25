@@ -22,8 +22,8 @@ export const DaySelectionModal: React.FC<DaySelectionModalProps> = ({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="bg-bg-surface p-6 rounded-xl shadow-2xl w-96 transform transition-all scale-100 border border-border-subtle">
+    <div className="fixed inset-0 bg-slate-950/60 flex items-center justify-center z-50 backdrop-blur-sm">
+      <div className="glass-panel p-6 rounded-2xl shadow-2xl w-96 transform transition-all scale-100 border border-border-subtle/60">
         <div className="flex items-center gap-2 mb-4 text-text-brand">
           <Calendar className="w-6 h-6" />
           <h3 className="text-xl font-bold">{title}</h3>
@@ -32,10 +32,10 @@ export const DaySelectionModal: React.FC<DaySelectionModalProps> = ({
           {days.map((day) => (
             <label
               key={day}
-              className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+              className={`flex items-center p-3 rounded-xl border cursor-pointer transition-all ${
                 selectedDays.includes(day)
-                  ? "border-sapphire-600 bg-sapphire-50 dark:bg-sapphire-900/30"
-                  : "border-border-subtle bg-bg-surface hover:border-sapphire-400 dark:hover:border-sapphire-500"
+                  ? "border-sapphire-500 bg-sapphire-50/80 dark:bg-sapphire-900/30"
+                  : "border-border-subtle bg-bg-surface/70 hover:border-sapphire-400 dark:hover:border-sapphire-500"
               }`}
             >
               <input
@@ -48,7 +48,7 @@ export const DaySelectionModal: React.FC<DaySelectionModalProps> = ({
                     setSelectedDays(selectedDays.filter((d) => d !== day));
                   }
                 }}
-                className="mr-2 text-sapphire-600 focus:ring-sapphire-600 border-border-subtle rounded"
+                className="mr-2 text-sapphire-600 focus:ring-sapphire-600 border-border-subtle rounded accent-sky-500"
               />
               <span className="text-text-primary font-medium">{day}</span>
             </label>
@@ -57,7 +57,7 @@ export const DaySelectionModal: React.FC<DaySelectionModalProps> = ({
         <div className="flex gap-2 justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 font-medium transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-gray-400/80 text-white rounded-xl hover:bg-gray-500 font-medium transition-colors flex items-center gap-2"
           >
             <XCircle className="w-4 h-4" />
             <span>Cancel</span>
@@ -67,7 +67,7 @@ export const DaySelectionModal: React.FC<DaySelectionModalProps> = ({
               onConfirm(selectedDays);
               setSelectedDays([]);
             }}
-            className="px-4 py-2 bg-sapphire-600 text-white rounded-lg hover:bg-sapphire-700 font-medium transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white rounded-xl hover:shadow-lg font-medium transition-colors flex items-center gap-2"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Confirm</span>
