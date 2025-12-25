@@ -1,6 +1,6 @@
 // Firebase configuration and initialization
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue, set } from "firebase/database";
+import { getDatabase, ref, onValue, set, get } from "firebase/database";
 
 // Firebase config with fallback values
 // Note: In production, these should come from environment variables
@@ -49,12 +49,21 @@ export const subscribeToTasks = (
   });
 };
 
+// Fetch tasks once from a specific path
+export const fetchTasksOnce = async (path: string = "tasks"): Promise<any | null> => {
+  try {
+    const snapshot = await get(ref(database, path));
+    return snapshot.exists() ? snapshot.val() : null;
+  } catch (error) {
+    console.error(`Error fetching tasks from ${path}:`, error);
+    return null;
+  }
+};
+
 // Helper to check for legacy tasks and migrate them
 export const getLegacyTasks = async (): Promise<any | null> => {
   try {
-    const snapshot = await (
-      await import("firebase/database")
-    ).get(ref(database, "tasks"));
+    const snapshot = await get(ref(database, "tasks"));
     return snapshot.exists() ? snapshot.val() : null;
   } catch {
     return null;

@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { saveTasks, subscribeToTasks, getLegacyTasks } from "@/lib/firebase"; // Ensure this internal path works or use relative
+import {
+  saveTasks,
+  subscribeToTasks,
+  getLegacyTasks,
+  fetchTasksOnce,
+} from "@/lib/firebase"; // Ensure this internal path works or use relative
 import { Task, Day, Priority, TasksByDay } from "@/types";
 import { getWeekPath } from "@/lib/calendarMapper";
-import { format, startOfWeek, endOfWeek } from "date-fns";
+import { format, startOfWeek, endOfWeek, addDays } from "date-fns";
 
 export const DAYS: Day[] = [
   "Monday",
@@ -13,6 +18,19 @@ export const DAYS: Day[] = [
   "Saturday",
   "Sunday",
 ];
+
+const CARRY_OVER_STORAGE_KEY = "weekly-task-organizer:lastCarryOverDate";
+const toDayName = (date: Date): Day => DAYS[(date.getDay() + 6) % 7];
+const toDateKey = (date: Date): string => date.toISOString().split("T")[0];
+const parseDateKey = (key: string): Date => new Date(`${key}T00:00:00`);
+const normalizeTasksByDay = (data?: TasksByDay | null): TasksByDay => {
+  const normalized: TasksByDay = {};
+  DAYS.forEach((day) => {
+    const list = data?.[day];
+    normalized[day] = Array.isArray(list) ? list : [];
+  });
+  return normalized;
+};
 
 export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   // Path for current selection
@@ -26,6 +44,8 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   >("connecting");
   const isLocalChange = useRef(false);
   const hasMigrated = useRef(false);
+  const lastCarryOverDateRef = useRef<string | null>(null);
+  const isCarryingOverRef = useRef(false);
 
   // Migration & Initialization
   useEffect(() => {
@@ -55,12 +75,10 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       }
 
       if (data) {
-        setTasks(data);
+        setTasks(normalizeTasksByDay(data));
         setSyncStatus("synced");
       } else {
-        const initialTasks: TasksByDay = {};
-        DAYS.forEach((day) => (initialTasks[day] = []));
-        setTasks(initialTasks);
+        setTasks(normalizeTasksByDay());
         setSyncStatus("synced");
       }
     }, currentPath);
@@ -83,6 +101,130 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
     },
     [currentPath]
   );
+
+  const persistLastCarryOverDate = useCallback((dateKey: string) => {
+    lastCarryOverDateRef.current = dateKey;
+    if (typeof window !== "undefined") {
+      localStorage.setItem(CARRY_OVER_STORAGE_KEY, dateKey);
+    }
+  }, []);
+
+  const applyLocalTasks = useCallback((data: TasksByDay) => {
+    isLocalChange.current = true;
+    setTasks(data);
+  }, []);
+
+  const moveIncompleteTasksForward = useCallback(
+    async (fromDate: Date, toDate: Date) => {
+      const sourcePath = getWeekPath(fromDate);
+      const targetPath = getWeekPath(toDate);
+      const sourceDay = toDayName(fromDate);
+      const targetDay = toDayName(toDate);
+
+      const [sourceSnapshot, targetSnapshot] = await Promise.all([
+        fetchTasksOnce(sourcePath),
+        sourcePath === targetPath ? null : fetchTasksOnce(targetPath),
+      ]);
+
+      const normalizedSource = normalizeTasksByDay(
+        sourcePath === currentPath ? tasks : (sourceSnapshot as TasksByDay)
+      );
+      const tasksToMove = (normalizedSource[sourceDay] || []).filter(
+        (t) => !t.completed
+      );
+
+      if (tasksToMove.length === 0) return;
+
+      const sanitizedCopies = tasksToMove.map((task) => ({
+        ...task,
+        id: Date.now() + Math.random(),
+        completed: false,
+        calendarEvent: null,
+      }));
+
+      if (sourcePath === targetPath) {
+        const updatedWeek: TasksByDay = {
+          ...normalizedSource,
+          [targetDay]: [...(normalizedSource[targetDay] || []), ...sanitizedCopies],
+        };
+
+        if (sourcePath === currentPath) {
+          setSyncStatus("connecting");
+          applyLocalTasks(updatedWeek);
+        }
+        const ok = await saveTasks(updatedWeek, sourcePath);
+        if (sourcePath === currentPath) {
+          setSyncStatus(ok ? "synced" : "error");
+        }
+        return;
+      }
+
+      const normalizedTarget = normalizeTasksByDay(
+        targetPath === currentPath ? tasks : (targetSnapshot as TasksByDay)
+      );
+
+      const updatedTarget: TasksByDay = {
+        ...normalizedTarget,
+        [targetDay]: [...(normalizedTarget[targetDay] || []), ...sanitizedCopies],
+      };
+
+      if (targetPath === currentPath) {
+        setSyncStatus("connecting");
+      }
+      if (targetPath === currentPath) applyLocalTasks(updatedTarget);
+
+      const ok = await saveTasks(updatedTarget, targetPath);
+
+      if (targetPath === currentPath) {
+        setSyncStatus(ok ? "synced" : "error");
+      }
+    },
+    [applyLocalTasks, currentPath, tasks]
+  );
+
+  const ensureCarryOver = useCallback(async () => {
+    if (typeof window === "undefined") return;
+    if (isCarryingOverRef.current) return;
+
+    isCarryingOverRef.current = true;
+    try {
+      if (!lastCarryOverDateRef.current) {
+        lastCarryOverDateRef.current =
+          localStorage.getItem(CARRY_OVER_STORAGE_KEY);
+      }
+
+      const today = new Date();
+      const todayKey = toDateKey(today);
+
+      if (!lastCarryOverDateRef.current) {
+        const yesterday = addDays(today, -1);
+        await moveIncompleteTasksForward(yesterday, today);
+        persistLastCarryOverDate(todayKey);
+        return;
+      }
+
+      let cursor = addDays(parseDateKey(lastCarryOverDateRef.current), 1);
+      while (toDateKey(cursor) <= todayKey) {
+        const fromDate = addDays(cursor, -1);
+        await moveIncompleteTasksForward(fromDate, cursor);
+        persistLastCarryOverDate(toDateKey(cursor));
+        cursor = addDays(cursor, 1);
+      }
+    } catch (error) {
+      console.error("Failed to carry over incomplete tasks automatically", error);
+    } finally {
+      isCarryingOverRef.current = false;
+    }
+  }, [moveIncompleteTasksForward, persistLastCarryOverDate]);
+
+  useEffect(() => {
+    if (!isClient) return;
+    ensureCarryOver();
+    const interval = window.setInterval(() => {
+      ensureCarryOver();
+    }, 60 * 1000);
+    return () => window.clearInterval(interval);
+  }, [ensureCarryOver, isClient]);
 
   // --- Task Operations ---
 
