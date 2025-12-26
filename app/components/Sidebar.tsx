@@ -2,6 +2,7 @@ import React from "react";
 import { Day } from "@/types";
 import { QuickActions } from "./QuickActions";
 import { TaskStats } from "./TaskStats";
+import { DatePicker } from "./DatePicker";
 
 interface SidebarProps {
   days: Day[];
@@ -9,7 +10,9 @@ interface SidebarProps {
   onDayChange: (day: Day) => void;
   tasks: any;
   stats: { total: number; completed: number };
-  quickActionsProps: any; // Passing through props for QuickActions
+  quickActionsProps: any;
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -19,12 +22,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   tasks,
   stats,
   quickActionsProps,
+  selectedDate,
+  onDateChange,
 }) => {
   return (
     <div className="space-y-6">
+      {/* Date Selection */}
+      <DatePicker 
+        selectedDate={selectedDate} 
+        onChange={onDateChange} 
+      />
+
       {/* Days Navigation */}
-      <div className="bg-bg-surface rounded-xl shadow-lg p-4 font-sans border border-border-subtle">
-        <h4 className="font-bold text-text-brand mb-3 px-2">Days</h4>
+      <div className="glass-panel rounded-2xl p-4 font-sans border border-border-subtle/60">
+        <h4 className="font-bold text-text-brand mb-3 px-2 uppercase tracking-[0.3em] text-xs">
+          Days
+        </h4>
         <div className="space-y-2">
           {days.map((day) => {
             const dayTasks = tasks[day] || [];
@@ -37,15 +50,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={day}
                 onClick={() => onDayChange(day)}
-                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
+                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all hover:-translate-y-0.5 ${
                   isActive
-                    ? "bg-sapphire-500 text-white shadow-md"
-                    : "bg-bg-main text-text-primary hover:bg-sapphire-100 dark:hover:bg-sapphire-800 hover:text-sapphire-700 dark:hover:text-white"
+                    ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
+                    : "bg-bg-main/70 text-text-primary hover:bg-sapphire-100/80 dark:hover:bg-sapphire-800/60 hover:text-sapphire-700 dark:hover:text-white"
                 }`}
               >
                 <span className="font-medium">{day}</span>
                 <span className={`text-xs px-2 py-1 rounded-full font-bold ${
-                  isActive ? "bg-white text-sapphire-600" : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                  isActive ? "bg-white/90 text-sapphire-600" : "bg-gray-200/80 text-gray-700 dark:bg-gray-700/80 dark:text-gray-200"
                 }`}>
                   {completedCount}/{totalCount}
                 </span>
@@ -59,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <TaskStats total={stats.total} completed={stats.completed} />
 
       {/* Quick Actions */}
-      <div className="bg-bg-surface rounded-xl shadow-lg p-6 border border-border-subtle">
+      <div className="glass-panel rounded-2xl p-6 border border-border-subtle/60">
         <QuickActions {...quickActionsProps} />
       </div>
     </div>

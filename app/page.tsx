@@ -7,7 +7,7 @@ const WeeklyTaskOrganizer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-purple-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex items-center justify-center">
         <div className="text-white text-2xl font-bold animate-pulse">
           Loading...
         </div>

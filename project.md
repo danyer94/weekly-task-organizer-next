@@ -84,6 +84,7 @@ interface Task {
 - **Add/Edit/Delete**: Full CRUD operations.
 - **Priority**: Three levels (High 🔴, Medium 🟠, Low 🟢).
 - **Completion**: Toggleable status.
+- **Carry Over**: Incomplete tasks are copied to the next calendar day when a new day starts (supports week boundaries). Originals stay in their day to preserve history; copies start unchecked and without calendar links.
 
 ### 4.3. Views & Ordering
 
