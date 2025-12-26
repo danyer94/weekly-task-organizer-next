@@ -62,4 +62,9 @@ export interface CalendarEventPayload {
    * If not provided and startTime is set, defaults to 1 hour after startTime.
    */
   endTime?: string;
+  /**
+   * Optional timezone for the event (e.g., 'America/New_York').
+   * If not provided, defaults to UTC on the server.
+   */
+  timeZone?: string;
 }
