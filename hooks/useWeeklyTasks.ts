@@ -46,39 +46,38 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   const hasMigrated = useRef(false);
   const lastCarryOverDateRef = useRef<string | null>(null);
   const isCarryingOverRef = useRef(false);
+  const latestTasksRef = useRef<TasksByDay>({});
+  const lastLocalUpdateRef = useRef<number>(0);
 
-  // Migration & Initialization
+  // No migration needed anymore as it's overwriting data on reload
+  const setIsClientOnce = useRef(false);
   useEffect(() => {
-    setIsClient(true);
-
-    const initialize = async () => {
-      if (hasMigrated.current) return;
-
-      const legacy = await getLegacyTasks();
-      if (legacy) {
-        console.log("Legacy tasks found, migrating...");
-        await saveTasks(legacy, currentPath);
-        hasMigrated.current = true;
-      }
-    };
-
-    initialize();
-  }, [currentPath]);
+    if (!setIsClientOnce.current) {
+      setIsClient(true);
+      setIsClientOnce.current = true;
+    }
+  }, []);
 
   // Subscribe to Firebase at current path
   useEffect(() => {
     setSyncStatus("connecting");
     const unsubscribe = subscribeToTasks((data) => {
-      if (isLocalChange.current) {
-        isLocalChange.current = false;
+      // Shield local state from Firebase updates for 2 seconds after a manual local change
+      // This prevents "stale" events or "ack" events from overwriting the latest local truth
+      const now = performance.now();
+      if (now - lastLocalUpdateRef.current < 2000) {
         return;
       }
 
       if (data) {
-        setTasks(normalizeTasksByDay(data));
+        const normalized = normalizeTasksByDay(data);
+        latestTasksRef.current = normalized;
+        setTasks(normalized);
         setSyncStatus("synced");
       } else {
-        setTasks(normalizeTasksByDay());
+        const normalized = normalizeTasksByDay();
+        latestTasksRef.current = normalized;
+        setTasks(normalized);
         setSyncStatus("synced");
       }
     }, currentPath);
@@ -88,16 +87,30 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
   // Helper to update tasks and sync to Firebase
   const updateTasks = useCallback(
-    (updater: (prev: TasksByDay) => TasksByDay) => {
-      isLocalChange.current = true;
-      setTasks((prev) => {
-        const newTasks = updater(prev);
-        saveTasks(newTasks, currentPath)
-          .then((success) => setSyncStatus(success ? "synced" : "error"))
-          .catch(() => setSyncStatus("error"));
-        return newTasks;
-      });
+    async (updater: (prev: TasksByDay) => TasksByDay) => {
       setSyncStatus("connecting");
+
+      // Update protection timestamp
+      lastLocalUpdateRef.current = performance.now();
+
+      // Use the ref as the synchronous source of truth for the update
+      const nextTasks = updater(latestTasksRef.current);
+
+      // Update both ref and state
+      latestTasksRef.current = nextTasks;
+      setTasks(nextTasks);
+
+      try {
+        const success = await saveTasks(nextTasks, currentPath);
+        if (success) {
+          setSyncStatus("synced");
+        } else {
+          setSyncStatus("error");
+        }
+      } catch (error) {
+        console.error("Failed to persist tasks:", error);
+        setSyncStatus("error");
+      }
     },
     [currentPath]
   );
@@ -110,7 +123,6 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   }, []);
 
   const applyLocalTasks = useCallback((data: TasksByDay) => {
-    isLocalChange.current = true;
     setTasks(data);
   }, []);
 
@@ -121,13 +133,14 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       const sourceDay = toDayName(fromDate);
       const targetDay = toDayName(toDate);
 
+      // Always fetch fresh data for carry-over to avoid stale state issues
       const [sourceSnapshot, targetSnapshot] = await Promise.all([
         fetchTasksOnce(sourcePath),
         sourcePath === targetPath ? null : fetchTasksOnce(targetPath),
       ]);
 
       const normalizedSource = normalizeTasksByDay(
-        sourcePath === currentPath ? tasks : (sourceSnapshot as TasksByDay)
+        sourceSnapshot as TasksByDay
       );
       const tasksToMove = (normalizedSource[sourceDay] || []).filter(
         (t) => !t.completed
@@ -145,41 +158,44 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       if (sourcePath === targetPath) {
         const updatedWeek: TasksByDay = {
           ...normalizedSource,
-          [targetDay]: [...(normalizedSource[targetDay] || []), ...sanitizedCopies],
+          [targetDay]: [
+            ...(normalizedSource[targetDay] || []),
+            ...sanitizedCopies,
+          ],
         };
 
-        if (sourcePath === currentPath) {
-          setSyncStatus("connecting");
-          applyLocalTasks(updatedWeek);
-        }
         const ok = await saveTasks(updatedWeek, sourcePath);
         if (sourcePath === currentPath) {
+          // If update is for current week, also update local protection and state
+          lastLocalUpdateRef.current = performance.now();
+          applyLocalTasks(updatedWeek);
           setSyncStatus(ok ? "synced" : "error");
         }
         return;
       }
 
       const normalizedTarget = normalizeTasksByDay(
-        targetPath === currentPath ? tasks : (targetSnapshot as TasksByDay)
+        targetSnapshot as TasksByDay
       );
 
       const updatedTarget: TasksByDay = {
         ...normalizedTarget,
-        [targetDay]: [...(normalizedTarget[targetDay] || []), ...sanitizedCopies],
+        [targetDay]: [
+          ...(normalizedTarget[targetDay] || []),
+          ...sanitizedCopies,
+        ],
       };
-
-      if (targetPath === currentPath) {
-        setSyncStatus("connecting");
-      }
-      if (targetPath === currentPath) applyLocalTasks(updatedTarget);
 
       const ok = await saveTasks(updatedTarget, targetPath);
 
       if (targetPath === currentPath) {
+        // If update is for current week, also update local protection and state
+        lastLocalUpdateRef.current = performance.now();
+        applyLocalTasks(updatedTarget);
         setSyncStatus(ok ? "synced" : "error");
       }
     },
-    [applyLocalTasks, currentPath, tasks]
+    [applyLocalTasks, currentPath]
   );
 
   const ensureCarryOver = useCallback(async () => {
@@ -189,8 +205,9 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
     isCarryingOverRef.current = true;
     try {
       if (!lastCarryOverDateRef.current) {
-        lastCarryOverDateRef.current =
-          localStorage.getItem(CARRY_OVER_STORAGE_KEY);
+        lastCarryOverDateRef.current = localStorage.getItem(
+          CARRY_OVER_STORAGE_KEY
+        );
       }
 
       const today = new Date();
@@ -211,7 +228,10 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         cursor = addDays(cursor, 1);
       }
     } catch (error) {
-      console.error("Failed to carry over incomplete tasks automatically", error);
+      console.error(
+        "Failed to carry over incomplete tasks automatically",
+        error
+      );
     } finally {
       isCarryingOverRef.current = false;
     }
@@ -245,10 +265,14 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   };
 
   const deleteTask = (day: Day, id: number) => {
-    updateTasks((prev) => ({
-      ...prev,
-      [day]: (prev[day] || []).filter((t) => t.id !== id),
-    }));
+    updateTasks((prev) => {
+      const dayTasks = prev[day] || [];
+      const newDayTasks = dayTasks.filter((t) => t.id !== id);
+      return {
+        ...prev,
+        [day]: newDayTasks,
+      };
+    });
   };
 
   const toggleComplete = (day: Day, id: number) => {
@@ -320,7 +344,6 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
   const deleteSelected = (currentDay: Day, selectedIds: Set<number>) => {
     if (selectedIds.size === 0) return;
-    if (!window.confirm(`Delete ${selectedIds.size} task(s)?`)) return;
 
     updateTasks((prev) => ({
       ...prev,

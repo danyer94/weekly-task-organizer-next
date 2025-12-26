@@ -11,6 +11,7 @@ import { BulkAddModal } from "./BulkAddModal";
 import { CalendarEventModal } from "./CalendarEventModal";
 import { ShieldCheck, User, RefreshCw, Calendar as CalendarIcon } from "lucide-react";
 import { taskToCalendarEvent } from "@/lib/calendarMapper";
+import { ConfirmationModal } from "./ConfirmationModal";
 import {
   connectGoogleCalendar,
   createTaskEventForRamon,
@@ -62,6 +63,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [selectedTaskForCalendar, setSelectedTaskForCalendar] = useState<{
     day: Day;
@@ -118,8 +120,13 @@ const WeeklyTaskOrganizer: React.FC = () => {
   };
 
   const handleDeleteSelected = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
     deleteSelected(currentAdminDay, selectedTasks);
     setSelectedTasks(new Set());
+    setShowDeleteConfirm(false);
   };
 
   const handleMoveOrCopy = (targetDays: Day[], isMove: boolean) => {
@@ -470,6 +477,13 @@ const WeeklyTaskOrganizer: React.FC = () => {
           bulkAddTasks(currentAdminDay, text);
           setShowBulkModal(false);
         }}
+      />
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={confirmDelete}
+        title="Delete Tasks"
+        message={`Are you sure you want to delete ${selectedTasks.size} selected task(s)? This action cannot be undone.`}
       />
       {selectedTaskForCalendar && (
         <CalendarEventModal

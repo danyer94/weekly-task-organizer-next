@@ -50,7 +50,9 @@ export const subscribeToTasks = (
 };
 
 // Fetch tasks once from a specific path
-export const fetchTasksOnce = async (path: string = "tasks"): Promise<any | null> => {
+export const fetchTasksOnce = async (
+  path: string = "tasks"
+): Promise<any | null> => {
   try {
     const snapshot = await get(ref(database, path));
     return snapshot.exists() ? snapshot.val() : null;
