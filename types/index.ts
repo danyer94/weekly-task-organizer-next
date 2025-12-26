@@ -68,3 +68,17 @@ export interface CalendarEventPayload {
    */
   timeZone?: string;
 }
+
+export type NotificationChannel = "email" | "whatsapp" | "sms";
+
+export interface NotificationRequest {
+  channel: NotificationChannel;
+  to: string;
+  message: string;
+  subject?: string;
+}
+
+export interface NotificationResult {
+  provider: "smtp" | "twilio";
+  messageId?: string;
+}
