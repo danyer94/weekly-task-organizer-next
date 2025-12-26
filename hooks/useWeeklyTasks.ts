@@ -65,7 +65,8 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       // Shield local state from Firebase updates for 2 seconds after a manual local change
       // This prevents "stale" events or "ack" events from overwriting the latest local truth
       const now = performance.now();
-      if (now - lastLocalUpdateRef.current < 2000) {
+      const lastLocalUpdate = lastLocalUpdateRef.current;
+      if (lastLocalUpdate > 0 && now - lastLocalUpdate < 2000) {
         return;
       }
 
@@ -123,6 +124,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   }, []);
 
   const applyLocalTasks = useCallback((data: TasksByDay) => {
+    latestTasksRef.current = data;
     setTasks(data);
   }, []);
 
