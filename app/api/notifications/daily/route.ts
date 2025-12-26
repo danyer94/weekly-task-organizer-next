@@ -54,17 +54,48 @@ const formatDailyMessage = (
   const header = `Daily summary - ${dayLabel}, ${dateKey}`;
   const totals = `Total: ${tasks.length} | Completed: ${completedCount}`;
 
-  const lines = tasks.map((task) => {
+  const highPriorityTasks = tasks.filter((task) => task.priority === "high");
+  const mediumPriorityTasks = tasks.filter(
+    (task) => task.priority === "medium"
+  );
+  const lowPriorityTasks = tasks.filter((task) => task.priority === "low");
+
+  const highPriorityLines = highPriorityTasks.map((task) => {
     const status = task.completed ? "[x]" : "[ ]";
-    return `- ${status} (${task.priority}) ${task.text}`;
+    return `- ${status} ${task.text}`;
+  });
+  const mediumPriorityLines = mediumPriorityTasks.map((task) => {
+    const status = task.completed ? "[x]" : "[ ]";
+    return `- ${status} ${task.text}`;
+  });
+  const lowPriorityLines = lowPriorityTasks.map((task) => {
+    const status = task.completed ? "[x]" : "[ ]";
+    return `- ${status} ${task.text}`;
   });
 
-  return [header, totals, "", ...lines].join("\n");
+  const message = [
+    header,
+    totals,
+    highPriorityTasks.length > 0
+      ? ["", "High priority", ...highPriorityLines]
+      : undefined,
+    mediumPriorityTasks.length > 0
+      ? ["", "Medium priority", ...mediumPriorityLines]
+      : undefined,
+    lowPriorityTasks.length > 0
+      ? ["", "Low priority", ...lowPriorityLines]
+      : undefined,
+  ]
+    .filter((e) => e)
+    .flat()
+    .join("\n");
+  return message;
 };
 
 const getRecipients = () => {
   const recipients: { channel: NotificationChannel; to: string }[] = [];
-  if (NOTIFY_EMAIL_TO) recipients.push({ channel: "email", to: NOTIFY_EMAIL_TO });
+  if (NOTIFY_EMAIL_TO)
+    recipients.push({ channel: "email", to: NOTIFY_EMAIL_TO });
   if (NOTIFY_WHATSAPP_TO)
     recipients.push({ channel: "whatsapp", to: NOTIFY_WHATSAPP_TO });
   if (NOTIFY_SMS_TO) recipients.push({ channel: "sms", to: NOTIFY_SMS_TO });
@@ -73,8 +104,11 @@ const getRecipients = () => {
 
 const parseChannelFilter = (value: unknown): NotificationChannel[] | null => {
   if (!value) return null;
-  const raw =
-    Array.isArray(value) ? value : String(value).split(",").map((s) => s.trim());
+  const raw = Array.isArray(value)
+    ? value
+    : String(value)
+        .split(",")
+        .map((s) => s.trim());
   const channels = raw.filter(Boolean);
   if (!channels.length) return null;
   return channels.filter((channel) =>
@@ -86,9 +120,7 @@ const sendDailySummary = async (params?: {
   date?: string | null;
   channels?: NotificationChannel[] | null;
 }) => {
-  const dateCandidate = params?.date
-    ? parseDateParam(params.date)
-    : null;
+  const dateCandidate = params?.date ? parseDateParam(params.date) : null;
   const targetDate = dateCandidate || new Date();
 
   const { dateKey, weekday } = getZonedDateInfo(targetDate, TIME_ZONE);
@@ -115,7 +147,7 @@ const sendDailySummary = async (params?: {
     throw new Error("No matching notification channels are configured");
   }
 
-  const results = await Promise.all(
+  const results = await Promise.allSettled(
     selectedRecipients.map(async (recipient) => {
       const result = await sendNotification({
         channel: recipient.channel,
@@ -132,12 +164,36 @@ const sendDailySummary = async (params?: {
     })
   );
 
+  const mappedResults = results.map((result, index) => {
+    const recipient = selectedRecipients[index];
+    if (result.status === "fulfilled") {
+      return result.value;
+    }
+
+    return {
+      channel: recipient.channel,
+      to: recipient.to,
+      error:
+        result.reason instanceof Error
+          ? result.reason.message
+          : "Failed to send notification",
+    };
+  });
+
+  const sentCount = mappedResults.filter((entry) => !("error" in entry)).length;
+
+  if (sentCount === 0) {
+    throw new Error("All notifications failed to send");
+  }
+
   return {
     dateKey,
     weekday,
     total: dayTasks.length,
     completed: dayTasks.filter((task) => task.completed).length,
-    results,
+    results: mappedResults,
+    sent: sentCount,
+    failed: mappedResults.length - sentCount,
   };
 };
 
