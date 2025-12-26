@@ -43,7 +43,8 @@ export const taskToCalendarEvent = (
   task: Task,
   startTime?: string,
   endTime?: string,
-  contextDate: Date = new Date()
+  contextDate: Date = new Date(),
+  timeZone?: string
 ): CalendarEventPayload => {
   const eventDate = getDateForDayInWeek(contextDate, day);
 
@@ -53,6 +54,7 @@ export const taskToCalendarEvent = (
     date: toDateString(eventDate),
     startTime,
     endTime,
+    timeZone,
   };
 };
 

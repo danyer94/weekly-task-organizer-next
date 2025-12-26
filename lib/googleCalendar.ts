@@ -214,37 +214,43 @@ export const createGoogleCalendarEventForUser = async (
 
   // If startTime is provided, create a timed event; otherwise, create an all-day event
   if (payload.startTime) {
-    // Parse the date string (YYYY-MM-DD) into local date components
-    // This avoids UTC interpretation issues when creating the Date object
-    const [year, month, day] = payload.date.split("-").map(Number);
+    // Use the provided timezone or fall back to system timezone
+    const eventTimeZone =
+      payload.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    // Parse the time
-    const [hours, minutes] = payload.startTime.split(":").map(Number);
+    // Construct ISO string for local time (YYYY-MM-DDTHH:mm:ss)
+    // We avoid using new Date() on the server to prevent UTC/Local conversion issues
+    const formatDateTime = (dateStr: string, timeStr: string) => {
+      return `${dateStr}T${timeStr}:00`;
+    };
 
-    // Create date in local timezone (month is 0-indexed in Date constructor)
-    const startDateTime = new Date(year, month - 1, day, hours, minutes, 0, 0);
+    const startDateTimeStr = formatDateTime(payload.date, payload.startTime);
 
-    // Calculate end time (default to 1 hour after start if not provided)
-    let endDateTime: Date;
+    // Calculate end time
+    let endDateTimeStr: string;
     if (payload.endTime) {
-      const [endHours, endMinutes] = payload.endTime.split(":").map(Number);
-      // Create end date in local timezone
-      endDateTime = new Date(year, month - 1, day, endHours, endMinutes, 0, 0);
+      endDateTimeStr = formatDateTime(payload.date, payload.endTime);
     } else {
-      endDateTime = new Date(startDateTime);
-      endDateTime.setHours(startDateTime.getHours() + 1);
+      // Default to 1 hour after start
+      const [hours, minutes] = payload.startTime.split(":").map(Number);
+      const endHours = (hours + 1) % 24;
+      const endHoursStr = String(endHours).padStart(2, "0");
+      endDateTimeStr = formatDateTime(
+        payload.date,
+        `${endHoursStr}:${String(minutes).padStart(2, "0")}`
+      );
     }
 
     const event = {
       summary: payload.summary,
       description: payload.description,
       start: {
-        dateTime: startDateTime.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        dateTime: startDateTimeStr,
+        timeZone: eventTimeZone,
       },
       end: {
-        dateTime: endDateTime.toISOString(),
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        dateTime: endDateTimeStr,
+        timeZone: eventTimeZone,
       },
     };
 
