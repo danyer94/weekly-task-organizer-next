@@ -10,7 +10,7 @@ import { DaySelectionModal } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
 import { CalendarEventModal } from "./CalendarEventModal";
 import { ShieldCheck, User, RefreshCw, Calendar as CalendarIcon } from "lucide-react";
-import { taskToCalendarEvent } from "@/lib/calendarMapper";
+import { getDateForDayInWeek, taskToCalendarEvent } from "@/lib/calendarMapper";
 import { ConfirmationModal } from "./ConfirmationModal";
 import {
   connectGoogleCalendar,
@@ -20,6 +20,8 @@ import {
   syncCalendarEvents,
   type SyncEvent,
 } from "@/lib/calendarClient";
+import { sendDailySummary } from "@/lib/notificationsClient";
+import { format } from "date-fns";
 
 const WeeklyTaskOrganizer: React.FC = () => {
   // Date State
@@ -58,6 +60,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [draggedTask, setDraggedTask] = useState<{ task: any; index: number; day: Day } | null>(null);
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [isCheckingGoogle, setIsCheckingGoogle] = useState(true);
+  const [isSendingSummary, setIsSendingSummary] = useState(false);
 
   // Modal State
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -283,6 +286,23 @@ const WeeklyTaskOrganizer: React.FC = () => {
     }
   };
 
+  const handleSendDailySummary = async () => {
+    try {
+      setIsSendingSummary(true);
+      const targetDate = format(
+        getDateForDayInWeek(selectedDate, currentAdminDay),
+        "yyyy-MM-dd"
+      );
+      await sendDailySummary(targetDate);
+      alert("Daily summary sent.");
+    } catch (error) {
+      console.error("Failed to send daily summary", error);
+      alert("Failed to send daily summary.");
+    } finally {
+      setIsSendingSummary(false);
+    }
+  };
+
   // Sync Indicator Color
   const getSyncColor = () => {
     if (syncStatus === "synced") return "bg-green-500";
@@ -392,6 +412,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
                       onBulkAdd: () => setShowBulkModal(true),
                       onExportWhatsApp: exportToWhatsApp,
                       onExportJSON: exportToJSON,
+                      onSendDailySummary: handleSendDailySummary,
+                      isSendingDailySummary: isSendingSummary,
                       onImportJSON: (e: any) => {
                         if (e.target.files?.[0]) importFromJSON(e.target.files[0]);
                       }

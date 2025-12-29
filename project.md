@@ -151,6 +151,16 @@ The calendar functionality is designed to be easily replaced by an MCP server:
 - **Mapper Reusability**: `lib/calendarMapper.ts` functions (`taskToCalendarEvent`, etc.) can be reused to format payloads for MCP tools.
 - **UI Unchanged**: No changes needed to components when switching to MCP.
 
+## 8. Notifications (Daily Summary Cron)
+
+The daily summary uses a Vercel cron that runs once per weekday (Hobby plan limit).
+Because Vercel does not allow timezone in `vercel.json`, the cron is set in UTC and
+the endpoint checks `NOTIFICATIONS_TIME_ZONE` before sending.
+
+Current schedule:
+- `vercel.json`: `0 14 * * 1-5` (09:00 AM New York during EST)
+- Change to `0 13 * * 1-5` when New York is on EDT (daylight saving time)
+
 ## 7. Implementation Notes for AI Agents
 
 - **Logic Separation**: UI is in `app/components`, Logic is in `hooks/useWeeklyTasks.ts`. Modify the hook for business rule changes, modify components for UI changes.
