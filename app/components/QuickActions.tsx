@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2, FilePlus2, MessageCircle, Save, FolderOpen } from "lucide-react";
+import { Trash2, FilePlus2, MessageCircle, Save, FolderOpen, Bell } from "lucide-react";
 
 interface QuickActionsProps {
   onClearCompleted: () => void;
@@ -7,6 +7,8 @@ interface QuickActionsProps {
   onExportWhatsApp: () => void;
   onExportJSON: () => void;
   onImportJSON: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSendDailySummary: () => void;
+  isSendingDailySummary?: boolean;
   className?: string; // To allow hiding/showing based on breakpoints
 }
 
@@ -16,6 +18,8 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   onExportWhatsApp,
   onExportJSON,
   onImportJSON,
+  onSendDailySummary,
+  isSendingDailySummary = false,
   className = "",
 }) => {
   return (
@@ -23,6 +27,18 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       <h4 className="font-bold text-text-brand mb-3 uppercase tracking-[0.3em] text-xs">
         Quick Actions
       </h4>
+      <button
+        onClick={onSendDailySummary}
+        disabled={isSendingDailySummary}
+        className={`w-full p-2.5 mb-2 rounded-xl font-semibold transition-all text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 ${
+          isSendingDailySummary
+            ? "bg-bg-main/60 border border-border-subtle text-text-tertiary cursor-not-allowed"
+            : "bg-bg-main/60 border border-amber-500/60 text-amber-500 hover:bg-amber-500/90 hover:text-white"
+        }`}
+      >
+        <Bell className="w-4 h-4" />
+        <span>{isSendingDailySummary ? "Sending..." : "Send Daily Summary"}</span>
+      </button>
       <button
         onClick={onClearCompleted}
         className="w-full p-2.5 mb-2 bg-bg-main/60 border border-sapphire-500/60 text-sapphire-500 rounded-xl font-semibold hover:bg-sapphire-500/90 hover:text-white transition-all text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5"
