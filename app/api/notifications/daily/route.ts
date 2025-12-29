@@ -12,6 +12,9 @@ const NOTIFY_SMS_TO = process.env.NOTIFY_SMS_TO || "";
 const NOTIFY_WHATSAPP_TO = process.env.NOTIFY_WHATSAPP_TO || "";
 
 const DATE_PARAM_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DAILY_SEND_HOUR = Number(process.env.NOTIFY_DAILY_HOUR ?? "9");
+const DAILY_SEND_MINUTE = Number(process.env.NOTIFY_DAILY_MINUTE ?? "0");
+const DAILY_SEND_WEEKDAYS = process.env.NOTIFY_DAILY_WEEKDAYS || "1,2,3,4,5";
 
 const getZonedDateInfo = (date: Date, timeZone: string) => {
   const formatter = new Intl.DateTimeFormat("en-US", {
@@ -32,6 +35,59 @@ const getZonedDateInfo = (date: Date, timeZone: string) => {
   return {
     dateKey,
     weekday: map.weekday as Day,
+  };
+};
+
+const WEEKDAY_MAP: Record<Day, number> = {
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+  Sunday: 7,
+};
+
+const parseWeekdaySet = (value: string) => {
+  const set = new Set<number>();
+  const parts = value.split(",").map((part) => part.trim()).filter(Boolean);
+  parts.forEach((part) => {
+    if (part.includes("-")) {
+      const [startRaw, endRaw] = part.split("-").map((v) => v.trim());
+      const start = Number(startRaw);
+      const end = Number(endRaw);
+      if (!Number.isNaN(start) && !Number.isNaN(end)) {
+        const min = Math.min(start, end);
+        const max = Math.max(start, end);
+        for (let i = min; i <= max; i += 1) {
+          set.add(i);
+        }
+      }
+    } else {
+      const day = Number(part);
+      if (!Number.isNaN(day)) set.add(day);
+    }
+  });
+  return set;
+};
+
+const getZonedTimeInfo = (date: Date, timeZone: string) => {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(date);
+  const map: Record<string, string> = {};
+  parts.forEach((part) => {
+    if (part.type !== "literal") map[part.type] = part.value;
+  });
+
+  return {
+    hour: Number(map.hour),
+    minute: Number(map.minute),
   };
 };
 
@@ -119,9 +175,39 @@ const parseChannelFilter = (value: unknown): NotificationChannel[] | null => {
 const sendDailySummary = async (params?: {
   date?: string | null;
   channels?: NotificationChannel[] | null;
+  force?: boolean;
 }) => {
   const dateCandidate = params?.date ? parseDateParam(params.date) : null;
   const targetDate = dateCandidate || new Date();
+
+  if (!params?.force) {
+    const { hour, minute } = getZonedTimeInfo(targetDate, TIME_ZONE);
+    const { weekday } = getZonedDateInfo(targetDate, TIME_ZONE);
+    const weekdaySet = parseWeekdaySet(DAILY_SEND_WEEKDAYS);
+    const weekdayNumber = WEEKDAY_MAP[weekday];
+
+    if (!weekdaySet.has(weekdayNumber)) {
+      return {
+        skipped: true,
+        reason: "Outside scheduled weekdays",
+        timeZone: TIME_ZONE,
+        weekday,
+        weekdayNumber,
+      };
+    }
+
+    if (hour !== DAILY_SEND_HOUR || minute !== DAILY_SEND_MINUTE) {
+      return {
+        skipped: true,
+        reason: "Outside scheduled send time",
+        timeZone: TIME_ZONE,
+        hour,
+        minute,
+        scheduledHour: DAILY_SEND_HOUR,
+        scheduledMinute: DAILY_SEND_MINUTE,
+      };
+    }
+  }
 
   const { dateKey, weekday } = getZonedDateInfo(targetDate, TIME_ZONE);
   const weekDate = new Date(`${dateKey}T12:00:00Z`);
@@ -202,7 +288,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get("date");
     const channels = parseChannelFilter(searchParams.get("channels"));
-    const payload = await sendDailySummary({ date, channels });
+    const force = searchParams.get("force") === "true";
+    const payload = await sendDailySummary({ date, channels, force });
     return NextResponse.json({ success: true, ...payload });
   } catch (error) {
     console.error("Failed to send daily summary", error);
@@ -218,12 +305,14 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as {
       date?: string;
       channels?: NotificationChannel[] | string;
+      force?: boolean;
     };
 
     const channels = parseChannelFilter(body?.channels);
     const payload = await sendDailySummary({
       date: body?.date,
       channels,
+      force: body?.force,
     });
 
     return NextResponse.json({ success: true, ...payload });

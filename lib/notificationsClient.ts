@@ -16,7 +16,8 @@ export interface DailySummaryResponse {
 
 export const sendDailySummary = async (
   date?: string,
-  channels?: NotificationChannel[]
+  channels?: NotificationChannel[],
+  force: boolean = true
 ): Promise<DailySummaryResponse> => {
   const res = await fetch("/api/notifications/daily", {
     method: "POST",
@@ -26,6 +27,7 @@ export const sendDailySummary = async (
     body: JSON.stringify({
       date,
       channels,
+      force,
     }),
   });
 
