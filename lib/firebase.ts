@@ -4,20 +4,55 @@ import { getDatabase, ref, onValue, set, get } from "firebase/database";
 
 // Firebase config with fallback values
 // Note: In production, these should come from environment variables
-const environment = process.env.ENVIROMENT || "prod";
+const rawEnvironment = (process.env.ENVIROMENT || process.env.ENVIRONMENT || "")
+  .toLowerCase()
+  .trim();
+
+const isProductionEnv = rawEnvironment
+  ? ["prod", "production", "live"].includes(rawEnvironment)
+  : process.env.NODE_ENV === "production";
+
+const devConfigKeys = {
+  apiKey: "NEXT_PUBLIC_FIREBASE_API_KEY",
+  authDomain: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+  databaseURL: "NEXT_PUBLIC_FIREBASE_DATABASE_URL",
+  projectId: "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+  storageBucket: "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "NEXT_PUBLIC_FIREBASE_APP_ID",
+};
+
+const prodConfigKeys = {
+  apiKey: "NEXT_PUBLIC_FIREBASE_API_KEY",
+  authDomain: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+  databaseURL: "NEXT_PUBLIC_FIREBASE_DATABASE_URL",
+  projectId: "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+  storageBucket: "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "NEXT_PUBLIC_FIREBASE_APP_ID",
+};
+
+const configKeys = isProductionEnv ? prodConfigKeys : devConfigKeys;
+
 const databaseURL =
-  environment === "dev"
-    ? process.env.NEXT_PUBLIC_FIREBASE_DEV_DATABASE_URL
-    : process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
+  (process.env[configKeys.databaseURL] ||
+    process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL) ??
+  "";
+
+if (!isProductionEnv && !process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL) {
+  console.warn(
+    "NEXT_PUBLIC_FIREBASE_DATABASE_URL is not set; falling back to production database."
+  );
+}
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  apiKey: process.env[configKeys.apiKey],
+  authDomain: process.env[configKeys.authDomain],
   databaseURL,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  projectId: process.env[configKeys.projectId],
+  storageBucket: process.env[configKeys.storageBucket],
+  messagingSenderId: process.env[configKeys.messagingSenderId],
+  appId: process.env[configKeys.appId],
 };
 
 // Initialize Firebase

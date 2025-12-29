@@ -161,6 +161,24 @@ Current schedule:
 - `vercel.json`: `0 14 * * 1-5` (09:00 AM New York during EST)
 - Change to `0 13 * * 1-5` when New York is on EDT (daylight saving time)
 
+## 9. Environment Files (.env)
+
+Next.js loads environment files in this order (last one wins):
+
+Development (`next dev`)
+- `.env.local`
+- `.env.development`
+- `.env`
+
+Production (`next build` / `next start`)
+- `.env.production`
+- `.env`
+
+Notes:
+- `.env.local` is always loaded except for tests and is meant for developer-only overrides.
+- The repo now keeps `.env.development` and `.env.production` for environment-specific values.
+- Vercel ignores local `.env` files; use Project → Settings → Environment Variables.
+
 ## 7. Implementation Notes for AI Agents
 
 - **Logic Separation**: UI is in `app/components`, Logic is in `hooks/useWeeklyTasks.ts`. Modify the hook for business rule changes, modify components for UI changes.
