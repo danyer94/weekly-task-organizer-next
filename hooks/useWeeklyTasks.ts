@@ -21,7 +21,7 @@ export const DAYS: Day[] = [
 
 const CARRY_OVER_STORAGE_KEY = "weekly-task-organizer:lastCarryOverDate";
 const toDayName = (date: Date): Day => DAYS[(date.getDay() + 6) % 7];
-const toDateKey = (date: Date): string => date.toISOString().split("T")[0];
+const toDateKey = (date: Date): string => format(date, "yyyy-MM-dd");
 const parseDateKey = (key: string): Date => new Date(`${key}T00:00:00`);
 const normalizeTasksByDay = (data?: TasksByDay | null): TasksByDay => {
   const normalized: TasksByDay = {};

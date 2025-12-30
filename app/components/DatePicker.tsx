@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, addMonths, subMonths, getYear, setYear, setMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, addMonths, subMonths, getISOWeek, getISOWeekYear, setYear, setMonth } from "date-fns";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from "lucide-react";
 
 interface DatePickerProps {
@@ -13,6 +13,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
   const [isOpen, setIsOpen] = useState(false);
   const [viewDate, setViewDate] = useState(new Date(selectedDate));
   const containerRef = useRef<HTMLDivElement>(null);
+  const isoWeek = getISOWeek(selectedDate);
+  const isoWeekYear = getISOWeekYear(selectedDate);
 
   // Close when clicking outside
   useEffect(() => {
@@ -110,7 +112,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
               {format(selectedDate, "EEEE, MMMM d")}
             </span>
             <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-bold">
-              Week {format(selectedDate, "w")}, {getYear(selectedDate)}
+              Week {isoWeek}, {isoWeekYear}
             </span>
           </div>
         </div>
