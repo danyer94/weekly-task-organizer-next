@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
       date: body.date,
       startTime: body.startTime,
       endTime: body.endTime,
+      timeZone: body.timeZone,
     };
 
     const event = await createGoogleCalendarEventForUser(

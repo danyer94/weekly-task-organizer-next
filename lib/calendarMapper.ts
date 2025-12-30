@@ -1,5 +1,11 @@
 import { CalendarEventPayload, Task, Day } from "@/types";
-import { format, startOfWeek, addDays, getWeek, getYear } from "date-fns";
+import {
+  format,
+  startOfISOWeek,
+  addDays,
+  getISOWeek,
+  getISOWeekYear,
+} from "date-fns";
 
 /**
  * Helper to format a Date into YYYY-MM-DD.
@@ -13,8 +19,8 @@ const toDateString = (date: Date): string => {
  * Format: weeks/YYYY/WW
  */
 export const getWeekPath = (date: Date): string => {
-  const weekNum = getWeek(date, { weekStartsOn: 1 }); // Monday start
-  const year = getYear(date);
+  const weekNum = getISOWeek(date);
+  const year = getISOWeekYear(date);
   return `weeks/${year}/${String(weekNum).padStart(2, "0")}`;
 };
 
@@ -22,7 +28,7 @@ export const getWeekPath = (date: Date): string => {
  * Get the actual date for a specific Day string within a given week.
  */
 export const getDateForDayInWeek = (baseDate: Date, day: Day): Date => {
-  const weekStart = startOfWeek(baseDate, { weekStartsOn: 1 }); // Monday
+  const weekStart = startOfISOWeek(baseDate);
   const dayIndexMap: Record<Day, number> = {
     Monday: 0,
     Tuesday: 1,
