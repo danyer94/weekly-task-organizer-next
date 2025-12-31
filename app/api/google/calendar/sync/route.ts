@@ -5,6 +5,21 @@ import { ref, get } from "firebase/database";
 
 const RAMON_USER_ID = "ramon";
 
+const parseEventDateTime = (dateTime: string) => {
+  const [datePart, timePartRaw] = dateTime.split("T");
+  if (!datePart || !timePartRaw) {
+    return null;
+  }
+
+  const timePart = timePartRaw.split(/[Z+-]/)[0];
+  const [hours = "00", minutes = "00"] = timePart.split(":");
+
+  return {
+    date: datePart,
+    time: `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`,
+  };
+};
+
 /**
  * Sync endpoint that checks if calendar events still exist in Google Calendar
  * and returns sync status for each event.
@@ -50,13 +65,25 @@ export async function POST(request: NextRequest) {
 
           if (event.start?.dateTime) {
             // Timed event
-            const start = new Date(event.start.dateTime);
-            const end = event.end?.dateTime ? new Date(event.end.dateTime) : null;
-            
-            date = start.toISOString().split("T")[0];
-            startTime = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
-            if (end) {
-              endTime = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
+            const parsedStart = parseEventDateTime(event.start.dateTime);
+            const parsedEnd = event.end?.dateTime
+              ? parseEventDateTime(event.end.dateTime)
+              : null;
+
+            if (!parsedStart) {
+              return {
+                eventId,
+                taskId,
+                day,
+                exists: true,
+                error: "Invalid event start date",
+              };
+            }
+
+            date = parsedStart.date;
+            startTime = parsedStart.time;
+            if (parsedEnd) {
+              endTime = parsedEnd.time;
             }
           } else if (event.start?.date) {
             // All-day event
