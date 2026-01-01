@@ -4,6 +4,8 @@ import {
   subscribeToTasks,
   getLegacyTasks,
   fetchTasksOnce,
+  fetchLastCarryOverDate,
+  advanceLastCarryOverDate,
 } from "@/lib/firebase"; // Ensure this internal path works or use relative
 import { Task, Day, Priority, TasksByDay } from "@/types";
 import { getWeekPath } from "@/lib/calendarMapper";
@@ -23,6 +25,7 @@ const CARRY_OVER_STORAGE_KEY = "weekly-task-organizer:lastCarryOverDate";
 const toDayName = (date: Date): Day => DAYS[(date.getDay() + 6) % 7];
 const toDateKey = (date: Date): string => format(date, "yyyy-MM-dd");
 const parseDateKey = (key: string): Date => new Date(`${key}T00:00:00`);
+const normalizeTaskText = (text: string): string => text.trim().toLowerCase();
 const normalizeTasksByDay = (data?: TasksByDay | null): TasksByDay => {
   const normalized: TasksByDay = {};
   DAYS.forEach((day) => {
@@ -48,6 +51,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   const isCarryingOverRef = useRef(false);
   const latestTasksRef = useRef<TasksByDay>({});
   const lastLocalUpdateRef = useRef<number>(0);
+  const lastRemoteCarryOverRef = useRef<string | null>(null);
 
   // No migration needed anymore as it's overwriting data on reload
   const setIsClientOnce = useRef(false);
@@ -144,9 +148,24 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       const normalizedSource = normalizeTasksByDay(
         sourceSnapshot as TasksByDay
       );
-      const tasksToMove = (normalizedSource[sourceDay] || []).filter(
-        (t) => !t.completed
+      const normalizedTarget =
+        sourcePath === targetPath
+          ? normalizedSource
+          : normalizeTasksByDay(targetSnapshot as TasksByDay);
+      const targetTextSet = new Set(
+        (normalizedTarget[targetDay] || []).map((task) =>
+          normalizeTaskText(task.text)
+        )
       );
+
+      const tasksToMove = (normalizedSource[sourceDay] || []).filter((task) => {
+        if (task.completed) return false;
+        const normalizedText = normalizeTaskText(task.text);
+        if (!normalizedText) return false;
+        if (targetTextSet.has(normalizedText)) return false;
+        targetTextSet.add(normalizedText);
+        return true;
+      });
 
       if (tasksToMove.length === 0) return;
 
@@ -175,10 +194,6 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         }
         return;
       }
-
-      const normalizedTarget = normalizeTasksByDay(
-        targetSnapshot as TasksByDay
-      );
 
       const updatedTarget: TasksByDay = {
         ...normalizedTarget,
@@ -212,6 +227,16 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         );
       }
 
+      const remoteCarryOverDate = await fetchLastCarryOverDate();
+      if (
+        remoteCarryOverDate &&
+        (!lastCarryOverDateRef.current ||
+          remoteCarryOverDate > lastCarryOverDateRef.current)
+      ) {
+        lastCarryOverDateRef.current = remoteCarryOverDate;
+      }
+      lastRemoteCarryOverRef.current = remoteCarryOverDate;
+
       const today = new Date();
       const todayKey = toDateKey(today);
 
@@ -219,6 +244,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         const yesterday = addDays(today, -1);
         await moveIncompleteTasksForward(yesterday, today);
         persistLastCarryOverDate(todayKey);
+        await advanceLastCarryOverDate(todayKey);
         return;
       }
 
@@ -226,7 +252,9 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       while (toDateKey(cursor) <= todayKey) {
         const fromDate = addDays(cursor, -1);
         await moveIncompleteTasksForward(fromDate, cursor);
-        persistLastCarryOverDate(toDateKey(cursor));
+        const cursorKey = toDateKey(cursor);
+        persistLastCarryOverDate(cursorKey);
+        await advanceLastCarryOverDate(cursorKey);
         cursor = addDays(cursor, 1);
       }
     } catch (error) {
