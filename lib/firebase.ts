@@ -1,6 +1,13 @@
 // Firebase configuration and initialization
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue, set, get } from "firebase/database";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  set,
+  get,
+  runTransaction,
+} from "firebase/database";
 
 // Firebase config should come from NEXT_PUBLIC_* variables so the client bundle inlines them.
 const firebaseConfig = {
@@ -69,6 +76,36 @@ export const fetchTasksOnce = async (
   } catch (error) {
     console.error(`Error fetching tasks from ${path}:`, error);
     return null;
+  }
+};
+
+const CARRY_OVER_META_PATH = "meta/lastCarryOverDate";
+
+export const fetchLastCarryOverDate = async (): Promise<string | null> => {
+  try {
+    const snapshot = await get(ref(database, CARRY_OVER_META_PATH));
+    return snapshot.exists() ? (snapshot.val() as string) : null;
+  } catch (error) {
+    console.error("Error fetching last carry-over date:", error);
+    return null;
+  }
+};
+
+export const advanceLastCarryOverDate = async (
+  dateKey: string
+): Promise<boolean> => {
+  try {
+    const metaRef = ref(database, CARRY_OVER_META_PATH);
+    await runTransaction(metaRef, (current) => {
+      if (!current || String(current) < dateKey) {
+        return dateKey;
+      }
+      return current;
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating last carry-over date:", error);
+    return false;
   }
 };
 
