@@ -159,12 +159,12 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         )
       );
 
+      // Only de-dupe against target day to preserve intentional duplicates.
       const tasksToMove = (normalizedSource[sourceDay] || []).filter((task) => {
         if (task.completed) return false;
         const normalizedText = normalizeTaskText(task.text);
         if (!normalizedText) return false;
         if (targetTextSet.has(normalizedText)) return false;
-        targetTextSet.add(normalizedText);
         return true;
       });
 
@@ -228,7 +228,13 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         );
       }
 
-      const remoteCarryOverDate = await fetchLastCarryOverDate();
+      const today = new Date();
+      const todayKey = toDateKey(today);
+      const remoteCarryOverDateRaw = await fetchLastCarryOverDate();
+      const remoteCarryOverDate =
+        remoteCarryOverDateRaw && remoteCarryOverDateRaw <= todayKey
+          ? remoteCarryOverDateRaw
+          : null;
       if (
         remoteCarryOverDate &&
         (!lastCarryOverDateRef.current ||
@@ -244,9 +250,6 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         await advanceLastCarryOverDate(lastCarryOverDateRef.current);
       }
       lastRemoteCarryOverRef.current = remoteCarryOverDate;
-
-      const today = new Date();
-      const todayKey = toDateKey(today);
 
       if (!lastCarryOverDateRef.current) {
         const yesterday = addDays(today, -1);
