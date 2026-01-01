@@ -7,6 +7,7 @@ import {
   set,
   get,
   runTransaction,
+  push,
 } from "firebase/database";
 
 // Firebase config should come from NEXT_PUBLIC_* variables so the client bundle inlines them.
@@ -37,6 +38,17 @@ const database = getDatabase(app);
 
 // Reference to tasks in the database
 export const tasksRef = ref(database, "tasks");
+
+export const createTaskId = (): string => {
+  const key = push(ref(database, "meta/taskIds")).key;
+  if (key) {
+    return key;
+  }
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `task_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+};
 
 // Helper function to save tasks to a specific path (e.g. "weeks/2024/52")
 export const saveTasks = async (

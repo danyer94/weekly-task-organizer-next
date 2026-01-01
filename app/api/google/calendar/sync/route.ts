@@ -27,7 +27,7 @@ const parseEventDateTime = (dateTime: string) => {
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as {
-      events: Array<{ eventId: string; taskId: number; day: string }>;
+      events: Array<{ eventId: string; taskId: string; day: string }>;
     };
 
     if (!body.events || !Array.isArray(body.events)) {

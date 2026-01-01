@@ -64,13 +64,13 @@ export const deleteTaskEventForRamon = async (
 
 export interface SyncEvent {
   eventId: string;
-  taskId: number;
+  taskId: string;
   day: string;
 }
 
 export interface SyncResult {
   eventId: string;
-  taskId: number;
+  taskId: string;
   day: string;
   exists: boolean;
   deleted?: boolean;

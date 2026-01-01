@@ -55,8 +55,10 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [newTaskText, setNewTaskText] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
   const [groupByPriority, setGroupByPriority] = useState(true);
-  const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
-  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(
+    new Set<string>()
+  );
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [draggedTask, setDraggedTask] = useState<{ task: any; index: number; day: Day } | null>(null);
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [isCheckingGoogle, setIsCheckingGoogle] = useState(true);
@@ -100,7 +102,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
     setNewTaskText("");
   };
 
-  const handleToggleSelection = (id: number) => {
+  const handleToggleSelection = (id: string) => {
     setSelectedTasks((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) newSet.delete(id);
@@ -116,9 +118,9 @@ const WeeklyTaskOrganizer: React.FC = () => {
     const allSelected = ids.length > 0 && ids.every((id) => selectedTasks.has(id));
 
     if (allSelected) {
-      setSelectedTasks(new Set());
+      setSelectedTasks(new Set<string>());
     } else {
-      setSelectedTasks(new Set(ids));
+      setSelectedTasks(new Set<string>(ids));
     }
   };
 
@@ -128,13 +130,13 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
   const confirmDelete = () => {
     deleteSelected(currentAdminDay, selectedTasks);
-    setSelectedTasks(new Set());
+    setSelectedTasks(new Set<string>());
     setShowDeleteConfirm(false);
   };
 
   const handleMoveOrCopy = (targetDays: Day[], isMove: boolean) => {
     moveOrCopyTasks(currentAdminDay, selectedTasks, targetDays, isMove);
-    setSelectedTasks(new Set());
+    setSelectedTasks(new Set<string>());
     setShowMoveModal(false);
     setShowCopyModal(false);
   };

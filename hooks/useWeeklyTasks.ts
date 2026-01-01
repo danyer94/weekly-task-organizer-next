@@ -6,6 +6,7 @@ import {
   fetchTasksOnce,
   fetchLastCarryOverDate,
   advanceLastCarryOverDate,
+  createTaskId,
 } from "@/lib/firebase"; // Ensure this internal path works or use relative
 import { Task, Day, Priority, TasksByDay } from "@/types";
 import { getWeekPath } from "@/lib/calendarMapper";
@@ -171,7 +172,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
       const sanitizedCopies = tasksToMove.map((task) => ({
         ...task,
-        id: Date.now() + Math.random(),
+        id: createTaskId(),
         completed: false,
         calendarEvent: null,
       }));
@@ -292,7 +293,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       [day]: [
         ...(prev[day] || []),
         {
-          id: Date.now(),
+          id: createTaskId(),
           text,
           completed: false,
           priority,
@@ -301,7 +302,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
     }));
   };
 
-  const deleteTask = (day: Day, id: number) => {
+  const deleteTask = (day: Day, id: string) => {
     updateTasks((prev) => {
       const dayTasks = prev[day] || [];
       const newDayTasks = dayTasks.filter((t) => t.id !== id);
@@ -312,7 +313,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
     });
   };
 
-  const toggleComplete = (day: Day, id: number) => {
+  const toggleComplete = (day: Day, id: string) => {
     updateTasks((prev) => ({
       ...prev,
       [day]: (prev[day] || []).map((t) =>
@@ -323,7 +324,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
   const editTask = (
     day: Day,
-    id: number,
+    id: string,
     newText: string,
     newPriority?: Priority
   ) => {
@@ -339,7 +340,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
   const updateTaskCalendarEvent = (
     day: Day,
-    id: number,
+    id: string,
     calendarEvent: {
       eventId: string;
       date: string;
@@ -379,7 +380,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
   // --- Bulk Operations ---
 
-  const deleteSelected = (currentDay: Day, selectedIds: Set<number>) => {
+  const deleteSelected = (currentDay: Day, selectedIds: Set<string>) => {
     if (selectedIds.size === 0) return;
 
     updateTasks((prev) => ({
@@ -404,7 +405,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
   const moveOrCopyTasks = (
     currentDay: Day,
-    selectedIds: Set<number>,
+    selectedIds: Set<string>,
     targetDays: Day[],
     isMove: boolean
   ) => {
@@ -418,7 +419,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         const currentTargetTasks = [...(newTasks[day] || [])];
         const tasksToAdd = tasksToProcess.map((task) => ({
           ...task,
-          id: Date.now() + Math.random(),
+          id: createTaskId(),
           completed: false,
         }));
         newTasks[day] = [...currentTargetTasks, ...tasksToAdd];
@@ -443,7 +444,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       [day]: [
         ...(prev[day] || []),
         ...lines.map((line) => ({
-          id: Date.now() + Math.random(),
+          id: createTaskId(),
           text: line.trim(),
           completed: false,
           priority: "medium" as Priority,

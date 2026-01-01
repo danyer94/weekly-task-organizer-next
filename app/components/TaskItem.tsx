@@ -10,13 +10,13 @@ interface TaskItemProps {
   isAdmin: boolean;
   isSelected?: boolean;
   groupByPriority?: boolean;
-  onToggleSelection?: (id: number) => void;
-  onToggleComplete?: (day: Day, id: number) => void;
-  onEdit?: (day: Day, id: number, text: string, priority: Priority) => void;
+  onToggleSelection?: (id: string) => void;
+  onToggleComplete?: (day: Day, id: string) => void;
+  onEdit?: (day: Day, id: string, text: string, priority: Priority) => void;
   onDragStart?: (task: Task, index: number, day: Day) => void;
   onDrop?: (targetDay: Day, targetIndex: number) => void;
-  editingTaskId?: number | null;
-  setEditingTaskId?: (id: number | null) => void;
+  editingTaskId?: string | null;
+  setEditingTaskId?: (id: string | null) => void;
   onCreateCalendarEvent?: (day: Day, task: Task) => void;
   onDeleteCalendarEvent?: (day: Day, task: Task) => void;
 }
