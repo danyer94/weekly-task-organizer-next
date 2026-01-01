@@ -234,6 +234,13 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
           remoteCarryOverDate > lastCarryOverDateRef.current)
       ) {
         lastCarryOverDateRef.current = remoteCarryOverDate;
+      } else if (
+        lastCarryOverDateRef.current &&
+        (!remoteCarryOverDate ||
+          lastCarryOverDateRef.current > remoteCarryOverDate)
+      ) {
+        // Push newer local cursor so other clients converge immediately.
+        await advanceLastCarryOverDate(lastCarryOverDateRef.current);
       }
       lastRemoteCarryOverRef.current = remoteCarryOverDate;
 
