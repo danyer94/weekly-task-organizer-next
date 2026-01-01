@@ -10,7 +10,7 @@ export type Day =
   | "Sunday";
 
 export interface Task {
-  id: number;
+  id: string;
   text: string;
   completed: boolean;
   priority: Priority;

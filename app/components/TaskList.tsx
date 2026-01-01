@@ -8,14 +8,14 @@ interface TaskListProps {
   tasks: Task[];
   groupByPriority: boolean;
   isAdmin: boolean;
-  selectedTasks?: Set<number>;
-  onToggleSelection?: (id: number) => void;
-  onToggleComplete?: (day: Day, id: number) => void;
-  onEdit?: (day: Day, id: number, text: string, priority: any) => void;
+  selectedTasks?: Set<string>;
+  onToggleSelection?: (id: string) => void;
+  onToggleComplete?: (day: Day, id: string) => void;
+  onEdit?: (day: Day, id: string, text: string, priority: any) => void;
   onDragStart?: (task: Task, index: number, day: Day) => void;
   onDrop?: (targetDay: Day, targetIndex: number) => void;
-  editingTaskId: number | null;
-  setEditingTaskId?: (id: number | null) => void;
+  editingTaskId: string | null;
+  setEditingTaskId?: (id: string | null) => void;
    onCreateCalendarEvent?: (day: Day, task: Task) => void;
    onDeleteCalendarEvent?: (day: Day, task: Task) => void;
 }

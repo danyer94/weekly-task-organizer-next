@@ -23,19 +23,19 @@ interface AdminViewProps {
   onAddTask: () => void;
   groupByPriority: boolean;
   setGroupByPriority: (val: boolean) => void;
-  selectedTasks: Set<number>;
+  selectedTasks: Set<string>;
   tasks: any;
   // Handlers passed down to TaskList
-  onToggleSelection: (id: number) => void;
-  onEdit: (day: Day, id: number, text: string, priority: Priority) => void;
+  onToggleSelection: (id: string) => void;
+  onEdit: (day: Day, id: string, text: string, priority: Priority) => void;
   onDragStart: (task: any, index: number, day: Day) => void;
   onDrop: (targetDay: Day, targetIndex: number) => void;
   onDeleteSelected: () => void;
   onSelectAll: () => void;
   onMoveClick: () => void;
   onCopyClick: () => void;
-  editingTaskId: number | null;
-  setEditingTaskId: (id: number | null) => void;
+  editingTaskId: string | null;
+  setEditingTaskId: (id: string | null) => void;
   onCreateCalendarEvent?: (day: Day, task: Task) => void;
   onDeleteCalendarEvent?: (day: Day, task: Task) => void;
 }

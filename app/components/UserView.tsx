@@ -9,7 +9,7 @@ interface UserViewProps {
   days: Day[];
   onDayChange: (day: Day) => void;
   tasks: any;
-  onToggleComplete: (day: Day, id: number) => void;
+  onToggleComplete: (day: Day, id: string) => void;
   groupByPriority: boolean;
   setGroupByPriority: (val: boolean) => void;
   selectedDate: Date;
