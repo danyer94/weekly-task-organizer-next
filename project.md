@@ -52,6 +52,8 @@ interface Task {
   text: string;
   completed: boolean;
   priority: "high" | "medium" | "low";
+  calendarEvent?: CalendarEvent | null;
+  copiedFromId?: string | null; // Tracks original task ID when copied (carry-over)
 }
 ```
 
@@ -158,6 +160,7 @@ Because Vercel does not allow timezone in `vercel.json`, the cron is set in UTC 
 the endpoint checks `NOTIFICATIONS_TIME_ZONE` before sending.
 
 Current schedule:
+
 - `vercel.json`: `0 14 * * 1-5` (09:00 AM New York during EST)
 - Change to `0 13 * * 1-5` when New York is on EDT (daylight saving time)
 
@@ -166,15 +169,18 @@ Current schedule:
 Next.js loads environment files in this order (last one wins):
 
 Development (`next dev`)
+
 - `.env.local`
 - `.env.development`
 - `.env`
 
 Production (`next build` / `next start`)
+
 - `.env.production`
 - `.env`
 
 Notes:
+
 - `.env.local` is always loaded except for tests and is meant for developer-only overrides.
 - The repo now keeps `.env.development` and `.env.production` for environment-specific values.
 - Vercel ignores local `.env` files; use Project → Settings → Environment Variables.

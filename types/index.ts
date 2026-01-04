@@ -25,6 +25,11 @@ export interface Task {
     endTime?: string | null; // HH:mm format
     lastSynced?: number | null; // Timestamp of last sync
   } | null;
+  /**
+   * If this task was copied from another day (carry-over), stores the original task ID.
+   * Used to prevent duplicate copies during race conditions.
+   */
+  copiedFromId?: string | null;
 }
 
 export type TasksByDay = {
