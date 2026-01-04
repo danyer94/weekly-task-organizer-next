@@ -2,193 +2,213 @@
 
 ## 1. Project Overview
 
-**Weekly Task Organizer** is a Next.js web application designed to manage weekly tasks with a focus on simplicity and efficiency. It serves two primary user roles: an **Administrator** (who organizes tasks) and a **User** (Ramon, who executes tasks). The app features real-time synchronization, priority management, and various productivity tools.
+**Weekly Task Organizer** is a Next.js web application for managing weekly tasks with a focus on clarity and speed. It supports two roles: an **Administrator** (full control) and a **User** (Ramon, completion only). Tasks are organized by ISO week and day, with real-time sync, priority grouping, Google Calendar integration, and daily summary notifications.
 
 ## 2. Tech Stack
 
 - **Framework**: Next.js 16 (App Router)
-- **UI Library**: React
+- **UI**: React 19 + TypeScript
 - **Styling**: Tailwind CSS v4
 - **Database**: Firebase Realtime Database
-- **Language**: TypeScript
-- **External APIs**: Google Calendar API (via `googleapis` package)
+- **Utilities**: date-fns, lucide-react
+- **External APIs**: Google Calendar (googleapis)
+- **Notifications**: Nodemailer (SMTP) + Twilio (SMS/WhatsApp)
 
 ## 3. Core Architecture
 
-### File Structure
+### 3.1 Key Files and Directories
 
-- `app/layout.tsx`: Root layout configuration.
-- `app/page.tsx`: Home page entry point, loads `WeeklyTaskOrganizer`.
+- `app/layout.tsx`: Root layout and fonts.
+- `app/page.tsx`: Client-only entry point (SSR disabled for UI).
 - `app/components/`:
-  - `WeeklyTaskOrganizer.tsx`: Main container hooking logic to view components.
-  - `AdminView.tsx`: Dashboard for the Administrator role.
-  - `UserView.tsx`: Dashboard for the User role.
-  - `TaskItem.tsx`: Atomic component for individual tasks.
-  - `TaskList.tsx`: List rendering logic (grouped vs flat).
-  - `QuickActions.tsx`: Export/Import and bulk action buttons.
-  - `TaskStats.tsx`: Statistics display.
-  - `DaySelectionModal.tsx` & `BulkAddModal.tsx`: UI modals.
-- `hooks/useWeeklyTasks.ts`: **Core Business Logic**. Handles state, Firebase sync, and CRUD operations.
-- `lib/firebase.ts`: Firebase configuration and typed helper functions.
-- `lib/googleCalendar.ts`: Google OAuth2 and Calendar API helpers (token management, event creation).
-- `lib/calendarMapper.ts`: Pure functions to transform `Task`/`Day` into `CalendarEventPayload`.
-- `lib/calendarClient.ts`: Abstraction layer for calendar operations (prepared for future MCP integration).
-- `types/index.ts`: Shared type definitions (`Task`, `Day`, `Priority`, `CalendarEventPayload`).
-- `app/api/google/`: API routes for Google Calendar integration:
-  - `auth/url/route.ts`: Generates OAuth consent URL.
-  - `auth/callback/route.ts`: Handles OAuth callback and stores tokens.
-  - `calendar/events/route.ts`: Creates calendar events.
-  - `status/route.ts`: Checks Google Calendar connection status.
+  - `WeeklyTaskOrganizer.tsx`: Main container tying logic to UI.
+  - `AdminView.tsx`: Administrator dashboard.
+  - `UserView.tsx`: Ramon dashboard.
+  - `Sidebar.tsx`: Date picker, day navigation, stats, quick actions.
+  - `TaskList.tsx`, `TaskItem.tsx`: Task rendering and interactions.
+  - `PrioritySelector.tsx`: Priority dropdown.
+  - `DatePicker.tsx`: ISO week date picker.
+  - `QuickActions.tsx`: Bulk actions and import/export.
+  - `CalendarEventModal.tsx`: All-day/timed event UI.
+  - `DaySelectionModal.tsx`, `BulkAddModal.tsx`, `ConfirmationModal.tsx`: Modals.
+  - `ThemeToggle.tsx`: Light/dark mode toggle.
+- `hooks/useWeeklyTasks.ts`: Core business logic (state, sync, CRUD, carry-over).
+- `lib/firebase.ts`: Firebase setup, typed helpers, task ID generation.
+- `lib/calendarMapper.ts`: Mapping tasks to calendar payloads and week paths.
+- `lib/calendarClient.ts`: Client API wrapper for Google Calendar endpoints.
+- `lib/googleCalendar.ts`: OAuth and Calendar API server helpers.
+- `lib/notifications.ts`: Server-side notification delivery.
+- `lib/notificationsClient.ts`: Client API wrapper for notifications.
+- `types/index.ts`: Shared types (`Task`, `Day`, `Priority`, notifications).
+- `app/api/google/*`: Google Calendar API routes.
+- `app/api/notifications/*`: Notification API routes.
+- `scripts/`: Firebase maintenance scripts.
 
-### Data Model
+### 3.2 Data Model
 
-Tasks are stored as a mapped object (`TasksByDay`) where keys are day names and values are arrays of tasks.
+Tasks are stored by ISO week in Firebase:
 
-**Task Interface:**
+- **Week path**: `weeks/YYYY/WW` (ISO week number)
+- **Per-day lists**: keys are day names (`Monday` ... `Sunday`)
+- **Meta**:
+  - `meta/lastCarryOverDate` (YYYY-MM-DD)
+  - `meta/taskIds` (push-based ID generator)
+- **Google tokens**: `googleAuth/ramon`
+
+**Task Interface**
 
 ```typescript
 interface Task {
-  id: number;
+  id: string;
   text: string;
   completed: boolean;
   priority: "high" | "medium" | "low";
+  calendarEvent?: {
+    eventId: string;
+    date: string; // YYYY-MM-DD
+    startTime?: string | null; // HH:mm
+    endTime?: string | null; // HH:mm
+    lastSynced?: number | null;
+  } | null;
   calendarEvent?: CalendarEvent | null;
   copiedFromId?: string | null; // Tracks original task ID when copied (carry-over)
 }
 ```
 
-## 4. Key Features & Functionalities
+## 4. Key Features and Functionalities
 
-### 4.1. Roles & Views
+### 4.1 Roles and Views
 
-#### Administrator (👨‍💼)
+- **Administrator**
+  - Full CRUD, priority control, drag-reorder, selection tools.
+  - Sidebar with date picker, day navigation, stats, quick actions.
+  - Google Calendar connect, event sync, and daily summary sending.
+- **User (Ramon)**
+  - Simplified view with day scroller and date picker.
+  - Can only toggle completion status.
 
-- **Layout**: 3-Column Grid.
-  - **Left Sidebar**:
-    - Vertical Day Navigation with task counts.
-    - Weekly Stats.
-    - Quick Actions (Export/Import, Bulk Add).
-  - **Main Area**:
-    - Task list for the selected day.
-    - Task input area.
-- **Capabilities**: Full control (CRUD, Move, Copy, Reorder).
+### 4.2 Weekly Navigation and Carry-Over
 
-#### User (Ramon) (👤)
+- Date picker selects the active ISO week.
+- Data loads from `weeks/YYYY/WW` for the selected week.
+- Incomplete tasks carry over to the next calendar day (including week boundaries).
+  - Copies are reset to `completed = false`.
+  - Calendar links are cleared on copies.
+  - Dedupe is done by normalized task text against the target day.
+  - Uses both local storage and `meta/lastCarryOverDate` to avoid repeat runs.
 
-- **Layout**: Single Column (Full Width).
-  - Horizontal Day Navigation.
-  - Simplified Task List.
-  - **No Quick Actions** or admin controls.
-- **Capabilities**: Can only toggle task completion.
+### 4.3 Task Management
 
-### 4.2. Task Management
+- Add, edit, delete tasks.
+- Priority selection (high/medium/low).
+- Completion toggling (admin and user).
+- Drag-and-drop reordering within a day.
+- Weekly stats: total and completed tasks.
 
-- **Add/Edit/Delete**: Full CRUD operations.
-- **Priority**: Three levels (High 🔴, Medium 🟠, Low 🟢).
-- **Completion**: Toggleable status.
-- **Carry Over**: Incomplete tasks are copied to the next calendar day when a new day starts (supports week boundaries). Originals stay in their day to preserve history; copies start unchecked and without calendar links.
+### 4.4 Views and Ordering
 
-### 4.3. Views & Ordering
+- **Grouped by priority**: High, Medium, Low sections.
+- **Custom order**: Flat list, manual ordering.
+- Toggle between views from both Admin and User screens.
 
-- **Grouped by Priority**: High -> Medium -> Low sections. Drag-and-drop restricted to same group.
-- **Custom Order**: Flat list, free drag-and-drop reordering.
-- **Toggle**: Handled by `TaskList.tsx`.
+### 4.5 Bulk Operations
 
-### 4.4. Bulk Operations
+- Select all / deselect all for the current day.
+- Move or copy selected tasks to multiple days.
+- Bulk add via multiline paste.
+- Clear completed tasks across all days (confirmation required).
+- Delete selected tasks with confirmation.
 
-- **Select All**: Selects all tasks in the current view.
-- **Move/Copy**: Multi-task operations to other days.
-- **Bulk Add**: Paste list of tasks to add multiple at once.
+### 4.6 Import and Export
 
-### 4.5. Data Synchronization
+- Export to WhatsApp formatted text (copied to clipboard).
+- Export to JSON backup file.
+- Import JSON (replaces current week after confirmation).
 
-- **Real-time Sync**: `useWeeklyTasks` subscribes to Firebase changes.
-- **Optimistic UI**: Local state updates immediately; logic handles preventing sync loops via `isLocalChange` ref.
+### 4.7 Real-Time Sync and Status
 
-### 4.6. Google Calendar Integration
+- Live subscription to Firebase changes per week path.
+- Optimistic local updates with a short guard to avoid stale overwrites.
+- Sync indicator in the header: `connecting`, `synced`, `error`.
 
-- **OAuth Flow**: Administrator can connect Ramon's Google account via OAuth2 consent flow.
-- **Event Creation**: Individual tasks can be converted to Google Calendar events (all-day events on the corresponding day of the week).
-- **Token Management**: OAuth tokens (access + refresh) are stored in Firebase under `users/ramon/googleAuth`.
-- **Architecture**: Calendar operations are abstracted through `lib/calendarClient.ts`, allowing future MCP (Model Context Protocol) integration without UI changes.
-- **UI Elements**:
-  - Connection button in header (Admin view only).
-  - Calendar icon button on each `TaskItem` (Admin view only) to create events.
+### 4.8 Google Calendar Integration
 
-## 5. Google Calendar Setup
+- OAuth connection button (Admin only).
+- Create an all-day or timed event per task.
+- Edit a calendar event by recreating it with the new time.
+- Delete calendar events from the task UI.
+- Manual sync checks if events were deleted or changed in Google Calendar and updates tasks.
 
-### Environment Variables Required
+### 4.9 Notifications (Daily Summary)
 
-Add to `.env.local`:
+- Admin quick action to send a daily summary for the selected day.
+- Server endpoint builds summaries grouped by priority.
+- Supports email, WhatsApp, and SMS via SMTP/Twilio.
+- Vercel cron triggers `/api/notifications/daily`.
 
-```bash
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_REDIRECT_URI=http://localhost:3000/api/google/auth/callback
-NEXT_PUBLIC_APP_URL=http://localhost:3000  # For production, use your production URL
-```
+### 4.10 Theme
 
-### Google Cloud Console Setup
+- Light/dark mode toggle persisted in `localStorage`.
 
-1. Create a project in Google Cloud Console.
-2. Enable **Google Calendar API**.
-3. Create **OAuth 2.0 Client ID** credentials (Web application type).
-4. Add authorized redirect URIs:
-   - `http://localhost:3000/api/google/auth/callback` (development)
-   - `https://yourdomain.com/api/google/auth/callback` (production)
-5. Copy `Client ID` and `Client Secret` to environment variables.
+## 5. API Routes
 
-### User Model
+- `app/api/google/auth/url`: Returns OAuth consent URL.
+- `app/api/google/auth/callback`: Handles OAuth callback, stores tokens.
+- `app/api/google/status`: Returns Google connection status.
+- `app/api/google/calendar/events`: Create or delete events.
+- `app/api/google/calendar/sync`: Sync existing events for changes/deletes.
+- `app/api/notifications`: Send a single notification.
+- `app/api/notifications/daily`: Send daily summary (GET/POST).
 
-- Currently uses a fixed user ID `"ramon"` stored in Firebase at `users/ramon/googleAuth`.
-- Structure: `{ accessToken, refreshToken, expiryDate }`.
-- Tokens are automatically refreshed when expired before API calls.
+## 6. Environment Variables
 
-## 6. Future MCP Integration
+### Firebase (client)
 
-The calendar functionality is designed to be easily replaced by an MCP server:
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_DATABASE_URL`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
 
-- **Current**: `lib/calendarClient.ts` calls Next.js API routes that use Google Calendar API directly.
-- **Future**: Replace `calendarClient` implementation to call MCP tools instead of API routes.
-- **Mapper Reusability**: `lib/calendarMapper.ts` functions (`taskToCalendarEvent`, etc.) can be reused to format payloads for MCP tools.
-- **UI Unchanged**: No changes needed to components when switching to MCP.
+### Google Calendar
 
-## 8. Notifications (Daily Summary Cron)
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI`
+- `NEXT_PUBLIC_APP_URL`
 
-The daily summary uses a Vercel cron that runs once per weekday (Hobby plan limit).
-Because Vercel does not allow timezone in `vercel.json`, the cron is set in UTC and
-the endpoint checks `NOTIFICATIONS_TIME_ZONE` before sending.
+### Notifications (delivery + recipients)
 
-Current schedule:
+- SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
+- Twilio: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM`
+- Recipients: `NOTIFY_EMAIL_TO`, `NOTIFY_SMS_TO`, `NOTIFY_WHATSAPP_TO`
 
-- `vercel.json`: `0 14 * * 1-5` (09:00 AM New York during EST)
-- Change to `0 13 * * 1-5` when New York is on EDT (daylight saving time)
+### Notifications (schedule)
 
-## 9. Environment Files (.env)
+- `NOTIFICATIONS_TIME_ZONE` (default `America/New_York`)
+- `NOTIFY_DAILY_HOUR` (default `9`)
+- `NOTIFY_DAILY_MINUTE` (default `0`)
+- `NOTIFY_DAILY_WEEKDAYS` (default `1,2,3,4,5`)
 
-Next.js loads environment files in this order (last one wins):
+## 7. Cron and Scheduling
 
-Development (`next dev`)
+- `vercel.json` schedules `/api/notifications/daily` at `0 14 * * 1-5` (UTC).
+- The endpoint enforces the configured timezone and weekday rules unless `force=true`.
+- Adjust the cron if you need a different UTC window, especially around DST.
 
-- `.env.local`
-- `.env.development`
-- `.env`
+## 8. Scripts and Maintenance
 
-Production (`next build` / `next start`)
+- `scripts/backfillTaskIds.ts`: Ensures all tasks have string IDs across weeks and legacy root.
+- `scripts/renameFirebaseNode.ts`: One-off helper to rename nodes in Firebase.
 
-- `.env.production`
-- `.env`
+## 9. Implementation Notes for AI Agents
 
-Notes:
-
-- `.env.local` is always loaded except for tests and is meant for developer-only overrides.
-- The repo now keeps `.env.development` and `.env.production` for environment-specific values.
-- Vercel ignores local `.env` files; use Project → Settings → Environment Variables.
-
-## 7. Implementation Notes for AI Agents
-
-- **Logic Separation**: UI is in `app/components`, Logic is in `hooks/useWeeklyTasks.ts`. Modify the hook for business rule changes, modify components for UI changes.
-- **Type Safety**: strict TypeScript usage. Use `Task`, `Day`, `Priority`, `CalendarEventPayload` from `@/types`.
-- **Firebase**: Helper functions in `lib/firebase.ts` return typed Promises.
-- **Calendar Operations**: Use `lib/calendarClient.ts` for calendar-related operations. Do not call Google API directly from components.
-- **Styling**: Tailwind CSS v4. "Sapphire Nightfall" theme (User-defined Blue Palette).
+- **Logic vs UI**: Business rules live in `hooks/useWeeklyTasks.ts`. UI lives in `app/components`.
+- **Week paths**: Always compute data paths with `getWeekPath(date)` in `lib/calendarMapper.ts`.
+- **Task IDs**: Use `createTaskId()` from `lib/firebase.ts`; do not use numeric IDs.
+- **Calendar**: Use `lib/calendarClient.ts` from the UI and `lib/googleCalendar.ts` on the server.
+- **Notifications**: Use `lib/notificationsClient.ts` for client calls; format logic is in `app/api/notifications/daily`.
+- **Carry-over**: Keep logic in `useWeeklyTasks.ts` and respect `meta/lastCarryOverDate`.
+- **Theme**: `ThemeToggle` manages light/dark and persists to `localStorage`.
