@@ -159,11 +159,21 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         )
       );
 
+      // Build a set of source task IDs that were already copied to target day
+      const alreadyCopiedSourceIds = new Set(
+        (normalizedTarget[targetDay] || [])
+          .filter((t) => t.copiedFromId)
+          .map((t) => t.copiedFromId)
+      );
+
       // Only de-dupe against target day to preserve intentional duplicates.
       const tasksToMove = (normalizedSource[sourceDay] || []).filter((task) => {
         if (task.completed) return false;
         const normalizedText = normalizeTaskText(task.text);
         if (!normalizedText) return false;
+        // Check if this exact task (by ID) was already copied today
+        if (alreadyCopiedSourceIds.has(task.id)) return false;
+        // Also skip if same text already exists (legacy duplicate check)
         if (targetTextSet.has(normalizedText)) return false;
         return true;
       });
@@ -175,6 +185,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         id: createTaskId(),
         completed: false,
         calendarEvent: null,
+        copiedFromId: task.id, // Track which original task this was copied from
       }));
 
       if (sourcePath === targetPath) {

@@ -70,6 +70,8 @@ interface Task {
     endTime?: string | null; // HH:mm
     lastSynced?: number | null;
   } | null;
+  calendarEvent?: CalendarEvent | null;
+  copiedFromId?: string | null; // Tracks original task ID when copied (carry-over)
 }
 ```
 
