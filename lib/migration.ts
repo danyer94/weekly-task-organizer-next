@@ -1,5 +1,5 @@
 import { database, getUserPath } from "./firebase";
-import { ref, get, set, remove } from "firebase/database";
+import { ref, get, set, remove, update } from "firebase/database";
 
 export const migrateRamonData = async (uid: string, email: string) => {
   if (email !== "ramonfpesante@gmail.com") return;
@@ -56,5 +56,48 @@ export const migrateRamonData = async (uid: string, email: string) => {
     }
   } catch (error) {
     console.error("Migration failed:", error);
+  }
+};
+
+export const fixDoubleNesting = async (uid: string) => {
+  try {
+    const nestedPath = `users/${uid}/users/${uid}`;
+    const nestedSnapshot = await get(ref(database, nestedPath));
+
+    if (nestedSnapshot.exists()) {
+      console.log(`Fixing double nesting for user ${uid}...`);
+      const nestedData = nestedSnapshot.val();
+
+      // Move each key from nested data to the correct user path
+      const userPath = `users/${uid}`;
+      const updates: any = {};
+
+      Object.keys(nestedData).forEach((key) => {
+        updates[`${userPath}/${key}`] = nestedData[key];
+      });
+
+      // Cleanup the nested node
+      updates[nestedPath] = null;
+
+      await update(ref(database), updates);
+
+      console.log(`Double nesting fixed for user ${uid}.`);
+    }
+  } catch (error) {
+    console.error("Failed to fix double nesting:", error);
+  }
+};
+
+export const cleanupUndefinedNode = async () => {
+  try {
+    const undefinedRef = ref(database, "users/undefined");
+    const snapshot = await get(undefinedRef);
+    if (snapshot.exists()) {
+      console.log("Cleaning up redundant 'users/undefined' node...");
+      await remove(undefinedRef);
+      console.log("'users/undefined' node removed.");
+    }
+  } catch (error) {
+    console.error("Failed to cleanup undefined node:", error);
   }
 };

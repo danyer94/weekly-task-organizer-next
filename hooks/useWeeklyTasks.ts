@@ -11,6 +11,7 @@ import {
 import { Task, Day, Priority, TasksByDay } from "@/types";
 import { getDateForDayInWeek, getWeekPath } from "@/lib/calendarMapper";
 import { format, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { getUserPath } from "@/lib/firebase";
 
 export const DAYS: Day[] = [
   "Monday",
@@ -36,7 +37,7 @@ const normalizeTasksByDay = (data?: TasksByDay | null): TasksByDay => {
   return normalized;
 };
 
-import { getUserPath } from "@/lib/firebase";
+
 
 export const useWeeklyTasks = (
   selectedDate: Date = new Date(),
@@ -45,7 +46,7 @@ export const useWeeklyTasks = (
   // Path for current selection
   const currentPath = useMemo(() => {
     if (!uid) return ""; // Handle unauthenticated state
-    return getUserPath(uid, getWeekPath(selectedDate));
+    return getWeekPath(selectedDate);
   }, [selectedDate, uid]);
 
   // State
@@ -73,12 +74,13 @@ export const useWeeklyTasks = (
 
   // Subscribe to Firebase at current path
   useEffect(() => {
+    if (!uid || !currentPath) return;
+
     setSyncStatus("connecting");
     const unsubscribe = subscribeToTasks(
       uid,
       (data) => {
         // Shield local state from Firebase updates for 2 seconds after a manual local change
-        // This prevents "stale" events or "ack" events from overwriting the latest local truth
         const now = performance.now();
         const lastLocalUpdate = lastLocalUpdateRef.current;
         if (lastLocalUpdate > 0 && now - lastLocalUpdate < 2000) {
@@ -101,7 +103,7 @@ export const useWeeklyTasks = (
     );
 
     return () => unsubscribe();
-  }, [currentPath]);
+  }, [currentPath, uid]);
 
   // Helper to update tasks and sync to Firebase
   const updateTasks = useCallback(
@@ -240,7 +242,7 @@ export const useWeeklyTasks = (
   );
 
   const ensureCarryOver = useCallback(async () => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !uid) return;
     if (isCarryingOverRef.current) return;
 
     isCarryingOverRef.current = true;
@@ -253,7 +255,7 @@ export const useWeeklyTasks = (
 
       const today = new Date();
       const todayKey = toDateKey(today);
-      const remoteCarryOverDateRaw = await fetchLastCarryOverDate(uid!);
+      const remoteCarryOverDateRaw = await fetchLastCarryOverDate(uid);
       const remoteCarryOverDate =
         remoteCarryOverDateRaw && remoteCarryOverDateRaw <= todayKey
           ? remoteCarryOverDateRaw
@@ -270,7 +272,7 @@ export const useWeeklyTasks = (
           lastCarryOverDateRef.current > remoteCarryOverDate)
       ) {
         // Push newer local cursor so other clients converge immediately.
-        await advanceLastCarryOverDate(uid!, lastCarryOverDateRef.current);
+        await advanceLastCarryOverDate(uid, lastCarryOverDateRef.current);
       }
       lastRemoteCarryOverRef.current = remoteCarryOverDate;
 
@@ -278,7 +280,7 @@ export const useWeeklyTasks = (
         const yesterday = addDays(today, -1);
         await moveIncompleteTasksForward(yesterday, today);
         persistLastCarryOverDate(todayKey);
-        await advanceLastCarryOverDate(uid!, todayKey);
+        await advanceLastCarryOverDate(uid, todayKey);
         return;
       }
 
@@ -288,7 +290,7 @@ export const useWeeklyTasks = (
         await moveIncompleteTasksForward(fromDate, cursor);
         const cursorKey = toDateKey(cursor);
         persistLastCarryOverDate(cursorKey);
-        await advanceLastCarryOverDate(uid!, cursorKey);
+        await advanceLastCarryOverDate(uid, cursorKey);
         cursor = addDays(cursor, 1);
       }
     } catch (error) {
@@ -299,7 +301,7 @@ export const useWeeklyTasks = (
     } finally {
       isCarryingOverRef.current = false;
     }
-  }, [moveIncompleteTasksForward, persistLastCarryOverDate]);
+  }, [moveIncompleteTasksForward, persistLastCarryOverDate, uid]);
 
   useEffect(() => {
     if (!isClient) return;

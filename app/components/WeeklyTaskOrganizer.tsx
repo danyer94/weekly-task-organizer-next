@@ -27,7 +27,7 @@ import { format } from "date-fns";
 import { useAuth } from "./AuthProvider";
 import { useRouter } from "next/navigation";
 import { LogOut, User as UserIcon, Settings } from "lucide-react";
-import { migrateRamonData } from "@/lib/migration";
+import { migrateRamonData, fixDoubleNesting, cleanupUndefinedNode } from "@/lib/migration";
 
 const WeeklyTaskOrganizer: React.FC = () => {
   const { user, loading: authLoading, logout } = useAuth();
@@ -89,24 +89,42 @@ const WeeklyTaskOrganizer: React.FC = () => {
     isMove: boolean;
   } | null>(null);
 
-  // Check Google Calendar connection status on mount
+  // Check Google Calendar connection status when user changes or on mount
   useEffect(() => {
+    if (!user) {
+      setIsGoogleConnected(false);
+      setIsCheckingGoogle(false);
+      return;
+    }
+
     let active = true;
     const checkStatus = async () => {
+      setIsCheckingGoogle(true);
       try {
         const connected = await getGoogleConnectionStatus();
         if (active) {
           setIsGoogleConnected(connected);
         }
+      } catch (error) {
+        console.error("Failed to check Google connection", error);
       } finally {
         if (active) setIsCheckingGoogle(false);
       }
     };
+    
     checkStatus();
+
+    // Handle redirect params
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('google') === 'connected') {
+      // Clear the param without refreshing
+      window.history.replaceState({}, '', '/');
+    }
+
     return () => {
       active = false;
     };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -114,6 +132,10 @@ const WeeklyTaskOrganizer: React.FC = () => {
     } else if (user) {
       // Trigger migration for Ramon if needed
       migrateRamonData(user.uid, user.email || "");
+      // Trigger structural cleanup for any user
+      fixDoubleNesting(user.uid);
+      // Purge the redundant 'undefined' node if it exists
+      cleanupUndefinedNode();
     }
   }, [user, authLoading, router]);
 

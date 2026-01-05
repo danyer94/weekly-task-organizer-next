@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation";
 import { LogIn, Github, Mail, User, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
-  const { loginWithGoogle, loginWithEmail, loginWithUsername } = useAuth();
+  const { loginWithGoogle, loginWithEmail, loginWithUsername, signupWithEmail, signupWithUsername } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSignUp, setIsSignUp] = useState(false);
   
   // Tabs: 'google', 'email', 'username'
   const [method, setMethod] = useState<'google' | 'email' | 'username'>('google');
@@ -19,25 +20,40 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      if (method === 'google') {
-        await loginWithGoogle();
-      } else if (method === 'email') {
-        await loginWithEmail(email, password);
-      } else if (method === 'username') {
-        await loginWithUsername(username, password);
+      if (isSignUp) {
+        if (username.trim()) {
+          await signupWithUsername(username, email, password);
+        } else {
+          await signupWithEmail(email, password);
+        }
+      } else {
+        if (method === 'google') {
+          await loginWithGoogle();
+        } else if (method === 'email') {
+          await loginWithEmail(email, password);
+        } else if (method === 'username') {
+          await loginWithUsername(username, password);
+        }
       }
       router.push("/");
     } catch (err: any) {
-      setError(err.message || "Login failed. Please check your credentials.");
+      setError(err.message || (isSignUp ? "Signup failed." : "Login failed."));
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleMode = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsSignUp(!isSignUp);
+    setError(null);
+    if (!isSignUp) setMethod('email'); // Default to email for signup
   };
 
   return (
@@ -53,37 +69,43 @@ export default function LoginPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-sky-400 to-indigo-600 rounded-2xl mb-4 shadow-lg shadow-sky-500/20">
               <ShieldCheck className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Welcome Back</h1>
-            <p className="text-slate-400">Manage your weekly tasks with ease</p>
+            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
+              {isSignUp ? "Create Account" : "Welcome Back"}
+            </h1>
+            <p className="text-slate-400">
+              {isSignUp ? "Start organizing your week today" : "Manage your weekly tasks with ease"}
+            </p>
           </div>
 
-          <div className="flex bg-slate-800/50 p-1 rounded-xl mb-8 border border-slate-700/50">
-            <button 
-              onClick={() => setMethod('google')}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${method === 'google' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
-            >
-              Google
-            </button>
-            <button 
-              onClick={() => setMethod('username')}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${method === 'username' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
-            >
-              User
-            </button>
-            <button 
-              onClick={() => setMethod('email')}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${method === 'email' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
-            >
-              Email
-            </button>
-          </div>
+          {!isSignUp && (
+            <div className="flex bg-slate-800/50 p-1 rounded-xl mb-8 border border-slate-700/50">
+              <button 
+                onClick={() => setMethod('google')}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${method === 'google' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                Google
+              </button>
+              <button 
+                onClick={() => setMethod('username')}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${method === 'username' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                User
+              </button>
+              <button 
+                onClick={() => setMethod('email')}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${method === 'email' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                Email
+              </button>
+            </div>
+          )}
 
-          <form onSubmit={handleLogin} className="space-y-6">
-            {method === 'google' ? (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {!isSignUp && method === 'google' ? (
               <div className="space-y-4">
                 <button
                   type="button"
-                  onClick={handleLogin}
+                  onClick={handleSubmit}
                   disabled={loading}
                   className="w-full py-4 px-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-2xl transition-all border border-slate-200 shadow-lg flex items-center justify-center gap-3 disabled:opacity-50"
                 >
@@ -108,7 +130,25 @@ export default function LoginPage() {
               </div>
             ) : null}
 
-            {method === 'username' && (
+            {isSignUp && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-300 ml-1">Username (Optional)</label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Choose a username"
+                      className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!isSignUp && method === 'username' && (
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-300 ml-1">Username</label>
@@ -127,7 +167,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {method === 'email' && (
+            {(isSignUp || method === 'email') && (
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-300 ml-1">Email Address</label>
@@ -146,11 +186,11 @@ export default function LoginPage() {
               </div>
             )}
 
-            {(method === 'email' || method === 'username') && (
+            {(isSignUp || method === 'email' || method === 'username') && (
               <div className="space-y-2">
                 <div className="flex justify-between items-center ml-1">
                   <label className="text-sm font-medium text-slate-300">Password</label>
-                  <a href="#" className="text-xs text-sky-400 hover:text-sky-300 transition-colors">Forgot password?</a>
+                  {!isSignUp && <a href="#" className="text-xs text-sky-400 hover:text-sky-300 transition-colors">Forgot password?</a>}
                 </div>
                 <input
                   type="password"
@@ -163,7 +203,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {(method === 'email' || method === 'username') && (
+            {(isSignUp || method === 'email' || method === 'username') && (
               <button
                 type="submit"
                 disabled={loading}
@@ -171,7 +211,7 @@ export default function LoginPage() {
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                   <>
-                    Sign In
+                    {isSignUp ? "Create Account" : "Sign In"}
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -186,7 +226,14 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-8 text-center text-sm text-slate-500">
-            Don't have an account? <a href="#" className="text-sky-400 font-medium hover:text-sky-300">Sign Up</a>
+            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+            <a 
+              href="#" 
+              onClick={toggleMode}
+              className="text-sky-400 font-medium hover:text-sky-300"
+            >
+              {isSignUp ? "Sign In" : "Sign Up"}
+            </a>
           </p>
         </div>
       </div>

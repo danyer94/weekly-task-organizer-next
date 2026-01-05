@@ -24,11 +24,28 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    console.log("Google Callback: Received request", {
+      state,
+      hasCode: !!code,
+    });
     const tokens = await exchangeCodeForTokens(code);
+    console.log(
+      "Google Callback: Tokens exchanged successfully for state (UID):",
+      state
+    );
     await saveUserTokens(state, tokens);
+    console.log(
+      "Google Callback: Tokens saved successfully to users/" +
+        state +
+        "/googleAuth"
+    );
     return NextResponse.redirect(`${origin}/?google=connected`);
-  } catch (error) {
-    console.error("Failed to handle Google OAuth callback", error);
+  } catch (error: any) {
+    console.error("Google Callback: FAILED", {
+      message: error.message,
+      state,
+      stack: error.stack,
+    });
     return NextResponse.redirect(`${origin}/?google=callback_error`);
   }
 }
