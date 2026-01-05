@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   const url = request.nextUrl;
   const code = url.searchParams.get("code");
   const errorFromGoogle = url.searchParams.get("error");
+  const state = url.searchParams.get("state"); // This is the UID
 
   const origin =
     request.headers.get("origin") ||
@@ -18,13 +19,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/?google=error`);
   }
 
-  if (!code) {
-    return NextResponse.redirect(`${origin}/?google=missing_code`);
+  if (!code || !state) {
+    return NextResponse.redirect(`${origin}/?google=missing_info`);
   }
 
   try {
     const tokens = await exchangeCodeForTokens(code);
-    await saveUserTokens(RAMON_USER_ID, tokens);
+    await saveUserTokens(state, tokens);
     return NextResponse.redirect(`${origin}/?google=connected`);
   } catch (error) {
     console.error("Failed to handle Google OAuth callback", error);

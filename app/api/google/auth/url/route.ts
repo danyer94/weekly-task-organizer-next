@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUrl } from "@/lib/googleCalendar";
 
-export async function GET(_req: NextRequest) {
+import { getUidFromRequest } from "@/lib/firebaseAdmin";
+
+export async function GET(req: NextRequest) {
   try {
-    const url = getAuthUrl();
+    const uid = await getUidFromRequest(req);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const url = getAuthUrl(uid);
     return NextResponse.json({ url });
   } catch (error) {
     console.error("Failed to generate Google auth URL", error);

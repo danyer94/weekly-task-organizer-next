@@ -21,7 +21,7 @@ export interface GoogleAuthInfo {
 }
 
 const getGoogleAuthRef = (userId: string) =>
-  ref(database, `googleAuth/${userId}`);
+  ref(database, `users/${userId}/googleAuth`);
 
 export const getOAuthClient = (): OAuth2Client => {
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
@@ -35,12 +35,13 @@ export const getOAuthClient = (): OAuth2Client => {
   );
 };
 
-export const getAuthUrl = (): string => {
+export const getAuthUrl = (state?: string): string => {
   const client = getOAuthClient();
   return client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
     scope: GOOGLE_SCOPES,
+    state,
   });
 };
 

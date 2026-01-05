@@ -1,10 +1,24 @@
+import { auth } from "@/lib/firebase";
 import { CalendarEventPayload } from "@/types";
 
 // Lightweight client used in client components to
 // talk to the API routes related to Google Calendar.
 
+const getAuthHeaders = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+  const token = await user.getIdToken();
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+};
+
 export const connectGoogleCalendar = async () => {
-  const res = await fetch("/api/google/auth/url");
+  const headers = await getAuthHeaders();
+  const res = await fetch("/api/google/auth/url", { headers });
   if (!res.ok) {
     throw new Error("Failed to get Google auth URL");
   }
@@ -17,7 +31,8 @@ export const connectGoogleCalendar = async () => {
 
 export const getGoogleConnectionStatus = async (): Promise<boolean> => {
   try {
-    const res = await fetch("/api/google/status");
+    const headers = await getAuthHeaders();
+    const res = await fetch("/api/google/status", { headers });
     if (!res.ok) return false;
     const data = (await res.json()) as { connected: boolean };
     return !!data.connected;
@@ -29,11 +44,10 @@ export const getGoogleConnectionStatus = async (): Promise<boolean> => {
 export const createTaskEventForRamon = async (
   payload: CalendarEventPayload
 ): Promise<{ eventId: string }> => {
+  const headers = await getAuthHeaders();
   const res = await fetch("/api/google/calendar/events", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify(payload),
   });
 
@@ -49,10 +63,12 @@ export const createTaskEventForRamon = async (
 export const deleteTaskEventForRamon = async (
   eventId: string
 ): Promise<void> => {
+  const headers = await getAuthHeaders();
   const res = await fetch(
     `/api/google/calendar/events?eventId=${encodeURIComponent(eventId)}`,
     {
       method: "DELETE",
+      headers,
     }
   );
 
@@ -107,11 +123,10 @@ export interface SyncResult {
 export const syncCalendarEvents = async (
   events: SyncEvent[]
 ): Promise<{ results: SyncResult[] }> => {
+  const headers = await getAuthHeaders();
   const res = await fetch("/api/google/calendar/sync", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({ events }),
   });
 

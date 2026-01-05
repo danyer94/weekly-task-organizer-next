@@ -24,8 +24,15 @@ import {
 } from "@/lib/calendarClient";
 import { sendDailySummary } from "@/lib/notificationsClient";
 import { format } from "date-fns";
+import { useAuth } from "./AuthProvider";
+import { useRouter } from "next/navigation";
+import { LogOut, User as UserIcon, Settings } from "lucide-react";
+import { migrateRamonData } from "@/lib/migration";
 
 const WeeklyTaskOrganizer: React.FC = () => {
+  const { user, loading: authLoading, logout } = useAuth();
+  const router = useRouter();
+
   // Date State
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -46,7 +53,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
     },
     ioOperations: { exportToWhatsApp, exportToJSON, importFromJSON },
     stats,
-  } = useWeeklyTasks(selectedDate);
+  } = useWeeklyTasks(selectedDate, user?.uid);
 
   // UI State
   const [isAdmin, setIsAdmin] = useState(true);
@@ -101,7 +108,16 @@ const WeeklyTaskOrganizer: React.FC = () => {
     };
   }, []);
 
-  if (!isClient) return null;
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/auth/login");
+    } else if (user) {
+      // Trigger migration for Ramon if needed
+      migrateRamonData(user.uid, user.email || "");
+    }
+  }, [user, authLoading, router]);
+
+  if (!isClient || authLoading || !user) return null;
 
   // Handlers
   const handleAddTask = () => {
@@ -477,9 +493,33 @@ const WeeklyTaskOrganizer: React.FC = () => {
                     : "bg-bg-main/70 text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-hover"
                 }`}
               >
-                <User className="w-4 h-4" />
+                <UserIcon className="w-4 h-4" />
                 <span>Ramon</span>
               </button>
+
+              <div className="h-8 w-px bg-border-subtle/50 mx-2 hidden md:block"></div>
+
+              <div className="flex items-center gap-3 pl-2">
+                <div className="flex flex-col items-end hidden sm:flex">
+                  <span className="text-xs font-bold text-text-primary px-2 py-0.5 bg-sky-500/10 rounded-md border border-sky-500/20">
+                    {user.email?.split('@')[0] || 'User'}
+                  </span>
+                  <button 
+                    onClick={() => logout()}
+                    className="text-[10px] text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 group"
+                  >
+                    <span>Logout</span>
+                    <LogOut className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                </div>
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="User" className="w-10 h-10 rounded-xl border border-border-hover shadow-lg" />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center text-sky-400 shadow-lg">
+                    <UserIcon className="w-5 h-5" />
+                  </div>
+                )}
+              </div>
             </div>
           </header>
         </div>
@@ -561,6 +601,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 setGroupByPriority={setGroupByPriority}
                 selectedDate={selectedDate}
                 onDateChange={setSelectedDate}
+                displayName={user.displayName || user.email?.split('@')[0]}
               />
             </div>
           )}

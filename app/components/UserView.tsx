@@ -14,6 +14,7 @@ interface UserViewProps {
   setGroupByPriority: (val: boolean) => void;
   selectedDate: Date;
   onDateChange: (date: Date) => void;
+  displayName?: string;
 }
 
 export const UserView: React.FC<UserViewProps> = ({
@@ -26,13 +27,14 @@ export const UserView: React.FC<UserViewProps> = ({
   setGroupByPriority,
   selectedDate,
   onDateChange,
+  displayName,
 }) => {
   return (
     <div className="lg:col-span-9 space-y-6">
       <div className="glass-panel rounded-2xl p-6 border border-border-subtle/60 glow-border">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-text-brand mb-2 flex items-center justify-center gap-2">
-            <span>Hey Ramon!</span>
+            <span>Hey {displayName || 'there'}!</span>
             <Sparkles className="w-8 h-8 text-amber-400 animate-pulse" />
           </h2>
           <p className="text-text-secondary mb-6">Here are your tasks for today.</p>

@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserTokens } from "@/lib/googleCalendar";
 
-const RAMON_USER_ID = "ramon";
+import { getUidFromRequest } from "@/lib/firebaseAdmin";
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const tokens = await getUserTokens(RAMON_USER_ID);
+    const uid = await getUidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const tokens = await getUserTokens(uid);
     const connected = !!tokens?.accessToken;
     return NextResponse.json({ connected });
   } catch (error) {
@@ -13,5 +17,3 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json({ connected: false }, { status: 500 });
   }
 }
-
-
