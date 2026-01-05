@@ -9,7 +9,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { DaySelectionModal } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
 import { CalendarEventModal } from "./CalendarEventModal";
-import { ShieldCheck, User, RefreshCw, Calendar as CalendarIcon } from "lucide-react";
+import { ShieldCheck, RefreshCw } from "lucide-react";
 import { getDateForDayInWeek, taskToCalendarEvent } from "@/lib/calendarMapper";
 import { ConfirmationModal } from "./ConfirmationModal";
 import { ScheduleConfirmModal } from "./ScheduleConfirmModal";
@@ -26,8 +26,10 @@ import { sendDailySummary } from "@/lib/notificationsClient";
 import { format } from "date-fns";
 import { useAuth } from "./AuthProvider";
 import { useRouter } from "next/navigation";
-import { LogOut, User as UserIcon, Settings } from "lucide-react";
+import { User as UserIcon } from "lucide-react";
 import { migrateRamonData, fixDoubleNesting, cleanupUndefinedNode } from "@/lib/migration";
+import { UserMenu } from "./UserMenu";
+import { UserSettingsModal } from "./UserSettingsModal";
 
 const WeeklyTaskOrganizer: React.FC = () => {
   const { user, loading: authLoading, logout } = useAuth();
@@ -72,6 +74,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [isCheckingGoogle, setIsCheckingGoogle] = useState(true);
   const [isSendingSummary, setIsSendingSummary] = useState(false);
+  const [showUserSettings, setShowUserSettings] = useState(false);
 
   // Modal State
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -140,6 +143,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
   }, [user, authLoading, router]);
 
   if (!isClient || authLoading || !user) return null;
+
+  const displayName = user.displayName || user.email?.split("@")[0] || "User";
 
   // Handlers
   const handleAddTask = () => {
@@ -446,108 +451,100 @@ const WeeklyTaskOrganizer: React.FC = () => {
       <div className="absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-gradient-to-tr from-cyan-400/25 via-blue-500/20 to-transparent blur-3xl animate-float-slow"></div>
       <div className="fixed top-0 left-0 right-0 z-50 px-4">
         <div className="max-w-7xl mx-auto">
-          <header className="flex flex-wrap justify-between items-center gap-4 glass-panel rounded-2xl px-6 py-4 border border-border-subtle/60 shadow-2xl">
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-[0.4em] text-text-tertiary">Neon Ops</span>
-                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-fuchsia-400 bg-clip-text text-transparent animate-gradient-pan">
-                  Weekly Task Organizer
-                </h1>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1 bg-bg-main/70 rounded-full text-xs font-medium border border-border-subtle glow-ring">
-                <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
-                <span className="capitalize text-text-secondary">{syncStatus}</span>
-              </div>
-            </div>
+          <header className="glass-panel rounded-2xl px-6 py-4 border border-border-subtle/60 shadow-2xl">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-xs uppercase tracking-[0.4em] text-text-tertiary">Neon Ops</span>
+                    <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-fuchsia-400 bg-clip-text text-transparent animate-gradient-pan">
+                      Weekly Task Organizer
+                    </h1>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-bg-main/70 rounded-full text-xs font-medium border border-border-subtle glow-ring shrink-0">
+                    <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
+                    <span className="capitalize text-text-secondary">{syncStatus}</span>
+                  </div>
+                </div>
 
-            <div className="flex flex-wrap gap-2 items-center">
-              <ThemeToggle />
+                <UserMenu
+                  displayName={displayName}
+                  email={user.email}
+                  photoURL={user.photoURL}
+                  onLogout={logout}
+                  onOpenSettings={() => setShowUserSettings(true)}
+                />
+              </div>
 
-              {isAdmin && (
-                <>
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1 flex-nowrap">
+                <div className="shrink-0">
+                  <ThemeToggle />
+                </div>
+
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={() => connectGoogleCalendar().catch(() => {
+                        alert("Failed to start Google Calendar connection.");
+                      })}
+                      className={`shrink-0 px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-lg hover:-translate-y-0.5 hover:shadow-xl ${
+                        isGoogleConnected
+                          ? "bg-gradient-to-r from-emerald-500 to-emerald-400 text-white animate-glow-pulse"
+                          : "bg-bg-main/70 text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-hover"
+                      }`}
+                    >
+                      <span>
+                        {isCheckingGoogle
+                          ? "Checking Google..."
+                          : isGoogleConnected
+                          ? "Google Connected"
+                          : "Connect Google Calendar"}
+                      </span>
+                    </button>
+                    {isGoogleConnected && (
+                      <button
+                        onClick={handleSyncCalendar}
+                        className="shrink-0 px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 bg-gradient-to-r from-sapphire-500 via-blue-500 to-cyan-500 text-white shadow-lg hover:-translate-y-0.5"
+                        title="Sync calendar events"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        <span>Sync Calendar</span>
+                      </button>
+                    )}
+                  </>
+                )}
+
+                <div className="flex items-center gap-1 rounded-xl border border-border-subtle bg-bg-main/70 p-1 shrink-0">
                   <button
-                    onClick={() => connectGoogleCalendar().catch(() => {
-                      alert("Failed to start Google Calendar connection.");
-                    })}
-                    className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg hover:-translate-y-0.5 hover:shadow-xl ${
-                      isGoogleConnected
-                        ? "bg-gradient-to-r from-emerald-500 to-emerald-400 text-white animate-glow-pulse"
-                        : "bg-bg-main/70 text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-hover"
+                    onClick={() => setIsAdmin(true)}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                      isAdmin
+                        ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
+                        : "text-text-secondary hover:bg-bg-sidebar"
                     }`}
                   >
-                    <span>
-                      {isCheckingGoogle
-                        ? "Checking Google..."
-                        : isGoogleConnected
-                        ? "Google Connected"
-                        : "Connect Google Calendar"}
-                    </span>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Administrator</span>
                   </button>
-                  {isGoogleConnected && (
-                    <button
-                      onClick={handleSyncCalendar}
-                      className="px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 bg-gradient-to-r from-sapphire-500 via-blue-500 to-cyan-500 text-white shadow-lg hover:-translate-y-0.5"
-                      title="Sync calendar events"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      <span>Sync Calendar</span>
-                    </button>
-                  )}
-                </>
-              )}
-
-              <button
-                onClick={() => setIsAdmin(true)}
-                className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 hover:-translate-y-0.5 ${
-                  isAdmin
-                    ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
-                    : "bg-bg-main/70 text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-hover"
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Administrator</span>
-              </button>
-              <button
-                onClick={() => setIsAdmin(false)}
-                className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 hover:-translate-y-0.5 ${
-                  !isAdmin
-                    ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
-                    : "bg-bg-main/70 text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-hover"
-                }`}
-              >
-                <UserIcon className="w-4 h-4" />
-                <span>Ramon</span>
-              </button>
-
-              <div className="h-8 w-px bg-border-subtle/50 mx-2 hidden md:block"></div>
-
-              <div className="flex items-center gap-3 pl-2">
-                <div className="flex flex-col items-end hidden sm:flex">
-                  <span className="text-xs font-bold text-text-primary px-2 py-0.5 bg-sky-500/10 rounded-md border border-sky-500/20">
-                    {user.email?.split('@')[0] || 'User'}
-                  </span>
-                  <button 
-                    onClick={() => logout()}
-                    className="text-[10px] text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 group"
+                  <button
+                    onClick={() => setIsAdmin(false)}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                      !isAdmin
+                        ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
+                        : "text-text-secondary hover:bg-bg-sidebar"
+                    }`}
                   >
-                    <span>Logout</span>
-                    <LogOut className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                    <UserIcon className="w-4 h-4" />
+                    <span className="max-w-[140px] truncate">{displayName}</span>
                   </button>
                 </div>
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt="User" className="w-10 h-10 rounded-xl border border-border-hover shadow-lg" />
-                ) : (
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center text-sky-400 shadow-lg">
-                    <UserIcon className="w-5 h-5" />
-                  </div>
-                )}
               </div>
             </div>
           </header>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto relative z-10 pt-28">
+      <div className="max-w-7xl mx-auto relative z-10 pt-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {isAdmin ? (
             <>
@@ -623,7 +620,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 setGroupByPriority={setGroupByPriority}
                 selectedDate={selectedDate}
                 onDateChange={setSelectedDate}
-                displayName={user.displayName || user.email?.split('@')[0]}
+                displayName={displayName}
               />
             </div>
           )}
@@ -671,6 +668,12 @@ const WeeklyTaskOrganizer: React.FC = () => {
         onYes={() => handleScheduleDecision(true)}
         onNo={() => handleScheduleDecision(false)}
         onCancel={handleScheduleCancel}
+      />
+      <UserSettingsModal
+        isOpen={showUserSettings}
+        onClose={() => setShowUserSettings(false)}
+        initialDisplayName={displayName}
+        email={user.email}
       />
       {selectedTaskForCalendar && (
         <CalendarEventModal

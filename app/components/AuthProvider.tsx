@@ -9,6 +9,7 @@ import {
   signOut,
   createUserWithEmailAndPassword,
   updateProfile,
+  updatePassword as firebaseUpdatePassword,
 } from "firebase/auth";
 import { auth, googleProvider, database } from "@/lib/firebase";
 import { ref, get, set } from "firebase/database";
@@ -22,6 +23,8 @@ interface AuthContextType {
   signupWithEmail: (email: string, pass: string) => Promise<void>;
   signupWithUsername: (username: string, email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateDisplayName: (displayName: string) => Promise<void>;
+  updateUserPassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -119,6 +122,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const updateDisplayName = async (displayName: string) => {
+    if (!auth.currentUser) {
+      throw new Error("No user is signed in.");
+    }
+
+    try {
+      await updateProfile(auth.currentUser, { displayName });
+      await auth.currentUser.reload();
+      setUser(auth.currentUser);
+    } catch (error) {
+      console.error("Update display name failed:", error);
+      throw error;
+    }
+  };
+
+  const updateUserPassword = async (newPassword: string) => {
+    if (!auth.currentUser) {
+      throw new Error("No user is signed in.");
+    }
+
+    try {
+      await firebaseUpdatePassword(auth.currentUser, newPassword);
+    } catch (error) {
+      console.error("Update password failed:", error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -130,6 +161,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         signupWithEmail,
         signupWithUsername,
         logout,
+        updateDisplayName,
+        updateUserPassword,
       }}
     >
       {children}
