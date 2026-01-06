@@ -79,9 +79,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
             <h2 className="text-2xl font-bold text-text-primary">{currentDay}</h2>
             <p className="text-text-brand font-medium">Mission Control · Weekly Overview</p>
           </div>
-          <div className="w-full md:w-[260px]">
-            <DatePicker selectedDate={selectedDate} onChange={onDateChange} />
-          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-2 mb-6">
