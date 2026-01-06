@@ -26,9 +26,9 @@
 - `app/components/`:
   - `AuthProvider.tsx`: Context provider for manages user sessions.
   - `WeeklyTaskOrganizer.tsx`: Main container tying logic to UI.
-  - `AdminView.tsx`: Dashboard with full task management control.
+  - `AdminView.tsx`: Dashboard with full task management control and week selector.
   - `UserView.tsx`: Dashboard with completion-only control.
-  - `Sidebar.tsx`: Date picker, day navigation, stats, quick actions.
+  - `Sidebar.tsx`: Date picker (admin sidebar), day navigation, stats, quick actions.
   - `TaskList.tsx`, `TaskItem.tsx`: Task rendering and interactions.
   - `PrioritySelector.tsx`: Priority dropdown.
   - `DatePicker.tsx`: ISO week date picker.
@@ -88,7 +88,7 @@ interface Task {
 
 - **Administrator**
   - Full CRUD, priority control, drag-reorder, selection tools.
-  - Sidebar with date picker, day navigation, stats, quick actions.
+  - Week selector in the admin panel header plus sidebar date picker, day navigation, stats, quick actions.
   - Google Calendar connect, event sync, and daily summary sending.
 - **User (per account)**
   - Simplified view with day scroller and date picker.
@@ -138,6 +138,7 @@ interface Task {
 
 - Live subscription to Firebase changes per week path.
 - Optimistic local updates with a short guard to avoid stale overwrites.
+- Week switching clears local task cache before new data arrives to avoid showing stale tasks.
 - Sync indicator in the header: `connecting`, `synced`, `error`.
 
 ### 4.8 Google Calendar Integration
@@ -157,7 +158,7 @@ interface Task {
 
 ### 4.10 Theme
 
-- Light/dark mode toggle persisted in `localStorage`.
+- Light/dark mode toggle persisted in `localStorage`, located in the header next to the user menu.
 
 ### 4.11 User Settings
 

@@ -145,6 +145,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
   }, [user, authLoading, router]);
 
   useEffect(() => {
+    if (!isClient || authLoading || !user) return;
     const header = headerRef.current;
     if (!header) return;
 
@@ -154,7 +155,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
     const observer = new ResizeObserver(updateHeight);
     observer.observe(header);
     return () => observer.disconnect();
-  }, []);
+  }, [isClient, authLoading, user]);
 
   if (!isClient || authLoading || !user) return null;
 
