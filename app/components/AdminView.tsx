@@ -2,6 +2,7 @@ import React from "react";
 import { Day, Priority, Task } from "@/types";
 import { TaskList } from "./TaskList";
 import { PrioritySelector } from "./PrioritySelector";
+import { DatePicker } from "./DatePicker";
 import { 
   Plus, 
   Trash2, 
@@ -16,6 +17,8 @@ interface AdminViewProps {
   currentDay: Day;
   days: Day[];
   onDayChange: (day: Day) => void;
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
   newTaskText: string;
   setNewTaskText: (text: string) => void;
   priority: Priority;
@@ -44,6 +47,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   currentDay,
   days,
   onDayChange,
+  selectedDate,
+  onDateChange,
   newTaskText,
   setNewTaskText,
   priority,
@@ -69,10 +74,13 @@ export const AdminView: React.FC<AdminViewProps> = ({
   return (
     <div className="lg:col-span-9 space-y-6">
       <div className="glass-panel rounded-2xl p-6 border border-border-subtle/60 glow-border">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
           <div>
-             <h2 className="text-2xl font-bold text-text-primary">{currentDay}</h2>
-             <p className="text-text-brand font-medium">Mission Control · Weekly Overview</p>
+            <h2 className="text-2xl font-bold text-text-primary">{currentDay}</h2>
+            <p className="text-text-brand font-medium">Mission Control · Weekly Overview</p>
+          </div>
+          <div className="w-full md:w-[260px]">
+            <DatePicker selectedDate={selectedDate} onChange={onDateChange} />
           </div>
         </div>
 

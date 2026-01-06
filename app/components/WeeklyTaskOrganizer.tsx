@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useWeeklyTasks, DAYS } from "@/hooks/useWeeklyTasks";
 import { Day, Priority, Task } from "@/types";
 import { AdminView } from "./AdminView";
@@ -75,6 +75,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [isCheckingGoogle, setIsCheckingGoogle] = useState(true);
   const [isSendingSummary, setIsSendingSummary] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   // Modal State
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -141,6 +143,18 @@ const WeeklyTaskOrganizer: React.FC = () => {
       cleanupUndefinedNode();
     }
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const updateHeight = () => setHeaderHeight(header.offsetHeight || 0);
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
   if (!isClient || authLoading || !user) return null;
 
@@ -451,7 +465,10 @@ const WeeklyTaskOrganizer: React.FC = () => {
       <div className="absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-gradient-to-tr from-cyan-400/25 via-blue-500/20 to-transparent blur-3xl animate-float-slow"></div>
       <div className="fixed top-0 left-0 right-0 z-50 px-4">
         <div className="max-w-7xl mx-auto">
-          <header className="glass-panel rounded-2xl px-6 py-4 border border-border-subtle/60 shadow-2xl">
+          <header
+            ref={headerRef}
+            className="glass-panel rounded-2xl px-6 py-4 border border-border-subtle/60 shadow-2xl"
+          >
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex flex-wrap items-center gap-4">
@@ -467,22 +484,46 @@ const WeeklyTaskOrganizer: React.FC = () => {
                   </div>
                 </div>
 
-                <UserMenu
-                  displayName={displayName}
-                  email={user.email}
-                  photoURL={user.photoURL}
-                  onLogout={logout}
-                  onOpenSettings={() => setShowUserSettings(true)}
-                />
+                <div className="flex items-center gap-3">
+                  <ThemeToggle />
+                  <UserMenu
+                    displayName={displayName}
+                    email={user.email}
+                    photoURL={user.photoURL}
+                    onLogout={logout}
+                    onOpenSettings={() => setShowUserSettings(true)}
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1 flex-nowrap">
-                <div className="shrink-0">
-                  <ThemeToggle />
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-1 rounded-xl border border-border-subtle bg-bg-main/70 p-1 shrink-0">
+                  <button
+                    onClick={() => setIsAdmin(true)}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                      isAdmin
+                        ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
+                        : "text-text-secondary hover:bg-bg-sidebar"
+                    }`}
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Administrator</span>
+                  </button>
+                  <button
+                    onClick={() => setIsAdmin(false)}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                      !isAdmin
+                        ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
+                        : "text-text-secondary hover:bg-bg-sidebar"
+                    }`}
+                  >
+                    <UserIcon className="w-4 h-4" />
+                    <span className="max-w-[140px] truncate">{displayName}</span>
+                  </button>
                 </div>
 
                 {isAdmin && (
-                  <>
+                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
                     <button
                       onClick={() => connectGoogleCalendar().catch(() => {
                         alert("Failed to start Google Calendar connection.");
@@ -511,40 +552,18 @@ const WeeklyTaskOrganizer: React.FC = () => {
                         <span>Sync Calendar</span>
                       </button>
                     )}
-                  </>
+                  </div>
                 )}
-
-                <div className="flex items-center gap-1 rounded-xl border border-border-subtle bg-bg-main/70 p-1 shrink-0">
-                  <button
-                    onClick={() => setIsAdmin(true)}
-                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                      isAdmin
-                        ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
-                        : "text-text-secondary hover:bg-bg-sidebar"
-                    }`}
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Administrator</span>
-                  </button>
-                  <button
-                    onClick={() => setIsAdmin(false)}
-                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                      !isAdmin
-                        ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
-                        : "text-text-secondary hover:bg-bg-sidebar"
-                    }`}
-                  >
-                    <UserIcon className="w-4 h-4" />
-                    <span className="max-w-[140px] truncate">{displayName}</span>
-                  </button>
-                </div>
               </div>
             </div>
           </header>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto relative z-10 pt-32">
+      <div
+        className="max-w-7xl mx-auto relative z-10"
+        style={{ paddingTop: headerHeight + 24 }}
+      >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {isAdmin ? (
             <>
@@ -577,6 +596,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 currentDay={currentAdminDay}
                 days={DAYS}
                 onDayChange={setCurrentAdminDay}
+                selectedDate={selectedDate}
+                onDateChange={setSelectedDate}
                 newTaskText={newTaskText}
                 setNewTaskText={setNewTaskText}
                 priority={priority}

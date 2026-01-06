@@ -61,6 +61,7 @@ export const useWeeklyTasks = (
   const isCarryingOverRef = useRef(false);
   const latestTasksRef = useRef<TasksByDay>({});
   const lastLocalUpdateRef = useRef<number>(0);
+  const lastLocalUpdatePathRef = useRef<string>("");
   const lastRemoteCarryOverRef = useRef<string | null>(null);
 
   // No migration needed anymore as it's overwriting data on reload
@@ -76,6 +77,12 @@ export const useWeeklyTasks = (
   useEffect(() => {
     if (!uid || !currentPath) return;
 
+    const normalized = normalizeTasksByDay();
+    latestTasksRef.current = normalized;
+    setTasks(normalized);
+    lastLocalUpdateRef.current = 0;
+    lastLocalUpdatePathRef.current = currentPath;
+
     setSyncStatus("connecting");
     const unsubscribe = subscribeToTasks(
       uid,
@@ -83,7 +90,12 @@ export const useWeeklyTasks = (
         // Shield local state from Firebase updates for 2 seconds after a manual local change
         const now = performance.now();
         const lastLocalUpdate = lastLocalUpdateRef.current;
-        if (lastLocalUpdate > 0 && now - lastLocalUpdate < 2000) {
+        const lastLocalUpdatePath = lastLocalUpdatePathRef.current;
+        if (
+          lastLocalUpdatePath === currentPath &&
+          lastLocalUpdate > 0 &&
+          now - lastLocalUpdate < 2000
+        ) {
           return;
         }
 
@@ -112,6 +124,7 @@ export const useWeeklyTasks = (
 
       // Update protection timestamp
       lastLocalUpdateRef.current = performance.now();
+      lastLocalUpdatePathRef.current = currentPath;
 
       // Use the ref as the synchronous source of truth for the update
       const nextTasks = updater(latestTasksRef.current);

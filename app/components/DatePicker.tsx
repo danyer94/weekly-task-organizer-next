@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, addMonths, subMonths, getISOWeek, getISOWeekYear, setYear, setMonth } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, X } from "lucide-react";
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, addMonths, subMonths, getISOWeek, getISOWeekYear, addWeeks } from "date-fns";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 
 interface DatePickerProps {
   selectedDate: Date;
@@ -39,6 +39,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
   const handleDateSelect = (date: Date) => {
     onChange(date);
     setIsOpen(false);
+  };
+
+  const shiftWeek = (direction: number) => {
+    const nextDate = addWeeks(selectedDate, direction);
+    onChange(nextDate);
+    setViewDate(nextDate);
   };
 
   const nextMonth = () => setViewDate(addMonths(viewDate, 1));
@@ -101,23 +107,42 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      <button
-        onClick={togglePicker}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-bg-surface/80 rounded-xl border border-border-subtle hover:border-border-hover transition-all group shadow-sm hover:-translate-y-0.5"
-      >
-        <div className="flex items-center gap-2 overflow-hidden">
-          <CalendarIcon className="w-4 h-4 text-text-tertiary group-hover:text-text-brand shrink-0" />
-          <div className="flex flex-col items-start truncate">
-            <span className="text-xs font-semibold text-text-brand whitespace-nowrap">
-              {format(selectedDate, "EEEE, MMMM d")}
-            </span>
-            <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-bold">
-              Week {isoWeek}, {isoWeekYear}
-            </span>
+      <div className="flex items-center gap-2 w-full">
+        <button
+          onClick={() => shiftWeek(-1)}
+          className="p-2 rounded-xl bg-bg-surface/80 border border-border-subtle hover:border-border-hover text-text-secondary hover:text-text-brand transition-colors"
+          aria-label="Previous week"
+          type="button"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <button
+          onClick={togglePicker}
+          className="flex-1 flex items-center justify-between gap-3 px-4 py-3 bg-bg-surface/80 rounded-xl border border-border-subtle hover:border-border-hover transition-all group shadow-sm hover:-translate-y-0.5"
+          type="button"
+        >
+          <div className="flex items-center gap-2 overflow-hidden">
+            <CalendarIcon className="w-4 h-4 text-text-tertiary group-hover:text-text-brand shrink-0" />
+            <div className="flex flex-col items-start truncate">
+              <span className="text-xs font-semibold text-text-brand whitespace-nowrap">
+                {format(selectedDate, "EEEE, MMMM d")}
+              </span>
+              <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-bold">
+                Week {isoWeek}, {isoWeekYear}
+              </span>
+            </div>
           </div>
-        </div>
-        <ChevronRight className={`w-4 h-4 text-text-tertiary transition-transform ${isOpen ? "rotate-90" : ""}`} />
-      </button>
+          <ChevronRight className={`w-4 h-4 text-text-tertiary transition-transform ${isOpen ? "rotate-90" : ""}`} />
+        </button>
+        <button
+          onClick={() => shiftWeek(1)}
+          className="p-2 rounded-xl bg-bg-surface/80 border border-border-subtle hover:border-border-hover text-text-secondary hover:text-text-brand transition-colors"
+          aria-label="Next week"
+          type="button"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
 
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-bg-surface/90 rounded-2xl border border-border-subtle shadow-xl z-[100] animate-in fade-in zoom-in duration-200 backdrop-blur-md">

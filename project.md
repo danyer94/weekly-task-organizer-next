@@ -98,6 +98,7 @@ interface Task {
 ### 4.2 Weekly Navigation and Carry-Over
 
 - Date picker selects the active ISO week.
+- Date picker includes quick previous/next week navigation buttons.
 - Data loads from `weeks/YYYY/WW` for the selected week.
 - Incomplete tasks carry over to the next calendar day (including week boundaries).
   - Copies are reset to `completed = false`.
