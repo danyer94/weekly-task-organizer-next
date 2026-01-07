@@ -8,13 +8,22 @@ export const migrateRamonData = async (uid: string, email: string) => {
     const userPath = getUserPath(uid);
     const userSnapshot = await get(ref(database, userPath));
 
-    // If user already has data, don't migrate (assume migration done or user started fresh)
-    if (userSnapshot.exists() && userSnapshot.val()?.weeks) {
-      console.log("Migration: User already has data. Skipping.");
+    // Check if migration is already mostly done
+    const data = userSnapshot.val();
+    const hasWeeks = !!data?.weeks;
+    const hasGoogle = !!data?.googleAuth;
+
+    if (hasWeeks && hasGoogle) {
+      console.log(
+        "Migration: User already has tasks and google auth. Skipping."
+      );
       return;
     }
 
-    console.log("Migration: Checking for legacy data...");
+    console.log("Migration: Checking for legacy data...", {
+      hasWeeks,
+      hasGoogle,
+    });
 
     // Check for legacy tasks and meta
     const tasksSnapshot = await get(ref(database, "tasks"));
@@ -29,15 +38,26 @@ export const migrateRamonData = async (uid: string, email: string) => {
     ) {
       console.log("Migration: Legacy data found. Starting migration...");
 
-      const migrationData: any = {};
-      if (weeksSnapshot.exists()) migrationData.weeks = weeksSnapshot.val();
-      if (tasksSnapshot.exists()) migrationData.tasks = tasksSnapshot.val();
-      if (metaSnapshot.exists()) migrationData.meta = metaSnapshot.val();
-      if (googleAuthSnapshot.exists())
-        migrationData.googleAuth = googleAuthSnapshot.val();
+      const updates: any = {};
 
-      // Write to user-scoped path
-      await set(ref(database, userPath), migrationData);
+      // Only migrate weeks/tasks if the user doesn't have them yet
+      if (weeksSnapshot.exists() && !hasWeeks)
+        updates.weeks = weeksSnapshot.val();
+      if (tasksSnapshot.exists() && !data?.tasks)
+        updates.tasks = tasksSnapshot.val();
+
+      // Always migrate meta if missing
+      if (metaSnapshot.exists() && !data?.meta)
+        updates.meta = metaSnapshot.val();
+
+      // Migrate Google Auth if missing
+      if (googleAuthSnapshot.exists() && !hasGoogle)
+        updates.googleAuth = googleAuthSnapshot.val();
+
+      if (Object.keys(updates).length > 0) {
+        console.log("Migration: Applying updates...", Object.keys(updates));
+        await update(ref(database, userPath), updates);
+      }
 
       // Also ensure username mapping exists for loginWithUsername
       await set(ref(database, `usernames/ramon`), {

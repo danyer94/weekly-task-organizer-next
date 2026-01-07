@@ -136,7 +136,14 @@ export const getUserTokens = async (
 ): Promise<GoogleAuthInfo | null> => {
   const snapshot = await get(getGoogleAuthRef(userId));
   if (!snapshot.exists()) return null;
-  return snapshot.val() as GoogleAuthInfo;
+  const raw = snapshot.val();
+
+  // Normalize both snake_case (legacy) and camelCase (new)
+  return {
+    accessToken: raw.accessToken || raw.access_token,
+    refreshToken: raw.refreshToken || raw.refresh_token,
+    expiryDate: raw.expiryDate || raw.expiry_date,
+  };
 };
 
 /**
