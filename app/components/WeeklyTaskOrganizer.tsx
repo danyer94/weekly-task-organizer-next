@@ -135,7 +135,18 @@ const WeeklyTaskOrganizer: React.FC = () => {
   };
 
   const handleMoveOrCopy = (targetDays: Day[], isMove: boolean) => {
-    moveOrCopyTasks(currentAdminDay, selectedTasks, targetDays, isMove);
+    const keepSchedule = isMove
+      ? true
+      : window.confirm(
+          "Copy tasks with the same schedule? (Yes = keep time, No = clear time)"
+        );
+    moveOrCopyTasks(
+      currentAdminDay,
+      selectedTasks,
+      targetDays,
+      isMove,
+      keepSchedule
+    );
     setSelectedTasks(new Set<string>());
     setShowMoveModal(false);
     setShowCopyModal(false);
@@ -521,7 +532,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
           day={selectedTaskForCalendar.day}
           initialStartTime={selectedTaskForCalendar.task.calendarEvent?.startTime}
           initialEndTime={selectedTaskForCalendar.task.calendarEvent?.endTime}
-          isEditMode={!!selectedTaskForCalendar.task.calendarEvent}
+          isEditMode={!!selectedTaskForCalendar.task.calendarEvent?.eventId}
         />
       )}
     </div>
