@@ -3,6 +3,7 @@ import { CalendarEventPayload } from "@/types";
 import {
   createGoogleCalendarEventForUser,
   deleteGoogleCalendarEvent,
+  updateGoogleCalendarEventForUser,
 } from "@/lib/googleCalendar";
 
 // Usuario fijo para este proyecto
@@ -62,6 +63,44 @@ export async function POST(request: NextRequest) {
     console.error("Failed to create Google Calendar event:", error);
     return NextResponse.json(
       { error: "Failed to create Google Calendar event" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const body = (await request.json()) as Partial<CalendarEventPayload> & {
+      eventId?: string;
+    };
+
+    if (!body || !body.eventId || !body.summary || !body.date) {
+      return NextResponse.json(
+        { error: "Missing required fields: eventId, summary, date" },
+        { status: 400 }
+      );
+    }
+
+    const payload: CalendarEventPayload = {
+      summary: body.summary,
+      description: body.description,
+      date: body.date,
+      startTime: body.startTime,
+      endTime: body.endTime,
+      timeZone: body.timeZone,
+    };
+
+    const event = await updateGoogleCalendarEventForUser(
+      RAMON_USER_ID,
+      body.eventId,
+      payload
+    );
+
+    return NextResponse.json({ event });
+  } catch (error) {
+    console.error("Failed to update Google Calendar event:", error);
+    return NextResponse.json(
+      { error: "Failed to update Google Calendar event" },
       { status: 500 }
     );
   }

@@ -426,6 +426,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   ) => {
     const currentDayTasks = tasks[currentDay] || [];
     const tasksToProcess = currentDayTasks.filter((t) => selectedIds.has(t.id));
+    const createdTasks: Array<{ day: Day; task: Task }> = [];
 
     updateTasks((prev) => {
       const newTasks = { ...prev };
@@ -433,23 +434,34 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       targetDays.forEach((day) => {
         const currentTargetTasks = [...(newTasks[day] || [])];
         const tasksToAdd = tasksToProcess.map((task) => {
-          const copiedCalendarEvent =
-            !isMove && keepSchedule && task.calendarEvent
-              ? {
-                  eventId: "",
-                  date: toDateKey(getDateForDayInWeek(selectedDate, day)),
-                  startTime: task.calendarEvent.startTime ?? null,
-                  endTime: task.calendarEvent.endTime ?? null,
-                  lastSynced: null,
-                }
-              : null;
+          const targetDate = toDateKey(getDateForDayInWeek(selectedDate, day));
+          let calendarEvent: Task["calendarEvent"] = null;
 
-          return {
+          if (keepSchedule && task.calendarEvent) {
+            if (isMove) {
+              calendarEvent = {
+                ...task.calendarEvent,
+                date: targetDate,
+              };
+            } else {
+              calendarEvent = {
+                eventId: "",
+                date: targetDate,
+                startTime: task.calendarEvent.startTime ?? null,
+                endTime: task.calendarEvent.endTime ?? null,
+                lastSynced: null,
+              };
+            }
+          }
+
+          const newTask = {
             ...task,
             id: createTaskId(),
             completed: false,
-            calendarEvent: isMove ? task.calendarEvent ?? null : copiedCalendarEvent,
+            calendarEvent,
           };
+          createdTasks.push({ day, task: newTask });
+          return newTask;
         });
         newTasks[day] = [...currentTargetTasks, ...tasksToAdd];
       });
@@ -462,6 +474,8 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
       return newTasks;
     });
+
+    return { createdTasks };
   };
 
   const bulkAddTasks = (day: Day, textBlock: string) => {

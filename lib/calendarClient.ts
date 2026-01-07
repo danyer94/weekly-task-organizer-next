@@ -62,6 +62,27 @@ export const deleteTaskEventForRamon = async (
   }
 };
 
+export const updateTaskEventForRamon = async (
+  eventId: string,
+  payload: CalendarEventPayload
+): Promise<{ eventId: string }> => {
+  const res = await fetch("/api/google/calendar/events", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ eventId, ...payload }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to update calendar event");
+  }
+
+  const data = (await res.json()) as { event: { id: string } };
+  return { eventId: data.event.id };
+};
+
 export interface SyncEvent {
   eventId: string;
   taskId: string;
