@@ -25,6 +25,8 @@ export interface DailySummaryResponse {
     provider: string;
     messageId?: string;
   }>;
+  skipped?: boolean;
+  reason?: string;
 }
 
 export const sendDailySummary = async (
@@ -41,6 +43,21 @@ export const sendDailySummary = async (
       channels,
       force,
     }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to send daily summary");
+  }
+
+  return (await res.json()) as DailySummaryResponse;
+};
+
+export const sendDailySummaryAuto = async (): Promise<DailySummaryResponse> => {
+  const headers = await getAuthHeaders();
+  const res = await fetch("/api/notifications/daily?force=false", {
+    method: "GET",
+    headers,
   });
 
   if (!res.ok) {

@@ -4,7 +4,7 @@ import { KeyRound, MailCheck, User, XCircle } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { getAuthErrorMessage } from "@/lib/errors";
 import { database, getUserPath } from "@/lib/firebase";
-import { get, ref, set } from "firebase/database";
+import { get, ref, update } from "firebase/database";
 import type { DailySummarySettings } from "@/types";
 
 interface UserSettingsModalProps {
@@ -169,7 +169,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
         email: trimmedEmail || null,
         updatedAt: Date.now(),
       };
-      await set(settingsRef, payload);
+      await update(settingsRef, payload);
       setDailySummaryNotice({
         type: "success",
         message: "Daily summary preferences saved.",
@@ -188,9 +188,9 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/60 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in">
-      <div className="glass-panel rounded-2xl shadow-2xl border border-border-subtle/60 w-full max-w-lg mx-4 p-6">
-        <div className="flex items-start justify-between mb-6">
+    <div className="fixed inset-0 bg-slate-950/60 flex items-start sm:items-center justify-center z-50 backdrop-blur-sm animate-fade-in overflow-y-auto px-4 py-6">
+      <div className="glass-panel rounded-2xl shadow-2xl border border-border-subtle/60 w-full max-w-lg p-5 sm:p-6 max-h-[92vh] overflow-y-auto">
+        <div className="flex items-start justify-between mb-6 gap-3">
           <div>
             <h3 className="text-xl font-bold text-text-primary">User settings</h3>
             <p className="text-sm text-text-secondary">

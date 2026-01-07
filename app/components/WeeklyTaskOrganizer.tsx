@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useWeeklyTasks, DAYS } from "@/hooks/useWeeklyTasks";
+import type { DailySummarySettings } from "@/types";
 import { Day, Priority, Task } from "@/types";
 import { AdminView } from "./AdminView";
 import { UserView } from "./UserView";
@@ -22,13 +23,18 @@ import {
   updateTaskEventForRamon,
   type SyncEvent,
 } from "@/lib/calendarClient";
-import { sendDailySummary } from "@/lib/notificationsClient";
+import {
+  sendDailySummary,
+  sendDailySummaryAuto,
+} from "@/lib/notificationsClient";
 import { format } from "date-fns";
 import { useAuth } from "./AuthProvider";
 import { useRouter } from "next/navigation";
 import { User as UserIcon } from "lucide-react";
 import { UserMenu } from "./UserMenu";
 import { UserSettingsModal } from "./UserSettingsModal";
+import { database, getUserPath } from "@/lib/firebase";
+import { onValue, ref } from "firebase/database";
 
 const WeeklyTaskOrganizer: React.FC = () => {
   const { user, loading: authLoading, logout } = useAuth();
@@ -74,6 +80,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [isCheckingGoogle, setIsCheckingGoogle] = useState(true);
   const [isSendingSummary, setIsSendingSummary] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
+  const [dailySummaryEnabled, setDailySummaryEnabled] = useState(false);
   const headerRef = useRef<HTMLElement | null>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
 
@@ -148,6 +155,54 @@ const WeeklyTaskOrganizer: React.FC = () => {
     observer.observe(header);
     return () => observer.disconnect();
   }, [isClient, authLoading, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const settingsRef = ref(
+      database,
+      getUserPath(user.uid, "settings/notifications/dailySummary")
+    );
+    const unsubscribe = onValue(settingsRef, (snapshot) => {
+      if (!snapshot.exists()) {
+        setDailySummaryEnabled(false);
+        return;
+      }
+      const settings = snapshot.val() as DailySummarySettings;
+      setDailySummaryEnabled(Boolean(settings?.enabled));
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !dailySummaryEnabled) return;
+    const storageKey = `dailySummaryLastSent:${user.uid}`;
+    let active = true;
+
+    const attemptAutoSend = async () => {
+      if (!active) return;
+      try {
+        const lastSent = localStorage.getItem(storageKey);
+        const today = new Date().toISOString().slice(0, 10);
+        if (lastSent === today) return;
+
+        const result = await sendDailySummaryAuto();
+        if (!result?.skipped && result?.dateKey) {
+          localStorage.setItem(storageKey, result.dateKey);
+        }
+      } catch (error) {
+        console.warn("Daily summary auto send failed", error);
+      }
+    };
+
+    attemptAutoSend();
+    const interval = window.setInterval(attemptAutoSend, 5 * 60 * 1000);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [dailySummaryEnabled, user]);
 
   if (!isClient || authLoading || !user) return null;
 

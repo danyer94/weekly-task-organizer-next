@@ -79,6 +79,7 @@ export type NotificationChannel = "email" | "whatsapp" | "sms";
 export interface DailySummarySettings {
   enabled: boolean;
   email?: string | null;
+  lastSentDateKey?: string | null;
   updatedAt?: number;
 }
 
