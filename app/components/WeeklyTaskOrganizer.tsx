@@ -19,6 +19,7 @@ import {
   deleteTaskEventForRamon,
   getGoogleConnectionStatus,
   syncCalendarEvents,
+  updateTaskEventForRamon,
   type SyncEvent,
 } from "@/lib/calendarClient";
 import { sendDailySummary } from "@/lib/notificationsClient";
@@ -147,10 +148,10 @@ const WeeklyTaskOrganizer: React.FC = () => {
     setShowCopyModal(false);
   };
 
-  const handleScheduleDecision = (keepSchedule: boolean) => {
+  const handleScheduleDecision = async (keepSchedule: boolean) => {
     if (!pendingMoveOrCopy) return;
 
-    moveOrCopyTasks(
+    const { createdTasks } = moveOrCopyTasks(
       currentAdminDay,
       selectedTasks,
       pendingMoveOrCopy.targetDays,
@@ -160,6 +161,69 @@ const WeeklyTaskOrganizer: React.FC = () => {
     setSelectedTasks(new Set<string>());
     setPendingMoveOrCopy(null);
     setShowScheduleConfirm(false);
+
+    if (!keepSchedule) return;
+
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tasksWithSchedule = createdTasks.filter(
+      (created) => created.task.calendarEvent
+    );
+
+    if (tasksWithSchedule.length === 0) return;
+
+    try {
+      if (pendingMoveOrCopy.isMove) {
+        await Promise.all(
+          tasksWithSchedule.map(async ({ day, task }) => {
+            if (!task.calendarEvent?.eventId) return;
+
+            const payload = taskToCalendarEvent(
+              day,
+              task,
+              task.calendarEvent.startTime ?? undefined,
+              task.calendarEvent.endTime ?? undefined,
+              selectedDate,
+              userTimeZone
+            );
+
+            await updateTaskEventForRamon(task.calendarEvent.eventId, payload);
+            updateTaskCalendarEvent(day, task.id, {
+              eventId: task.calendarEvent.eventId,
+              date: payload.date,
+              startTime: payload.startTime ?? null,
+              endTime: payload.endTime ?? null,
+              lastSynced: Date.now(),
+            });
+          })
+        );
+      } else {
+        await Promise.all(
+          tasksWithSchedule.map(async ({ day, task }) => {
+            if (!task.calendarEvent) return;
+
+            const payload = taskToCalendarEvent(
+              day,
+              task,
+              task.calendarEvent.startTime ?? undefined,
+              task.calendarEvent.endTime ?? undefined,
+              selectedDate,
+              userTimeZone
+            );
+            const { eventId } = await createTaskEventForRamon(payload);
+            updateTaskCalendarEvent(day, task.id, {
+              eventId,
+              date: payload.date,
+              startTime: payload.startTime ?? null,
+              endTime: payload.endTime ?? null,
+              lastSynced: Date.now(),
+            });
+          })
+        );
+      }
+    } catch (error) {
+      console.error(error);
+      alert("❌ Failed to update Google Calendar for moved/copied tasks.");
+    }
   };
 
   const handleScheduleCancel = () => {

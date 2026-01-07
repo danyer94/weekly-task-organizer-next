@@ -285,3 +285,84 @@ export const createGoogleCalendarEventForUser = async (
     return response.data;
   }
 };
+
+export const updateGoogleCalendarEventForUser = async (
+  userId: string,
+  eventId: string,
+  payload: CalendarEventPayload
+) => {
+  const client = await getAuthorizedClientForUser(userId);
+  if (!client) {
+    throw new Error("Google account is not connected for this user");
+  }
+
+  const calendar = google.calendar({ version: "v3", auth: client });
+
+  if (payload.startTime) {
+    const eventTimeZone =
+      payload.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    const formatDateTime = (dateStr: string, timeStr: string) => {
+      return `${dateStr}T${timeStr}:00`;
+    };
+
+    const startDateTimeStr = formatDateTime(payload.date, payload.startTime);
+
+    let endDateTimeStr: string;
+    if (payload.endTime) {
+      endDateTimeStr = formatDateTime(payload.date, payload.endTime);
+    } else {
+      const [hours, minutes] = payload.startTime.split(":").map(Number);
+      const endHours = (hours + 1) % 24;
+      const endHoursStr = String(endHours).padStart(2, "0");
+      endDateTimeStr = formatDateTime(
+        payload.date,
+        `${endHoursStr}:${String(minutes).padStart(2, "0")}`
+      );
+    }
+
+    const event = {
+      summary: payload.summary,
+      description: payload.description,
+      start: {
+        dateTime: startDateTimeStr,
+        timeZone: eventTimeZone,
+      },
+      end: {
+        dateTime: endDateTimeStr,
+        timeZone: eventTimeZone,
+      },
+    };
+
+    const response = await calendar.events.patch({
+      calendarId: "primary",
+      eventId,
+      requestBody: event,
+    });
+
+    return response.data;
+  }
+
+  const startDate = new Date(payload.date);
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 1);
+
+  const event = {
+    summary: payload.summary,
+    description: payload.description,
+    start: {
+      date: payload.date,
+    },
+    end: {
+      date: endDate.toISOString().split("T")[0],
+    },
+  };
+
+  const response = await calendar.events.patch({
+    calendarId: "primary",
+    eventId,
+    requestBody: event,
+  });
+
+  return response.data;
+};
