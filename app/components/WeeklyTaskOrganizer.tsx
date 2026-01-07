@@ -27,7 +27,6 @@ import { format } from "date-fns";
 import { useAuth } from "./AuthProvider";
 import { useRouter } from "next/navigation";
 import { User as UserIcon } from "lucide-react";
-import { migrateRamonData, fixDoubleNesting, cleanupUndefinedNode } from "@/lib/migration";
 import { UserMenu } from "./UserMenu";
 import { UserSettingsModal } from "./UserSettingsModal";
 
@@ -134,13 +133,6 @@ const WeeklyTaskOrganizer: React.FC = () => {
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/auth/login");
-    } else if (user) {
-      // Trigger migration for Ramon if needed
-      migrateRamonData(user.uid, user.email || "");
-      // Trigger structural cleanup for any user
-      fixDoubleNesting(user.uid);
-      // Purge the redundant 'undefined' node if it exists
-      cleanupUndefinedNode();
     }
   }, [user, authLoading, router]);
 

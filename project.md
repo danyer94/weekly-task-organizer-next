@@ -45,7 +45,7 @@
 - `lib/googleCalendar.ts`: OAuth and Calendar API server helpers.
 - `lib/notifications.ts`: Server-side notification delivery.
 - `lib/notificationsClient.ts`: Client API wrapper for notifications.
-- `lib/migration.ts`: Structural cleanup and data migration utilities.
+- `lib/migration.ts`: Legacy utilities for structural cleanup and one-time data migration (completed).
 - `lib/firebaseAdmin.ts`: Server-side Firebase Admin SDK initialization and verification helpers.
 - `app/api/google/*`: Google Calendar API routes (protected with ID tokens).
 - `app/api/notifications/*`: Notification API routes.
