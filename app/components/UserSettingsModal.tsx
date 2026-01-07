@@ -4,7 +4,7 @@ import { KeyRound, MailCheck, User, XCircle } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { getAuthErrorMessage } from "@/lib/errors";
 import { database, getUserPath } from "@/lib/firebase";
-import { get, ref, set } from "firebase/database";
+import { get, ref, update } from "firebase/database";
 import type { DailySummarySettings } from "@/types";
 
 interface UserSettingsModalProps {
@@ -169,7 +169,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
         email: trimmedEmail || null,
         updatedAt: Date.now(),
       };
-      await set(settingsRef, payload);
+      await update(settingsRef, payload);
       setDailySummaryNotice({
         type: "success",
         message: "Daily summary preferences saved.",
