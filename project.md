@@ -198,7 +198,7 @@ interface Task {
 
 - SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
 - Twilio: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM`
-- Recipients: `NOTIFY_EMAIL_TO`, `NOTIFY_SMS_TO`, `NOTIFY_WHATSAPP_TO`
+- Recipients: `NOTIFY_SMS_TO`, `NOTIFY_WHATSAPP_TO` (email recipients are configured per user)
 
 ### Firebase Admin (server-side auth)
 

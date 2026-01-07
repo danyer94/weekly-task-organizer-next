@@ -2,14 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchTasksOnce } from "@/lib/firebase";
 import { getWeekPath } from "@/lib/calendarMapper";
 import { sendNotification } from "@/lib/notifications";
-import type { Day, NotificationChannel, TasksByDay, Task } from "@/types";
+import type {
+  Day,
+  DailySummarySettings,
+  NotificationChannel,
+  TasksByDay,
+  Task,
+} from "@/types";
 import { getUidFromRequest, verifyIdToken } from "@/lib/firebaseAdmin";
 import * as admin from "firebase-admin";
 
 export const runtime = "nodejs";
 
 const TIME_ZONE = process.env.NOTIFICATIONS_TIME_ZONE || "America/New_York";
-const NOTIFY_EMAIL_TO = process.env.NOTIFY_EMAIL_TO || "";
 const NOTIFY_SMS_TO = process.env.NOTIFY_SMS_TO || "";
 const NOTIFY_WHATSAPP_TO = process.env.NOTIFY_WHATSAPP_TO || "";
 
@@ -153,20 +158,39 @@ const formatDailyMessage = (
   return message;
 };
 
-const getRecipients = async (uid: string) => {
+const getDailySummarySettings = async (uid: string) => {
+  try {
+    const snapshot = await admin
+      .database()
+      .ref(`users/${uid}/settings/notifications/dailySummary`)
+      .get();
+    if (!snapshot.exists()) return null;
+    return snapshot.val() as DailySummarySettings;
+  } catch (error) {
+    console.error("Failed to fetch daily summary settings", error);
+    return null;
+  }
+};
+
+const getRecipients = async (
+  uid: string,
+  dailySettings?: DailySummarySettings | null
+) => {
   const recipients: { channel: NotificationChannel; to: string }[] = [];
-
-  // Try to get user preferences from DB (not implemented yet, but good to have the hook)
-  // For now, if it's Ramon, use the env vars
-  // Or fetch the user's email from Firebase Auth
-
+  const settings = dailySettings ?? (await getDailySummarySettings(uid));
+  let userEmail: string | null = null;
   try {
     const user = await admin.auth().getUser(uid);
-    if (user.email) {
-      recipients.push({ channel: "email", to: user.email });
-    }
+    userEmail = user.email ?? null;
   } catch (error) {
     console.error("Failed to fetch user for notifications", error);
+  }
+
+  if (settings?.enabled) {
+    const targetEmail = settings.email?.trim() || userEmail;
+    if (targetEmail) {
+      recipients.push({ channel: "email", to: targetEmail });
+    }
   }
 
   // Backup/Override with env vars if present and matching Ramon's hardcoded logic
@@ -175,6 +199,20 @@ const getRecipients = async (uid: string) => {
   if (NOTIFY_SMS_TO) recipients.push({ channel: "sms", to: NOTIFY_SMS_TO });
 
   return recipients;
+};
+
+const updateLastSentDateKey = async (uid: string, dateKey: string) => {
+  try {
+    await admin
+      .database()
+      .ref(`users/${uid}/settings/notifications/dailySummary`)
+      .update({
+        lastSentDateKey: dateKey,
+        updatedAt: Date.now(),
+      });
+  } catch (error) {
+    console.error("Failed to update daily summary last sent date", error);
+  }
 };
 
 const parseChannelFilter = (value: unknown): NotificationChannel[] | null => {
@@ -230,6 +268,17 @@ const sendDailySummary = async (params: {
   }
 
   const { dateKey, weekday } = getZonedDateInfo(targetDate, TIME_ZONE);
+  const dailySettings = await getDailySummarySettings(params.uid);
+
+  if (!params?.force && dailySettings?.lastSentDateKey === dateKey) {
+    return {
+      skipped: true,
+      reason: "Daily summary already sent",
+      dateKey,
+      weekday,
+    };
+  }
+
   const weekDate = new Date(`${dateKey}T12:00:00Z`);
   const weekPath = getWeekPath(weekDate);
   const snapshot = (await fetchTasksOnce(
@@ -241,7 +290,7 @@ const sendDailySummary = async (params: {
     : [];
 
   const message = formatDailyMessage(weekday, dateKey, dayTasks);
-  const recipients = await getRecipients(params.uid);
+  const recipients = await getRecipients(params.uid, dailySettings);
 
   if (!recipients.length) {
     throw new Error("No notification recipients are configured");
@@ -294,6 +343,8 @@ const sendDailySummary = async (params: {
   if (sentCount === 0) {
     throw new Error("All notifications failed to send");
   }
+
+  await updateLastSentDateKey(params.uid, dateKey);
 
   return {
     dateKey,

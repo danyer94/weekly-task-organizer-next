@@ -1,8 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { KeyRound, User, XCircle } from "lucide-react";
+import { KeyRound, MailCheck, User, XCircle } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { getAuthErrorMessage } from "@/lib/errors";
+import { database, getUserPath } from "@/lib/firebase";
+import { get, ref, set } from "firebase/database";
+import type { DailySummarySettings } from "@/types";
 
 interface UserSettingsModalProps {
   isOpen: boolean;
@@ -19,7 +22,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   initialDisplayName,
   email,
 }) => {
-  const { updateDisplayName, updateUserPassword } = useAuth();
+  const { updateDisplayName, updateUserPassword, user } = useAuth();
   const [displayName, setDisplayName] = useState(initialDisplayName || "");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -27,6 +30,11 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   const [savingPassword, setSavingPassword] = useState(false);
   const [nameNotice, setNameNotice] = useState<Notice>(null);
   const [passwordNotice, setPasswordNotice] = useState<Notice>(null);
+  const [dailySummaryEnabled, setDailySummaryEnabled] = useState(false);
+  const [dailySummaryEmail, setDailySummaryEmail] = useState(email || "");
+  const [savingDailySummary, setSavingDailySummary] = useState(false);
+  const [dailySummaryNotice, setDailySummaryNotice] = useState<Notice>(null);
+  const [dailySummaryLoading, setDailySummaryLoading] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -35,7 +43,46 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
     setPasswordConfirm("");
     setNameNotice(null);
     setPasswordNotice(null);
+    setDailySummaryNotice(null);
   }, [isOpen, initialDisplayName]);
+
+  useEffect(() => {
+    if (!isOpen || !user) return;
+    const loadSettings = async () => {
+      setDailySummaryLoading(true);
+      setDailySummaryNotice(null);
+      try {
+        const settingsRef = ref(
+          database,
+          getUserPath(user.uid, "settings/notifications/dailySummary")
+        );
+        const snapshot = await get(settingsRef);
+        if (!snapshot.exists()) {
+          setDailySummaryEnabled(false);
+          setDailySummaryEmail(email || "");
+          return;
+        }
+        const settings = snapshot.val() as DailySummarySettings;
+        setDailySummaryEnabled(Boolean(settings?.enabled));
+        setDailySummaryEmail(
+          settings?.email ?? email ?? ""
+        );
+      } catch (error) {
+        console.error("Failed to load daily summary settings", error);
+        setDailySummaryNotice({
+          type: "error",
+          message: "We couldn't load daily summary settings.",
+        });
+      } finally {
+        setDailySummaryLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, [email, isOpen, user]);
+
+  const isValidEmail = (value: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   const handleUpdateName = async () => {
     const trimmed = displayName.trim();
@@ -83,12 +130,67 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
     }
   };
 
+  const handleSaveDailySummary = async () => {
+    if (!user) {
+      setDailySummaryNotice({
+        type: "error",
+        message: "You must be signed in to update notifications.",
+      });
+      return;
+    }
+
+    const trimmedEmail = dailySummaryEmail.trim();
+    if (dailySummaryEnabled) {
+      if (!trimmedEmail) {
+        setDailySummaryNotice({
+          type: "error",
+          message: "Please provide an email for the daily summary.",
+        });
+        return;
+      }
+      if (!isValidEmail(trimmedEmail)) {
+        setDailySummaryNotice({
+          type: "error",
+          message: "Please enter a valid email address.",
+        });
+        return;
+      }
+    }
+
+    setSavingDailySummary(true);
+    setDailySummaryNotice(null);
+    try {
+      const settingsRef = ref(
+        database,
+        getUserPath(user.uid, "settings/notifications/dailySummary")
+      );
+      const payload: DailySummarySettings = {
+        enabled: dailySummaryEnabled,
+        email: trimmedEmail || null,
+        updatedAt: Date.now(),
+      };
+      await set(settingsRef, payload);
+      setDailySummaryNotice({
+        type: "success",
+        message: "Daily summary preferences saved.",
+      });
+    } catch (error) {
+      console.error("Failed to save daily summary settings", error);
+      setDailySummaryNotice({
+        type: "error",
+        message: "We couldn't save your daily summary settings.",
+      });
+    } finally {
+      setSavingDailySummary(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/60 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in">
-      <div className="glass-panel rounded-2xl shadow-2xl border border-border-subtle/60 w-full max-w-lg mx-4 p-6">
-        <div className="flex items-start justify-between mb-6">
+    <div className="fixed inset-0 bg-slate-950/60 flex items-start sm:items-center justify-center z-50 backdrop-blur-sm animate-fade-in overflow-y-auto px-4 py-6">
+      <div className="glass-panel rounded-2xl shadow-2xl border border-border-subtle/60 w-full max-w-lg p-5 sm:p-6 max-h-[92vh] overflow-y-auto">
+        <div className="flex items-start justify-between mb-6 gap-3">
           <div>
             <h3 className="text-xl font-bold text-text-primary">User settings</h3>
             <p className="text-sm text-text-secondary">
@@ -187,6 +289,84 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 }`}
               >
                 {passwordNotice.message}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-border-subtle/60 bg-bg-main/50 p-4">
+            <div className="flex items-center gap-2 mb-4 text-text-primary">
+              <MailCheck className="w-4 h-4 text-sky-400" />
+              <h4 className="text-sm font-bold uppercase tracking-[0.2em]">Daily summary</h4>
+            </div>
+            <p className="text-xs text-text-tertiary mb-4">
+              Get a daily recap of your tasks delivered to the email you choose.
+            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border-subtle/60 bg-bg-surface/60 px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-text-primary">
+                  Email daily summary
+                </p>
+                <p className="text-xs text-text-tertiary">
+                  Turn this on to receive your scheduled summary.
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={dailySummaryEnabled}
+                onClick={() => setDailySummaryEnabled((prev) => !prev)}
+                className={`relative inline-flex h-8 w-14 items-center rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-sapphire-400 ${
+                  dailySummaryEnabled
+                    ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 border-transparent"
+                    : "bg-bg-main/80 border-border-subtle/60"
+                }`}
+              >
+                <span
+                  className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform ${
+                    dailySummaryEnabled ? "translate-x-7" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-start">
+              <div>
+                <label className="text-xs font-semibold text-text-secondary block mb-2">
+                  Summary delivery email
+                </label>
+                <input
+                  type="email"
+                  value={dailySummaryEmail}
+                  onChange={(event) => setDailySummaryEmail(event.target.value)}
+                  placeholder="name@company.com"
+                  disabled={!dailySummaryEnabled}
+                  className={`w-full px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand transition-colors ${
+                    !dailySummaryEnabled ? "opacity-60 cursor-not-allowed" : ""
+                  }`}
+                />
+              </div>
+              <button
+                onClick={handleSaveDailySummary}
+                disabled={savingDailySummary || dailySummaryLoading}
+                className="h-12 mt-6 sm:mt-7 px-4 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60"
+                type="button"
+              >
+                {savingDailySummary
+                  ? "Saving..."
+                  : dailySummaryLoading
+                    ? "Loading..."
+                    : "Save preferences"}
+              </button>
+            </div>
+            {dailySummaryNotice && (
+              <div
+                className={`mt-3 text-xs rounded-lg px-3 py-2 border ${
+                  dailySummaryNotice.type === "success"
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                    : "bg-red-500/10 text-red-400 border-red-500/30"
+                }`}
+              >
+                {dailySummaryNotice.message}
               </div>
             )}
           </div>

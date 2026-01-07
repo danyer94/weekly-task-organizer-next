@@ -76,6 +76,13 @@ export interface CalendarEventPayload {
 
 export type NotificationChannel = "email" | "whatsapp" | "sms";
 
+export interface DailySummarySettings {
+  enabled: boolean;
+  email?: string | null;
+  lastSentDateKey?: string | null;
+  updatedAt?: number;
+}
+
 export interface NotificationRequest {
   channel: NotificationChannel;
   to: string;
