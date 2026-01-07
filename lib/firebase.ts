@@ -9,6 +9,12 @@ import {
   runTransaction,
   push,
 } from "firebase/database";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 
 // Firebase config should come from NEXT_PUBLIC_* variables so the client bundle inlines them.
 const firebaseConfig = {
@@ -35,12 +41,19 @@ if (missingConfigKeys.length > 0) {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
 
-// Reference to tasks in the database
-export const tasksRef = ref(database, "tasks");
+// Reference to tasks in the database - Deprecated for multi-tenancy
+// export const tasksRef = ref(database, "tasks");
 
-export const createTaskId = (): string => {
-  const key = push(ref(database, "meta/taskIds")).key;
+// Helper to get user-scoped path
+export const getUserPath = (uid: string, path: string = "") => {
+  return `users/${uid}/${path}`.replace(/\/$/, "");
+};
+
+export const createTaskId = (uid: string): string => {
+  const key = push(ref(database, getUserPath(uid, "meta/taskIds"))).key;
   if (key) {
     return key;
   }
@@ -52,26 +65,28 @@ export const createTaskId = (): string => {
 
 // Helper function to save tasks to a specific path (e.g. "weeks/2024/52")
 export const saveTasks = async (
+  uid: string,
   tasks: any,
   path: string = "tasks"
 ): Promise<boolean> => {
   try {
     // Firebase doesn't allow undefined values. We sanitize by removing them.
     const sanitizedTasks = JSON.parse(JSON.stringify(tasks));
-    await set(ref(database, path), sanitizedTasks);
+    await set(ref(database, getUserPath(uid, path)), sanitizedTasks);
     return true;
   } catch (error) {
-    console.error(`Error saving tasks to ${path}:`, error);
+    console.error(`Error saving tasks to ${path} for user ${uid}:`, error);
     return false;
   }
 };
 
 // Subscribe to task changes at a specific path
 export const subscribeToTasks = (
+  uid: string,
   callback: (data: any) => void,
   path: string = "tasks"
 ) => {
-  const targetRef = ref(database, path);
+  const targetRef = ref(database, getUserPath(uid, path));
   return onValue(targetRef, (snapshot) => {
     const data = snapshot.val();
     callback(data);
@@ -80,22 +95,26 @@ export const subscribeToTasks = (
 
 // Fetch tasks once from a specific path
 export const fetchTasksOnce = async (
+  uid: string,
   path: string = "tasks"
 ): Promise<any | null> => {
   try {
-    const snapshot = await get(ref(database, path));
+    const snapshot = await get(ref(database, getUserPath(uid, path)));
     return snapshot.exists() ? snapshot.val() : null;
   } catch (error) {
-    console.error(`Error fetching tasks from ${path}:`, error);
+    console.error(`Error fetching tasks from ${path} for user ${uid}:`, error);
     return null;
   }
 };
 
-const CARRY_OVER_META_PATH = "meta/lastCarryOverDate";
+const getCarryOverMetaPath = (uid: string) =>
+  getUserPath(uid, "meta/lastCarryOverDate");
 
-export const fetchLastCarryOverDate = async (): Promise<string | null> => {
+export const fetchLastCarryOverDate = async (
+  uid: string
+): Promise<string | null> => {
   try {
-    const snapshot = await get(ref(database, CARRY_OVER_META_PATH));
+    const snapshot = await get(ref(database, getCarryOverMetaPath(uid)));
     return snapshot.exists() ? (snapshot.val() as string) : null;
   } catch (error) {
     console.error("Error fetching last carry-over date:", error);
@@ -104,10 +123,11 @@ export const fetchLastCarryOverDate = async (): Promise<string | null> => {
 };
 
 export const advanceLastCarryOverDate = async (
+  uid: string,
   dateKey: string
 ): Promise<boolean> => {
   try {
-    const metaRef = ref(database, CARRY_OVER_META_PATH);
+    const metaRef = ref(database, getCarryOverMetaPath(uid));
     await runTransaction(metaRef, (current) => {
       if (!current || String(current) < dateKey) {
         return dateKey;
@@ -131,4 +151,4 @@ export const getLegacyTasks = async (): Promise<any | null> => {
   }
 };
 
-export { database };
+export { database, auth, googleProvider };

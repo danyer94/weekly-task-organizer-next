@@ -3,7 +3,7 @@ import { getGoogleCalendarEvent } from "@/lib/googleCalendar";
 import { database } from "@/lib/firebase";
 import { ref, get } from "firebase/database";
 
-const RAMON_USER_ID = "ramon";
+import { getUidFromRequest } from "@/lib/firebaseAdmin";
 
 const parseEventDateTime = (dateTime: string) => {
   const [datePart, timePartRaw] = dateTime.split("T");
@@ -37,11 +37,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const uid = await getUidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const syncResults = await Promise.all(
       body.events.map(async ({ eventId, taskId, day }) => {
         try {
-          const event = await getGoogleCalendarEvent(RAMON_USER_ID, eventId);
-          
+          const event = await getGoogleCalendarEvent(uid, eventId);
+
           if (!event) {
             // Event was deleted from Google Calendar
             return {
@@ -134,4 +139,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

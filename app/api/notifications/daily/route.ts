@@ -3,6 +3,8 @@ import { fetchTasksOnce } from "@/lib/firebase";
 import { getWeekPath } from "@/lib/calendarMapper";
 import { sendNotification } from "@/lib/notifications";
 import type { Day, NotificationChannel, TasksByDay, Task } from "@/types";
+import { getUidFromRequest, verifyIdToken } from "@/lib/firebaseAdmin";
+import * as admin from "firebase-admin";
 
 export const runtime = "nodejs";
 
@@ -50,7 +52,10 @@ const WEEKDAY_MAP: Record<Day, number> = {
 
 const parseWeekdaySet = (value: string) => {
   const set = new Set<number>();
-  const parts = value.split(",").map((part) => part.trim()).filter(Boolean);
+  const parts = value
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
   parts.forEach((part) => {
     if (part.includes("-")) {
       const [startRaw, endRaw] = part.split("-").map((v) => v.trim());
@@ -148,13 +153,27 @@ const formatDailyMessage = (
   return message;
 };
 
-const getRecipients = () => {
+const getRecipients = async (uid: string) => {
   const recipients: { channel: NotificationChannel; to: string }[] = [];
-  if (NOTIFY_EMAIL_TO)
-    recipients.push({ channel: "email", to: NOTIFY_EMAIL_TO });
+
+  // Try to get user preferences from DB (not implemented yet, but good to have the hook)
+  // For now, if it's Ramon, use the env vars
+  // Or fetch the user's email from Firebase Auth
+
+  try {
+    const user = await admin.auth().getUser(uid);
+    if (user.email) {
+      recipients.push({ channel: "email", to: user.email });
+    }
+  } catch (error) {
+    console.error("Failed to fetch user for notifications", error);
+  }
+
+  // Backup/Override with env vars if present and matching Ramon's hardcoded logic
   if (NOTIFY_WHATSAPP_TO)
     recipients.push({ channel: "whatsapp", to: NOTIFY_WHATSAPP_TO });
   if (NOTIFY_SMS_TO) recipients.push({ channel: "sms", to: NOTIFY_SMS_TO });
+
   return recipients;
 };
 
@@ -172,7 +191,8 @@ const parseChannelFilter = (value: unknown): NotificationChannel[] | null => {
   ) as NotificationChannel[];
 };
 
-const sendDailySummary = async (params?: {
+const sendDailySummary = async (params: {
+  uid: string;
   date?: string | null;
   channels?: NotificationChannel[] | null;
   force?: boolean;
@@ -212,13 +232,16 @@ const sendDailySummary = async (params?: {
   const { dateKey, weekday } = getZonedDateInfo(targetDate, TIME_ZONE);
   const weekDate = new Date(`${dateKey}T12:00:00Z`);
   const weekPath = getWeekPath(weekDate);
-  const snapshot = (await fetchTasksOnce(weekPath)) as TasksByDay | null;
+  const snapshot = (await fetchTasksOnce(
+    params.uid,
+    weekPath
+  )) as TasksByDay | null;
   const dayTasks = Array.isArray(snapshot?.[weekday])
     ? (snapshot?.[weekday] as Task[])
     : [];
 
   const message = formatDailyMessage(weekday, dateKey, dayTasks);
-  const recipients = getRecipients();
+  const recipients = await getRecipients(params.uid);
 
   if (!recipients.length) {
     throw new Error("No notification recipients are configured");
@@ -286,10 +309,15 @@ const sendDailySummary = async (params?: {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const uid = await getUidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const date = searchParams.get("date");
     const channels = parseChannelFilter(searchParams.get("channels"));
     const force = searchParams.get("force") === "true";
-    const payload = await sendDailySummary({ date, channels, force });
+    const payload = await sendDailySummary({ uid, date, channels, force });
     return NextResponse.json({ success: true, ...payload });
   } catch (error) {
     console.error("Failed to send daily summary", error);
@@ -308,8 +336,14 @@ export async function POST(request: NextRequest) {
       force?: boolean;
     };
 
+    const uid = await getUidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const channels = parseChannelFilter(body?.channels);
     const payload = await sendDailySummary({
+      uid,
       date: body?.date,
       channels,
       force: body?.force,

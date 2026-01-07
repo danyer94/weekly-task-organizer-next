@@ -1,4 +1,17 @@
 import type { NotificationChannel } from "@/types";
+import { auth } from "@/lib/firebase";
+
+const getAuthHeaders = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+  const token = await user.getIdToken();
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+};
 
 export interface DailySummaryResponse {
   success: boolean;
@@ -19,11 +32,10 @@ export const sendDailySummary = async (
   channels?: NotificationChannel[],
   force: boolean = true
 ): Promise<DailySummaryResponse> => {
+  const headers = await getAuthHeaders();
   const res = await fetch("/api/notifications/daily", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({
       date,
       channels,

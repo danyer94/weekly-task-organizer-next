@@ -40,5 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# files
-weekly-task-organizer-dev-firebase-adminsdk-fbsvc-bcf9f8f95e.json
+#folders
+/firebase_data

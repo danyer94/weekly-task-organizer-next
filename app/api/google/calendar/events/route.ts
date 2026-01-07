@@ -6,8 +6,7 @@ import {
   updateGoogleCalendarEventForUser,
 } from "@/lib/googleCalendar";
 
-// Usuario fijo para este proyecto
-const RAMON_USER_ID = "ramon";
+import { getUidFromRequest } from "@/lib/firebaseAdmin";
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -21,7 +20,12 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await deleteGoogleCalendarEvent(RAMON_USER_ID, eventId);
+    const uid = await getUidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await deleteGoogleCalendarEvent(uid, eventId);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -53,10 +57,12 @@ export async function POST(request: NextRequest) {
       timeZone: body.timeZone,
     };
 
-    const event = await createGoogleCalendarEventForUser(
-      RAMON_USER_ID,
-      payload
-    );
+    const uid = await getUidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const event = await createGoogleCalendarEventForUser(uid, payload);
 
     return NextResponse.json({ event });
   } catch (error) {
@@ -90,8 +96,13 @@ export async function PATCH(request: NextRequest) {
       timeZone: body.timeZone,
     };
 
+    const uid = await getUidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const event = await updateGoogleCalendarEventForUser(
-      RAMON_USER_ID,
+      uid,
       body.eventId,
       payload
     );

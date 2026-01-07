@@ -2,7 +2,7 @@
 
 ## 1. Project Overview
 
-**Weekly Task Organizer** is a Next.js web application for managing weekly tasks with a focus on clarity and speed. It supports two roles: an **Administrator** (full control) and a **User** (Ramon, completion only). Tasks are organized by ISO week and day, with real-time sync, priority grouping, Google Calendar integration, and daily summary notifications.
+**Weekly Task Organizer** is a Next.js web application for managing weekly tasks with a focus on clarity and speed. It supports **Multi-tenancy** using Firebase Authentication, allowing multiple users to have their own tasks and Google Calendar integrations. Tasks are organized by ISO week and day, with real-time sync, priority grouping, and daily summary notifications.
 
 ## 2. Tech Stack
 
@@ -12,6 +12,8 @@
 - **Database**: Firebase Realtime Database
 - **Utilities**: date-fns, lucide-react
 - **External APIs**: Google Calendar (googleapis)
+- **Authentication**: Firebase Auth (Google, Email/Password, Username/Password)
+- **Admin Utilities**: Firebase Admin SDK (server-side verification)
 - **Notifications**: Nodemailer (SMTP) + Twilio (SMS/WhatsApp)
 
 ## 3. Core Architecture
@@ -20,11 +22,13 @@
 
 - `app/layout.tsx`: Root layout and fonts.
 - `app/page.tsx`: Client-only entry point (SSR disabled for UI).
+- `app/auth/login/page.tsx`: Premium login page with multi-method support.
 - `app/components/`:
+  - `AuthProvider.tsx`: Context provider for manages user sessions.
   - `WeeklyTaskOrganizer.tsx`: Main container tying logic to UI.
-  - `AdminView.tsx`: Administrator dashboard.
-  - `UserView.tsx`: Ramon dashboard.
-  - `Sidebar.tsx`: Date picker, day navigation, stats, quick actions.
+  - `AdminView.tsx`: Dashboard with full task management control and week selector.
+  - `UserView.tsx`: Dashboard with completion-only control.
+  - `Sidebar.tsx`: Date picker (admin sidebar), day navigation, stats, quick actions.
   - `TaskList.tsx`, `TaskItem.tsx`: Task rendering and interactions.
   - `PrioritySelector.tsx`: Priority dropdown.
   - `DatePicker.tsx`: ISO week date picker.
@@ -32,6 +36,8 @@
   - `CalendarEventModal.tsx`: All-day/timed event UI.
   - `DaySelectionModal.tsx`, `BulkAddModal.tsx`, `ConfirmationModal.tsx`: Modals.
   - `ThemeToggle.tsx`: Light/dark mode toggle.
+  - `UserMenu.tsx`: Header account menu with settings and logout.
+  - `UserSettingsModal.tsx`: Profile and password management modal.
 - `hooks/useWeeklyTasks.ts`: Core business logic (state, sync, CRUD, carry-over).
 - `lib/firebase.ts`: Firebase setup, typed helpers, task ID generation.
 - `lib/calendarMapper.ts`: Mapping tasks to calendar payloads and week paths.
@@ -39,21 +45,22 @@
 - `lib/googleCalendar.ts`: OAuth and Calendar API server helpers.
 - `lib/notifications.ts`: Server-side notification delivery.
 - `lib/notificationsClient.ts`: Client API wrapper for notifications.
-- `types/index.ts`: Shared types (`Task`, `Day`, `Priority`, notifications).
-- `app/api/google/*`: Google Calendar API routes.
+- `lib/migration.ts`: Structural cleanup and data migration utilities.
+- `lib/firebaseAdmin.ts`: Server-side Firebase Admin SDK initialization and verification helpers.
+- `app/api/google/*`: Google Calendar API routes (protected with ID tokens).
 - `app/api/notifications/*`: Notification API routes.
 - `scripts/`: Firebase maintenance scripts.
 
 ### 3.2 Data Model
 
-Tasks are stored by ISO week in Firebase:
+Tasks are stored per user in the Firebase Realtime Database:
 
-- **Week path**: `weeks/YYYY/WW` (ISO week number)
-- **Per-day lists**: keys are day names (`Monday` ... `Sunday`)
-- **Meta**:
-  - `meta/lastCarryOverDate` (YYYY-MM-DD)
-  - `meta/taskIds` (push-based ID generator)
-- **Google tokens**: `googleAuth/ramon`
+- **Root level**:
+  - `usernames/${username}`: Mapping of usernames to email addresses.
+- **User path**: `users/${uid}/`
+  - `weeks/YYYY/WW`: ISO week-based task lists.
+  - `meta/lastCarryOverDate`: Tracks progress for task carry-over.
+  - `googleAuth`: Stores Google OAuth tokens for the specific user.
 
 **Task Interface**
 
@@ -81,15 +88,17 @@ interface Task {
 
 - **Administrator**
   - Full CRUD, priority control, drag-reorder, selection tools.
-  - Sidebar with date picker, day navigation, stats, quick actions.
+  - Week selector in the admin panel header plus sidebar date picker, day navigation, stats, quick actions.
   - Google Calendar connect, event sync, and daily summary sending.
-- **User (Ramon)**
+- **User (per account)**
   - Simplified view with day scroller and date picker.
+  - Uses the signed-in display name in the UI.
   - Can only toggle completion status.
 
 ### 4.2 Weekly Navigation and Carry-Over
 
 - Date picker selects the active ISO week.
+- Date picker includes quick previous/next week navigation buttons.
 - Data loads from `weeks/YYYY/WW` for the selected week.
 - Incomplete tasks carry over to the next calendar day (including week boundaries).
   - Copies are reset to `completed = false`.
@@ -129,6 +138,7 @@ interface Task {
 
 - Live subscription to Firebase changes per week path.
 - Optimistic local updates with a short guard to avoid stale overwrites.
+- Week switching clears local task cache before new data arrives to avoid showing stale tasks.
 - Sync indicator in the header: `connecting`, `synced`, `error`.
 
 ### 4.8 Google Calendar Integration
@@ -148,7 +158,12 @@ interface Task {
 
 ### 4.10 Theme
 
-- Light/dark mode toggle persisted in `localStorage`.
+- Light/dark mode toggle persisted in `localStorage`, located in the header next to the user menu.
+
+### 4.11 User Settings
+
+- Header menu provides access to profile updates (display name) and password changes.
+- Password changes may require a recent sign-in per Firebase rules.
 
 ## 5. API Routes
 
@@ -184,6 +199,11 @@ interface Task {
 - SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
 - Twilio: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM`
 - Recipients: `NOTIFY_EMAIL_TO`, `NOTIFY_SMS_TO`, `NOTIFY_WHATSAPP_TO`
+
+### Firebase Admin (server-side auth)
+
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY`
 
 ### Notifications (schedule)
 

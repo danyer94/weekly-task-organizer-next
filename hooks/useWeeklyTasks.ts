@@ -11,6 +11,7 @@ import {
 import { Task, Day, Priority, TasksByDay } from "@/types";
 import { getDateForDayInWeek, getWeekPath } from "@/lib/calendarMapper";
 import { format, startOfWeek, endOfWeek, addDays } from "date-fns";
+import { getUserPath } from "@/lib/firebase";
 
 export const DAYS: Day[] = [
   "Monday",
@@ -36,9 +37,17 @@ const normalizeTasksByDay = (data?: TasksByDay | null): TasksByDay => {
   return normalized;
 };
 
-export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
+
+
+export const useWeeklyTasks = (
+  selectedDate: Date = new Date(),
+  uid?: string
+) => {
   // Path for current selection
-  const currentPath = useMemo(() => getWeekPath(selectedDate), [selectedDate]);
+  const currentPath = useMemo(() => {
+    if (!uid) return ""; // Handle unauthenticated state
+    return getWeekPath(selectedDate);
+  }, [selectedDate, uid]);
 
   // State
   const [tasks, setTasks] = useState<TasksByDay>({});
@@ -52,6 +61,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   const isCarryingOverRef = useRef(false);
   const latestTasksRef = useRef<TasksByDay>({});
   const lastLocalUpdateRef = useRef<number>(0);
+  const lastLocalUpdatePathRef = useRef<string>("");
   const lastRemoteCarryOverRef = useRef<string | null>(null);
 
   // No migration needed anymore as it's overwriting data on reload
@@ -65,31 +75,47 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
   // Subscribe to Firebase at current path
   useEffect(() => {
-    setSyncStatus("connecting");
-    const unsubscribe = subscribeToTasks((data) => {
-      // Shield local state from Firebase updates for 2 seconds after a manual local change
-      // This prevents "stale" events or "ack" events from overwriting the latest local truth
-      const now = performance.now();
-      const lastLocalUpdate = lastLocalUpdateRef.current;
-      if (lastLocalUpdate > 0 && now - lastLocalUpdate < 2000) {
-        return;
-      }
+    if (!uid || !currentPath) return;
 
-      if (data) {
-        const normalized = normalizeTasksByDay(data);
-        latestTasksRef.current = normalized;
-        setTasks(normalized);
-        setSyncStatus("synced");
-      } else {
-        const normalized = normalizeTasksByDay();
-        latestTasksRef.current = normalized;
-        setTasks(normalized);
-        setSyncStatus("synced");
-      }
-    }, currentPath);
+    const normalized = normalizeTasksByDay();
+    latestTasksRef.current = normalized;
+    setTasks(normalized);
+    lastLocalUpdateRef.current = 0;
+    lastLocalUpdatePathRef.current = currentPath;
+
+    setSyncStatus("connecting");
+    const unsubscribe = subscribeToTasks(
+      uid,
+      (data) => {
+        // Shield local state from Firebase updates for 2 seconds after a manual local change
+        const now = performance.now();
+        const lastLocalUpdate = lastLocalUpdateRef.current;
+        const lastLocalUpdatePath = lastLocalUpdatePathRef.current;
+        if (
+          lastLocalUpdatePath === currentPath &&
+          lastLocalUpdate > 0 &&
+          now - lastLocalUpdate < 2000
+        ) {
+          return;
+        }
+
+        if (data) {
+          const normalized = normalizeTasksByDay(data);
+          latestTasksRef.current = normalized;
+          setTasks(normalized);
+          setSyncStatus("synced");
+        } else {
+          const normalized = normalizeTasksByDay();
+          latestTasksRef.current = normalized;
+          setTasks(normalized);
+          setSyncStatus("synced");
+        }
+      },
+      currentPath
+    );
 
     return () => unsubscribe();
-  }, [currentPath]);
+  }, [currentPath, uid]);
 
   // Helper to update tasks and sync to Firebase
   const updateTasks = useCallback(
@@ -98,6 +124,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
       // Update protection timestamp
       lastLocalUpdateRef.current = performance.now();
+      lastLocalUpdatePathRef.current = currentPath;
 
       // Use the ref as the synchronous source of truth for the update
       const nextTasks = updater(latestTasksRef.current);
@@ -107,7 +134,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       setTasks(nextTasks);
 
       try {
-        const success = await saveTasks(nextTasks, currentPath);
+        const success = await saveTasks(uid!, nextTasks, currentPath);
         if (success) {
           setSyncStatus("synced");
         } else {
@@ -142,8 +169,8 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
       // Always fetch fresh data for carry-over to avoid stale state issues
       const [sourceSnapshot, targetSnapshot] = await Promise.all([
-        fetchTasksOnce(sourcePath),
-        sourcePath === targetPath ? null : fetchTasksOnce(targetPath),
+        fetchTasksOnce(uid!, sourcePath),
+        sourcePath === targetPath ? null : fetchTasksOnce(uid!, targetPath),
       ]);
 
       const normalizedSource = normalizeTasksByDay(
@@ -182,7 +209,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
       const sanitizedCopies = tasksToMove.map((task) => ({
         ...task,
-        id: createTaskId(),
+        id: createTaskId(uid!),
         completed: false,
         calendarEvent: null,
         copiedFromId: task.id, // Track which original task this was copied from
@@ -197,7 +224,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
           ],
         };
 
-        const ok = await saveTasks(updatedWeek, sourcePath);
+        const ok = await saveTasks(uid!, updatedWeek, sourcePath);
         if (sourcePath === currentPath) {
           // If update is for current week, also update local protection and state
           lastLocalUpdateRef.current = performance.now();
@@ -215,7 +242,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         ],
       };
 
-      const ok = await saveTasks(updatedTarget, targetPath);
+      const ok = await saveTasks(uid!, updatedTarget, targetPath);
 
       if (targetPath === currentPath) {
         // If update is for current week, also update local protection and state
@@ -228,7 +255,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   );
 
   const ensureCarryOver = useCallback(async () => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !uid) return;
     if (isCarryingOverRef.current) return;
 
     isCarryingOverRef.current = true;
@@ -241,7 +268,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
       const today = new Date();
       const todayKey = toDateKey(today);
-      const remoteCarryOverDateRaw = await fetchLastCarryOverDate();
+      const remoteCarryOverDateRaw = await fetchLastCarryOverDate(uid);
       const remoteCarryOverDate =
         remoteCarryOverDateRaw && remoteCarryOverDateRaw <= todayKey
           ? remoteCarryOverDateRaw
@@ -258,7 +285,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
           lastCarryOverDateRef.current > remoteCarryOverDate)
       ) {
         // Push newer local cursor so other clients converge immediately.
-        await advanceLastCarryOverDate(lastCarryOverDateRef.current);
+        await advanceLastCarryOverDate(uid, lastCarryOverDateRef.current);
       }
       lastRemoteCarryOverRef.current = remoteCarryOverDate;
 
@@ -266,7 +293,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         const yesterday = addDays(today, -1);
         await moveIncompleteTasksForward(yesterday, today);
         persistLastCarryOverDate(todayKey);
-        await advanceLastCarryOverDate(todayKey);
+        await advanceLastCarryOverDate(uid, todayKey);
         return;
       }
 
@@ -276,7 +303,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
         await moveIncompleteTasksForward(fromDate, cursor);
         const cursorKey = toDateKey(cursor);
         persistLastCarryOverDate(cursorKey);
-        await advanceLastCarryOverDate(cursorKey);
+        await advanceLastCarryOverDate(uid, cursorKey);
         cursor = addDays(cursor, 1);
       }
     } catch (error) {
@@ -287,7 +314,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
     } finally {
       isCarryingOverRef.current = false;
     }
-  }, [moveIncompleteTasksForward, persistLastCarryOverDate]);
+  }, [moveIncompleteTasksForward, persistLastCarryOverDate, uid]);
 
   useEffect(() => {
     if (!isClient) return;
@@ -301,13 +328,13 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
   // --- Task Operations ---
 
   const addTask = (day: Day, text: string, priority: Priority) => {
-    if (!text.trim()) return;
+    if (!text.trim() || !uid) return;
     updateTasks((prev) => ({
       ...prev,
       [day]: [
         ...(prev[day] || []),
         {
-          id: createTaskId(),
+          id: createTaskId(uid),
           text,
           completed: false,
           priority,
@@ -456,7 +483,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
           const newTask = {
             ...task,
-            id: createTaskId(),
+            id: createTaskId(uid!),
             completed: false,
             calendarEvent,
           };
@@ -487,7 +514,7 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
       [day]: [
         ...(prev[day] || []),
         ...lines.map((line) => ({
-          id: createTaskId(),
+          id: createTaskId(uid!),
           text: line.trim(),
           completed: false,
           priority: "medium" as Priority,
