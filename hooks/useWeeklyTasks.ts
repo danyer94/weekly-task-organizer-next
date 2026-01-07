@@ -444,11 +444,17 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
                 }
               : null;
 
+          const calendarEvent = isMove
+            ? keepSchedule
+              ? task.calendarEvent ?? null
+              : null
+            : copiedCalendarEvent;
+
           return {
             ...task,
             id: createTaskId(),
             completed: false,
-            calendarEvent: isMove ? task.calendarEvent ?? null : copiedCalendarEvent,
+            calendarEvent,
           };
         });
         newTasks[day] = [...currentTargetTasks, ...tasksToAdd];

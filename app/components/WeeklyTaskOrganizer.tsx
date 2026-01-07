@@ -12,6 +12,7 @@ import { CalendarEventModal } from "./CalendarEventModal";
 import { ShieldCheck, User, RefreshCw, Calendar as CalendarIcon } from "lucide-react";
 import { getDateForDayInWeek, taskToCalendarEvent } from "@/lib/calendarMapper";
 import { ConfirmationModal } from "./ConfirmationModal";
+import { ScheduleConfirmModal } from "./ScheduleConfirmModal";
 import {
   connectGoogleCalendar,
   createTaskEventForRamon,
@@ -74,6 +75,11 @@ const WeeklyTaskOrganizer: React.FC = () => {
     day: Day;
     task: Task;
   } | null>(null);
+  const [showScheduleConfirm, setShowScheduleConfirm] = useState(false);
+  const [pendingMoveOrCopy, setPendingMoveOrCopy] = useState<{
+    targetDays: Day[];
+    isMove: boolean;
+  } | null>(null);
 
   // Check Google Calendar connection status on mount
   useEffect(() => {
@@ -135,21 +141,30 @@ const WeeklyTaskOrganizer: React.FC = () => {
   };
 
   const handleMoveOrCopy = (targetDays: Day[], isMove: boolean) => {
-    const keepSchedule = isMove
-      ? true
-      : window.confirm(
-          "Copy tasks with the same schedule? (Yes = keep time, No = clear time)"
-        );
+    setPendingMoveOrCopy({ targetDays, isMove });
+    setShowScheduleConfirm(true);
+    setShowMoveModal(false);
+    setShowCopyModal(false);
+  };
+
+  const handleScheduleDecision = (keepSchedule: boolean) => {
+    if (!pendingMoveOrCopy) return;
+
     moveOrCopyTasks(
       currentAdminDay,
       selectedTasks,
-      targetDays,
-      isMove,
+      pendingMoveOrCopy.targetDays,
+      pendingMoveOrCopy.isMove,
       keepSchedule
     );
     setSelectedTasks(new Set<string>());
-    setShowMoveModal(false);
-    setShowCopyModal(false);
+    setPendingMoveOrCopy(null);
+    setShowScheduleConfirm(false);
+  };
+
+  const handleScheduleCancel = () => {
+    setPendingMoveOrCopy(null);
+    setShowScheduleConfirm(false);
   };
 
   const handleCreateCalendarEvent = (day: Day, task: Task) => {
@@ -519,6 +534,18 @@ const WeeklyTaskOrganizer: React.FC = () => {
         onConfirm={confirmDelete}
         title="Delete Tasks"
         message={`Are you sure you want to delete ${selectedTasks.size} selected task(s)? This action cannot be undone.`}
+      />
+      <ScheduleConfirmModal
+        isOpen={showScheduleConfirm}
+        title={pendingMoveOrCopy?.isMove ? "Move Tasks" : "Copy Tasks"}
+        message={
+          pendingMoveOrCopy?.isMove
+            ? "Keep the same schedule when moving these tasks?"
+            : "Copy tasks with the same schedule?"
+        }
+        onYes={() => handleScheduleDecision(true)}
+        onNo={() => handleScheduleDecision(false)}
+        onCancel={handleScheduleCancel}
       />
       {selectedTaskForCalendar && (
         <CalendarEventModal
