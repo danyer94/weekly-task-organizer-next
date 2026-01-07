@@ -185,9 +185,15 @@ export const getAuthorizedClientForUser = async (
           expiry_date: updated.expiryDate,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to refresh Google access token", error);
-      // We still return the client with old credentials; the caller can handle errors.
+      // If the error is 'invalid_grant', the refresh token is dead.
+      // We should return null to indicate the connection is no longer valid.
+      if (error.message?.includes("invalid_grant") || error.code === "400") {
+        return null;
+      }
+      // For other errors (network?), we can still try to return the client
+      // with existing tokens, though it's likely to fail downstream.
     }
   }
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserTokens } from "@/lib/googleCalendar";
+import { getAuthorizedClientForUser } from "@/lib/googleCalendar";
 
 import { getUidFromRequest } from "@/lib/firebaseAdmin";
 
@@ -13,8 +13,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const tokens = await getUserTokens(uid);
-    const connected = !!tokens?.accessToken;
+    const client = await getAuthorizedClientForUser(uid);
+    const connected = !!client;
     console.log("Google Status: Connected ->", connected, "for UID", uid);
     return NextResponse.json({ connected });
   } catch (error: any) {
