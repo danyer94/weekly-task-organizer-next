@@ -96,8 +96,13 @@ export async function PATCH(request: NextRequest) {
       timeZone: body.timeZone,
     };
 
+    const uid = await getUidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const event = await updateGoogleCalendarEventForUser(
-      RAMON_USER_ID,
+      uid,
       body.eventId,
       payload
     );

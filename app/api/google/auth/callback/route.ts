@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeCodeForTokens, saveUserTokens } from "@/lib/googleCalendar";
-
-// For now, we assume a single fixed user: Ramon.
-const RAMON_USER_ID = "ramon";
+import {
+  exchangeCodeForTokens,
+  saveUserTokens,
+  verifySignedState,
+} from "@/lib/googleCalendar";
 
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
   const code = url.searchParams.get("code");
   const errorFromGoogle = url.searchParams.get("error");
-  const state = url.searchParams.get("state"); // This is the UID
+  const signedState = url.searchParams.get("state"); // This is a signed token containing the UID
 
   const origin =
     request.headers.get("origin") ||
@@ -19,31 +20,38 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/?google=error`);
   }
 
-  if (!code || !state) {
+  if (!code || !signedState) {
     return NextResponse.redirect(`${origin}/?google=missing_info`);
   }
 
   try {
+    // Verify the signed state to prevent tampering
+    const uid = verifySignedState(signedState);
+    if (!uid) {
+      console.error("Google Callback: Invalid or tampered state parameter");
+      return NextResponse.redirect(`${origin}/?google=invalid_state`);
+    }
+
     console.log("Google Callback: Received request", {
-      state,
+      uid,
       hasCode: !!code,
     });
+
     const tokens = await exchangeCodeForTokens(code);
-    console.log(
-      "Google Callback: Tokens exchanged successfully for state (UID):",
-      state
-    );
-    await saveUserTokens(state, tokens);
+    console.log("Google Callback: Tokens exchanged successfully for UID:", uid);
+
+    // Only save tokens if the state was valid
+    await saveUserTokens(uid, tokens);
     console.log(
       "Google Callback: Tokens saved successfully to users/" +
-        state +
+        uid +
         "/googleAuth"
     );
     return NextResponse.redirect(`${origin}/?google=connected`);
   } catch (error: any) {
     console.error("Google Callback: FAILED", {
       message: error.message,
-      state,
+      signedState,
       stack: error.stack,
     });
     return NextResponse.redirect(`${origin}/?google=callback_error`);

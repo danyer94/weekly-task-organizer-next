@@ -3,9 +3,16 @@ import type { OAuth2Client } from "google-auth-library";
 import { database } from "@/lib/firebase";
 import { ref, get, set } from "firebase/database";
 import { CalendarEventPayload } from "@/types";
+import crypto from "crypto";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+
+// Secret key for signing state parameter (use a strong random secret in production)
+const STATE_SECRET =
+  process.env.STATE_SECRET ||
+  GOOGLE_CLIENT_SECRET ||
+  "default-secret-change-in-production";
 
 // You should set this to the full URL of your callback in production.
 const DEFAULT_REDIRECT_URI =
@@ -23,6 +30,51 @@ export interface GoogleAuthInfo {
 const getGoogleAuthRef = (userId: string) =>
   ref(database, `users/${userId}/googleAuth`);
 
+/**
+ * Signs a state parameter (UID) to prevent tampering.
+ * Returns a signed token in the format: base64(uid).signature
+ */
+const signState = (uid: string): string => {
+  const hmac = crypto.createHmac("sha256", STATE_SECRET);
+  hmac.update(uid);
+  const signature = hmac.digest("base64url");
+  const encodedUid = Buffer.from(uid).toString("base64url");
+  return `${encodedUid}.${signature}`;
+};
+
+/**
+ * Verifies and extracts the UID from a signed state parameter.
+ * Returns the UID if valid, null otherwise.
+ */
+const verifyState = (signedState: string): string | null => {
+  try {
+    const [encodedUid, signature] = signedState.split(".");
+    if (!encodedUid || !signature) {
+      return null;
+    }
+
+    const uid = Buffer.from(encodedUid, "base64url").toString("utf-8");
+    const hmac = crypto.createHmac("sha256", STATE_SECRET);
+    hmac.update(uid);
+    const expectedSignature = hmac.digest("base64url");
+
+    // Use timing-safe comparison to prevent timing attacks
+    if (
+      !crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(expectedSignature)
+      )
+    ) {
+      return null;
+    }
+
+    return uid;
+  } catch (error) {
+    console.error("Error verifying state:", error);
+    return null;
+  }
+};
+
 export const getOAuthClient = (): OAuth2Client => {
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
     throw new Error("Google OAuth credentials are not configured");
@@ -35,14 +87,24 @@ export const getOAuthClient = (): OAuth2Client => {
   );
 };
 
-export const getAuthUrl = (state?: string): string => {
+export const getAuthUrl = (uid: string): string => {
   const client = getOAuthClient();
+  // Sign the UID to prevent tampering
+  const signedState = signState(uid);
   return client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
     scope: GOOGLE_SCOPES,
-    state,
+    state: signedState,
   });
+};
+
+/**
+ * Verifies a signed state parameter and returns the UID if valid.
+ * This should be used in the OAuth callback to ensure the state hasn't been tampered with.
+ */
+export const verifySignedState = (signedState: string): string | null => {
+  return verifyState(signedState);
 };
 
 export const exchangeCodeForTokens = async (
