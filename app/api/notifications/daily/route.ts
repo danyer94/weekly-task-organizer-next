@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchTasksOnce } from "@/lib/firebase";
 import { getWeekPath } from "@/lib/calendarMapper";
 import { sendNotification } from "@/lib/notifications";
-import type { Day, NotificationChannel, TasksByDay, Task } from "@/types";
+import type {
+  Day,
+  DailySummarySettings,
+  NotificationChannel,
+  TasksByDay,
+  Task,
+} from "@/types";
 import { getUidFromRequest, verifyIdToken } from "@/lib/firebaseAdmin";
 import * as admin from "firebase-admin";
 
@@ -153,20 +159,37 @@ const formatDailyMessage = (
   return message;
 };
 
+const getDailySummarySettings = async (uid: string) => {
+  try {
+    const snapshot = await admin
+      .database()
+      .ref(`users/${uid}/settings/notifications/dailySummary`)
+      .get();
+    if (!snapshot.exists()) return null;
+    return snapshot.val() as DailySummarySettings;
+  } catch (error) {
+    console.error("Failed to fetch daily summary settings", error);
+    return null;
+  }
+};
+
 const getRecipients = async (uid: string) => {
   const recipients: { channel: NotificationChannel; to: string }[] = [];
-
-  // Try to get user preferences from DB (not implemented yet, but good to have the hook)
-  // For now, if it's Ramon, use the env vars
-  // Or fetch the user's email from Firebase Auth
-
+  const dailySettings = await getDailySummarySettings(uid);
+  let userEmail: string | null = null;
   try {
     const user = await admin.auth().getUser(uid);
-    if (user.email) {
-      recipients.push({ channel: "email", to: user.email });
-    }
+    userEmail = user.email ?? null;
   } catch (error) {
     console.error("Failed to fetch user for notifications", error);
+  }
+
+  if (dailySettings?.enabled) {
+    const targetEmail =
+      dailySettings.email?.trim() || userEmail || NOTIFY_EMAIL_TO;
+    if (targetEmail) {
+      recipients.push({ channel: "email", to: targetEmail });
+    }
   }
 
   // Backup/Override with env vars if present and matching Ramon's hardcoded logic
