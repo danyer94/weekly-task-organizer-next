@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useAuth } from "../../components/AuthProvider";
 import { useRouter } from "next/navigation";
 import { LogIn, Github, Mail, User, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
+import { getAuthErrorMessage } from "@/lib/errors";
 
 export default function LoginPage() {
   const { loginWithGoogle, loginWithEmail, loginWithUsername, signupWithEmail, signupWithUsername } = useAuth();
@@ -42,7 +43,10 @@ export default function LoginPage() {
       }
       router.push("/");
     } catch (err: any) {
-      setError(err.message || (isSignUp ? "Signup failed." : "Login failed."));
+      const fallbackMessage = isSignUp
+        ? "We couldn't create your account. Please try again."
+        : "We couldn't sign you in. Please check your details and try again.";
+      setError(getAuthErrorMessage(err, fallbackMessage));
       console.error(err);
     } finally {
       setLoading(false);

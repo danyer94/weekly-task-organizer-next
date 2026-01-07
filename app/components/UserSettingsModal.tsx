@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { KeyRound, User, XCircle } from "lucide-react";
 import { useAuth } from "./AuthProvider";
+import { getAuthErrorMessage } from "@/lib/errors";
 
 interface UserSettingsModalProps {
   isOpen: boolean;
@@ -11,17 +12,6 @@ interface UserSettingsModalProps {
 }
 
 type Notice = { type: "success" | "error"; message: string } | null;
-
-const getAuthMessage = (error: any, fallback: string) => {
-  const code = error?.code;
-  if (code === "auth/requires-recent-login") {
-    return "Please log out and sign in again to update sensitive info.";
-  }
-  if (code === "auth/weak-password") {
-    return "Password should be at least 6 characters.";
-  }
-  return error?.message || fallback;
-};
 
 export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   isOpen,
@@ -60,7 +50,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
       await updateDisplayName(trimmed);
       setNameNotice({ type: "success", message: "Display name updated." });
     } catch (error) {
-      setNameNotice({ type: "error", message: getAuthMessage(error, "Failed to update name.") });
+      setNameNotice({ type: "error", message: getAuthErrorMessage(error, "We couldn't update your name.") });
     } finally {
       setSavingName(false);
     }
@@ -84,7 +74,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
       setPasswordConfirm("");
       setPasswordNotice({ type: "success", message: "Password updated." });
     } catch (error) {
-      setPasswordNotice({ type: "error", message: getAuthMessage(error, "Failed to update password.") });
+      setPasswordNotice({
+        type: "error",
+        message: getAuthErrorMessage(error, "We couldn't update your password. Please try again."),
+      });
     } finally {
       setSavingPassword(false);
     }
