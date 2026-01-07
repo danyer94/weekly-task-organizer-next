@@ -9,7 +9,7 @@ import {
   createTaskId,
 } from "@/lib/firebase"; // Ensure this internal path works or use relative
 import { Task, Day, Priority, TasksByDay } from "@/types";
-import { getWeekPath } from "@/lib/calendarMapper";
+import { getDateForDayInWeek, getWeekPath } from "@/lib/calendarMapper";
 import { format, startOfWeek, endOfWeek, addDays } from "date-fns";
 
 export const DAYS: Day[] = [
@@ -421,7 +421,8 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
     currentDay: Day,
     selectedIds: Set<string>,
     targetDays: Day[],
-    isMove: boolean
+    isMove: boolean,
+    keepSchedule: boolean = true
   ) => {
     const currentDayTasks = tasks[currentDay] || [];
     const tasksToProcess = currentDayTasks.filter((t) => selectedIds.has(t.id));
@@ -431,11 +432,25 @@ export const useWeeklyTasks = (selectedDate: Date = new Date()) => {
 
       targetDays.forEach((day) => {
         const currentTargetTasks = [...(newTasks[day] || [])];
-        const tasksToAdd = tasksToProcess.map((task) => ({
-          ...task,
-          id: createTaskId(),
-          completed: false,
-        }));
+        const tasksToAdd = tasksToProcess.map((task) => {
+          const copiedCalendarEvent =
+            !isMove && keepSchedule && task.calendarEvent
+              ? {
+                  eventId: "",
+                  date: toDateKey(getDateForDayInWeek(selectedDate, day)),
+                  startTime: task.calendarEvent.startTime ?? null,
+                  endTime: task.calendarEvent.endTime ?? null,
+                  lastSynced: null,
+                }
+              : null;
+
+          return {
+            ...task,
+            id: createTaskId(),
+            completed: false,
+            calendarEvent: isMove ? task.calendarEvent ?? null : copiedCalendarEvent,
+          };
+        });
         newTasks[day] = [...currentTargetTasks, ...tasksToAdd];
       });
 
