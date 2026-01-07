@@ -73,19 +73,19 @@ export const AdminView: React.FC<AdminViewProps> = ({
 }) => {
   return (
     <div className="lg:col-span-9 space-y-6">
-      <div className="glass-panel rounded-2xl p-6 border border-border-subtle/60 glow-border">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+      <div className="glass-panel rounded-2xl border border-border-subtle/60 p-4 glow-border sm:p-6">
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-text-primary">{currentDay}</h2>
+            <h2 className="text-2xl font-bold text-text-primary sm:text-3xl">{currentDay}</h2>
             <p className="text-text-brand font-medium">Mission Control · Weekly Overview</p>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-2 mb-6">
+        <div className="mb-6 flex flex-col gap-3 md:flex-row">
           <PrioritySelector 
             priority={priority} 
             setPriority={setPriority} 
-            className="min-w-[180px]"
+            className="w-full min-w-[180px] md:w-auto"
           />
           <input
             type="text"
@@ -93,11 +93,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
             onChange={(e) => setNewTaskText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && onAddTask()}
             placeholder="Add new task..."
-            className="flex-1 p-3 border border-border-subtle rounded-xl focus:outline-none focus:border-border-brand transition-colors bg-bg-surface/80 text-text-primary placeholder-text-secondary shadow-inner"
+            className="w-full flex-1 rounded-xl border border-border-subtle bg-bg-surface/80 p-3 text-text-primary placeholder-text-secondary shadow-inner transition-colors focus:border-border-brand focus:outline-none"
           />
           <button
             onClick={onAddTask}
-            className="bg-gradient-to-r from-sapphire-500 via-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all transform active:scale-95 flex items-center gap-2 hover:-translate-y-0.5"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sapphire-500 via-blue-500 to-cyan-500 px-6 py-3 font-bold text-white transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-95 md:w-auto"
           >
             <Plus className="w-5 h-5" />
             <span>Add Task</span>
@@ -135,7 +135,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
         )}
 
         {/* Task List Header with Options */}
-        <div className="flex justify-between items-center mb-2">
+        <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
            {/* Select All / Deselect All Button */}
            <button
             onClick={onSelectAll}
