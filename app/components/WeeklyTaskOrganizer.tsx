@@ -192,7 +192,6 @@ const WeeklyTaskOrganizer: React.FC = () => {
               date: payload.date,
               startTime: payload.startTime ?? null,
               endTime: payload.endTime ?? null,
-              lastSynced: Date.now(),
             });
           })
         );
@@ -215,7 +214,6 @@ const WeeklyTaskOrganizer: React.FC = () => {
               date: payload.date,
               startTime: payload.startTime ?? null,
               endTime: payload.endTime ?? null,
-              lastSynced: Date.now(),
             });
           })
         );
