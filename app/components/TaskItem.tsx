@@ -83,7 +83,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       onDrop={handleDrop}
       className={`group flex flex-col gap-3 rounded-2xl border-l-4 p-4 transition-all hover:shadow-lg hover:-translate-y-0.5 sm:flex-row sm:items-center sm:justify-between ${
         task.completed
-          ? "bg-emerald-50/70 dark:bg-emerald-900/40 " + priorityColors[task.priority]
+          ? "bg-emerald-50/70 dark:bg-emerald-950/40 " + priorityColors[task.priority]
           : "bg-bg-surface/80 border-border-subtle " + priorityColors[task.priority]
       } ${isSelected ? "ring-2 ring-border-brand glow-ring" : ""} ${
         isAdmin ? "hover:bg-bg-main/70 cursor-move" : ""
@@ -150,7 +150,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             <span
               className={`text-base leading-relaxed break-words sm:text-lg sm:leading-normal ${
                 task.completed
-                  ? "line-through text-text-secondary dark:text-emerald-100/90"
+                  ? "line-through text-text-secondary dark:text-emerald-300"
                   : "text-text-primary"
               }`}
             >

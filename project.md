@@ -29,7 +29,7 @@
   - `AdminView.tsx`: Dashboard with full task management control and week selector.
   - `UserView.tsx`: Dashboard with completion-only control.
   - `Sidebar.tsx`: Date picker (admin sidebar), day navigation, stats, quick actions.
-  - `TaskList.tsx`, `TaskItem.tsx`: Task rendering and interactions.
+  - `TaskList.tsx`, `TaskItem.tsx`: Task rendering, state styling (including dark mode), and interactions.
   - `PrioritySelector.tsx`: Priority dropdown.
   - `DatePicker.tsx`: ISO week date picker.
   - `QuickActions.tsx`: Bulk actions and import/export.
