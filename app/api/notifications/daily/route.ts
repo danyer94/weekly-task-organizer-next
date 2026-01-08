@@ -126,18 +126,17 @@ const formatDailyMessage = (
   );
   const lowPriorityTasks = tasks.filter((task) => task.priority === "low");
 
-  const highPriorityLines = highPriorityTasks.map((task) => {
+  const formatTaskLine = (task: Task) => {
     const status = task.completed ? "[x]" : "[ ]";
-    return `- ${status} ${task.text}`;
-  });
-  const mediumPriorityLines = mediumPriorityTasks.map((task) => {
-    const status = task.completed ? "[x]" : "[ ]";
-    return `- ${status} ${task.text}`;
-  });
-  const lowPriorityLines = lowPriorityTasks.map((task) => {
-    const status = task.completed ? "[x]" : "[ ]";
-    return `- ${status} ${task.text}`;
-  });
+    const time = task.calendarEvent?.startTime
+      ? ` (${task.calendarEvent.startTime}${task.calendarEvent.endTime ? ` - ${task.calendarEvent.endTime}` : ""})`
+      : "";
+    return `- ${status} ${task.text}${time}`;
+  };
+
+  const highPriorityLines = highPriorityTasks.map(formatTaskLine);
+  const mediumPriorityLines = mediumPriorityTasks.map(formatTaskLine);
+  const lowPriorityLines = lowPriorityTasks.map(formatTaskLine);
 
   const message = [
     header,
