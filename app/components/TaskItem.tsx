@@ -81,15 +81,15 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       onDragStart={handleDragStart}
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
-      className={`group flex items-center justify-between p-4 rounded-2xl mb-2 border-l-4 transition-all hover:shadow-lg hover:-translate-y-0.5 ${
+      className={`group flex flex-col gap-3 rounded-2xl border-l-4 p-4 transition-all hover:shadow-lg hover:-translate-y-0.5 sm:flex-row sm:items-center sm:justify-between ${
         task.completed
-          ? "bg-emerald-50/70 dark:bg-emerald-900/20 " + priorityColors[task.priority]
+          ? "bg-emerald-50/70 dark:bg-sapphire-800/70 " + priorityColors[task.priority]
           : "bg-bg-surface/80 border-border-subtle " + priorityColors[task.priority]
       } ${isSelected ? "ring-2 ring-border-brand glow-ring" : ""} ${
         isAdmin ? "hover:bg-bg-main/70 cursor-move" : ""
       }`}
     >
-      <div className="flex items-center flex-1 gap-3">
+      <div className="flex flex-1 items-start gap-3 min-w-0 sm:items-center">
         {isAdmin && onToggleSelection && (
           <div className="flex items-center gap-2">
             <input
@@ -110,12 +110,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           />
         )}
         {isEditing && setEditingTaskId ? (
-          <div className="flex-1 flex gap-2 animate-fade-in items-center">
+          <div className="flex flex-1 flex-col gap-2 animate-fade-in items-stretch sm:flex-row sm:items-center">
             <PrioritySelector 
               priority={editPriority} 
               setPriority={setEditPriority} 
               isSmall 
-              className="min-w-[110px]"
+              className="w-full min-w-[110px] sm:w-auto"
             />
             <input
               type="text"
@@ -125,38 +125,42 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 if (e.key === "Enter") handleEditSubmit();
                 if (e.key === "Escape") setEditingTaskId(null);
               }}
-              className="flex-1 p-2 border border-sapphire-500/70 rounded-lg focus:outline-none bg-bg-main/70"
+              className="w-full flex-1 p-2 border border-sapphire-500/70 rounded-lg focus:outline-none bg-bg-main/70"
               autoFocus
             />
-            <button
-              onClick={handleEditSubmit}
-              className="px-3 py-1 bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white rounded-lg text-sm hover:shadow-lg transition-colors"
-              title="Save"
-            >
-              <Save className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setEditingTaskId(null)}
-              className="px-3 py-1 bg-gray-400/80 text-white rounded-lg text-sm hover:bg-gray-500 transition-colors"
-              title="Cancel"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleEditSubmit}
+                className="px-3 py-1 bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white rounded-lg text-sm hover:shadow-lg transition-colors"
+                title="Save"
+              >
+                <Save className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setEditingTaskId(null)}
+                className="px-3 py-1 bg-gray-400/80 text-white rounded-lg text-sm hover:bg-gray-500 transition-colors"
+                title="Cancel"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="flex-1 flex items-center gap-2">
+          <div className="flex flex-1 flex-col gap-2 min-w-0 sm:flex-row sm:items-center sm:gap-4">
             <span
-              className={`text-lg ${
-                task.completed ? "line-through text-text-secondary" : "text-text-primary"
+              className={`text-base leading-relaxed break-words sm:text-lg sm:leading-normal ${
+                task.completed
+                  ? "line-through text-text-secondary dark:text-gray-300"
+                  : "text-text-primary"
               }`}
             >
               {task.text}
             </span>
             {task.calendarEvent && (
-              <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
                 <button
                   onClick={() => onCreateCalendarEvent?.(day, task)}
-                  className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50/80 dark:bg-emerald-900/20 rounded-full border border-emerald-200/80 dark:border-emerald-800 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/30 transition-colors cursor-pointer"
+                  className="flex max-w-full items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2 py-1 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100/80 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/30 sm:text-sm"
                   title="Click to edit event time"
                 >
                   {hasCalendarEvent ? (
@@ -164,7 +168,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                   ) : (
                     <CalendarPlus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   )}
-                  <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                  <span className="truncate">
                     {task.calendarEvent.startTime
                       ? `${task.calendarEvent.startTime}${task.calendarEvent.endTime ? ` - ${task.calendarEvent.endTime}` : ""}`
                       : "All day"}
@@ -186,7 +190,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       </div>
 
       {isAdmin && !isEditing && setEditingTaskId && (
-        <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100 sm:self-center">
           {onCreateCalendarEvent && (
             <button
               onClick={() => onCreateCalendarEvent(day, task)}
