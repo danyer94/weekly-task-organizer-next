@@ -11,7 +11,13 @@ export async function GET(request: NextRequest) {
   const errorFromGoogle = url.searchParams.get("error");
   const signedState = url.searchParams.get("state"); // This is a signed token containing the UID
 
+  // Build origin from the request URL itself (most reliable in production)
+  // This works because Google redirects to our callback URL, so we can extract the origin from it
+  const requestOrigin = url.origin;
+
+  // Fallback chain for origin detection
   const origin =
+    requestOrigin ||
     request.headers.get("origin") ||
     request.headers.get("referer")?.split("/").slice(0, 3).join("/") ||
     process.env.NEXT_PUBLIC_APP_URL ||
@@ -30,7 +36,9 @@ export async function GET(request: NextRequest) {
     console.error("Google Callback: Error from Google OAuth", {
       error: errorFromGoogle,
     });
-    return NextResponse.redirect(`${origin}/?google=error&reason=${encodeURIComponent(errorFromGoogle)}`);
+    return NextResponse.redirect(
+      `${origin}/?google=error&reason=${encodeURIComponent(errorFromGoogle)}`
+    );
   }
 
   if (!code || !signedState) {
@@ -60,11 +68,15 @@ export async function GET(request: NextRequest) {
     });
 
     const tokens = await exchangeCodeForTokens(code);
-    console.log("Google Callback: Tokens exchanged successfully for UID:", uid, {
-      hasAccessToken: !!tokens.accessToken,
-      hasRefreshToken: !!tokens.refreshToken,
-      expiryDate: tokens.expiryDate,
-    });
+    console.log(
+      "Google Callback: Tokens exchanged successfully for UID:",
+      uid,
+      {
+        hasAccessToken: !!tokens.accessToken,
+        hasRefreshToken: !!tokens.refreshToken,
+        expiryDate: tokens.expiryDate,
+      }
+    );
 
     // Only save tokens if the state was valid
     await saveUserTokens(uid, tokens);
@@ -81,24 +93,34 @@ export async function GET(request: NextRequest) {
       response: error.response?.data,
       signedState: signedState?.substring(0, 20) + "...",
       stack: error.stack,
+      requestUrl: url.toString(),
+      origin: origin,
       env: {
         hasClientId: !!process.env.GOOGLE_CLIENT_ID,
         hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
         redirectUri: process.env.GOOGLE_REDIRECT_URI,
+        appUrl: process.env.NEXT_PUBLIC_APP_URL,
         hasStateSecret: !!process.env.STATE_SECRET,
       },
     });
-    
+
     // Provide more specific error information
     let errorType = "callback_error";
     if (error.message?.includes("redirect_uri_mismatch")) {
       errorType = "redirect_mismatch";
-    } else if (error.message?.includes("invalid_grant") || error.code === "400") {
+    } else if (
+      error.message?.includes("invalid_grant") ||
+      error.code === "400"
+    ) {
       errorType = "invalid_grant";
     } else if (error.message?.includes("invalid_client")) {
       errorType = "invalid_client";
     }
-    
-    return NextResponse.redirect(`${origin}/?google=${errorType}&details=${encodeURIComponent(error.message || "Unknown error")}`);
+
+    return NextResponse.redirect(
+      `${origin}/?google=${errorType}&details=${encodeURIComponent(
+        error.message || "Unknown error"
+      )}`
+    );
   }
 }

@@ -196,9 +196,33 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 4. **Para Producción**
-   - Cuando despliegues tu app (Vercel, Netlify, etc.), agrega estas mismas variables de entorno en la configuración de tu plataforma
-   - Asegúrate de cambiar `GOOGLE_REDIRECT_URI` y `NEXT_PUBLIC_APP_URL` a tu URL de producción
-   - También agrega la URL de producción en las "URIs de redirección autorizadas" en Google Cloud Console
+
+   **IMPORTANTE**: Cuando despliegues tu app (Vercel, Netlify, etc.), debes configurar las siguientes variables de entorno en tu plataforma de hosting:
+
+   ```bash
+   # Variables requeridas
+   GOOGLE_CLIENT_ID=tu_client_id_aqui
+   GOOGLE_CLIENT_SECRET=tu_client_secret_aqui
+
+   # URL de tu app en producción (ejemplo para Vercel)
+   NEXT_PUBLIC_APP_URL=https://tu-dominio.vercel.app
+
+   # Opcional: Si quieres especificar explícitamente la URI de redirección
+   # Si no la especificas, se construirá automáticamente como: ${NEXT_PUBLIC_APP_URL}/api/google/auth/callback
+   GOOGLE_REDIRECT_URI=https://tu-dominio.vercel.app/api/google/auth/callback
+
+   # Opcional pero recomendado: Un secreto fijo para firmar el estado
+   STATE_SECRET=tu-secreto-aleatorio-muy-seguro-aqui
+   ```
+
+   **Pasos adicionales**:
+
+   1. Ve a Google Cloud Console → Credenciales → Tu OAuth 2.0 Client ID
+   2. En "URIs de redirección autorizadas", agrega tu URL de producción:
+      - `https://tu-dominio.vercel.app/api/google/auth/callback`
+   3. Asegúrate de que la URI coincida **exactamente** (incluyendo `https://`, sin barra final)
+   4. Guarda los cambios en Google Cloud Console
+   5. Espera unos minutos para que los cambios se propaguen
 
 ---
 
@@ -274,6 +298,42 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
   - Detén el servidor (Ctrl+C)
   - Inicia de nuevo con `npm run dev`
   - Verifica que `.env.local` está en la raíz del proyecto (no en una subcarpeta)
+
+### Funciona en local pero no en producción
+
+- **Causa más común**: La URI de redirección no coincide o no está configurada correctamente
+- **Soluciones**:
+
+  1. **Verifica las variables de entorno en producción**:
+
+     - Asegúrate de que `NEXT_PUBLIC_APP_URL` esté configurada con tu URL de producción (ej: `https://tu-dominio.vercel.app`)
+     - Verifica que `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` estén configuradas
+     - Opcionalmente, configura `GOOGLE_REDIRECT_URI` explícitamente
+
+  2. **Verifica en Google Cloud Console**:
+
+     - Ve a Google Cloud Console → Credenciales → Tu OAuth 2.0 Client ID
+     - En "URIs de redirección autorizadas", debe estar:
+       - `http://localhost:3000/api/google/auth/callback` (para desarrollo)
+       - `https://tu-dominio.vercel.app/api/google/auth/callback` (para producción)
+     - Las URLs deben coincidir **exactamente** (mismo protocolo, mismo dominio, misma ruta)
+
+  3. **Revisa los logs de producción**:
+
+     - En Vercel: Ve a tu proyecto → Deployments → Click en el deployment → Logs
+     - Busca mensajes que empiecen con "Google Callback:" o "OAuth Client:"
+     - Verifica qué `redirectUri` se está usando y qué `origin` se está detectando
+
+  4. **Problema común: STATE_SECRET diferente**:
+
+     - Si `STATE_SECRET` no está configurado, se usa `GOOGLE_CLIENT_SECRET` como fallback
+     - Si cambias `GOOGLE_CLIENT_SECRET` entre local y producción, el estado firmado no coincidirá
+     - **Solución**: Configura `STATE_SECRET` explícitamente con el mismo valor en local y producción
+
+  5. **Problema común: Código OAuth expirado**:
+     - Los códigos de OAuth expiran rápidamente (unos minutos)
+     - Si demoras mucho entre hacer clic en "Connect" y autorizar, el código puede expirar
+     - **Solución**: Intenta conectar de nuevo inmediatamente después de hacer clic
 
 ---
 

@@ -15,9 +15,20 @@ const STATE_SECRET =
   "default-secret-change-in-production";
 
 // You should set this to the full URL of your callback in production.
-const DEFAULT_REDIRECT_URI =
-  process.env.GOOGLE_REDIRECT_URI ||
-  "http://localhost:3000/api/google/auth/callback";
+// If not set, we'll try to construct it from NEXT_PUBLIC_APP_URL or default to localhost
+const getRedirectUri = (): string => {
+  if (process.env.GOOGLE_REDIRECT_URI) {
+    return process.env.GOOGLE_REDIRECT_URI;
+  }
+  
+  // Try to construct from NEXT_PUBLIC_APP_URL
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return `${process.env.NEXT_PUBLIC_APP_URL}/api/google/auth/callback`;
+  }
+  
+  // Default to localhost for development
+  return "http://localhost:3000/api/google/auth/callback";
+};
 
 const GOOGLE_SCOPES = ["https://www.googleapis.com/auth/calendar.events"];
 
@@ -80,10 +91,17 @@ export const getOAuthClient = (): OAuth2Client => {
     throw new Error("Google OAuth credentials are not configured");
   }
 
+  const redirectUri = getRedirectUri();
+  console.log("OAuth Client: Using redirect URI", {
+    redirectUri,
+    fromEnv: !!process.env.GOOGLE_REDIRECT_URI,
+    fromAppUrl: !!process.env.NEXT_PUBLIC_APP_URL,
+  });
+
   return new google.auth.OAuth2(
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
-    DEFAULT_REDIRECT_URI
+    redirectUri
   );
 };
 
