@@ -127,8 +127,52 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
     // Handle redirect params
     const url = new URL(window.location.href);
-    if (url.searchParams.get('google') === 'connected') {
+    const googleParam = url.searchParams.get('google');
+    const reason = url.searchParams.get('reason');
+    const details = url.searchParams.get('details');
+    
+    if (googleParam === 'connected') {
       // Clear the param without refreshing
+      window.history.replaceState({}, '', '/');
+      // Re-check connection status
+      checkStatus();
+    } else if (googleParam) {
+      // Handle errors
+      let errorMessage = 'Failed to connect Google Calendar.';
+      
+      switch (googleParam) {
+        case 'error':
+          errorMessage = reason 
+            ? `Google OAuth error: ${reason}`
+            : 'Google OAuth returned an error. Please try again.';
+          break;
+        case 'missing_info':
+          errorMessage = 'Missing required information from Google. Please try again.';
+          break;
+        case 'invalid_state':
+          errorMessage = 'Security validation failed. Please try connecting again.';
+          break;
+        case 'config_error':
+          errorMessage = 'Google Calendar is not properly configured. Please contact support.';
+          break;
+        case 'redirect_mismatch':
+          errorMessage = 'Redirect URI mismatch. Please verify the configuration.';
+          break;
+        case 'invalid_grant':
+          errorMessage = 'Authorization expired or invalid. Please try connecting again.';
+          break;
+        case 'invalid_client':
+          errorMessage = 'Invalid Google OAuth credentials. Please contact support.';
+          break;
+        case 'callback_error':
+          errorMessage = details 
+            ? `Connection error: ${decodeURIComponent(details)}`
+            : 'An error occurred during the connection process. Please try again.';
+          break;
+      }
+      
+      alert(errorMessage);
+      // Clear the params
       window.history.replaceState({}, '', '/');
     }
 
