@@ -7,6 +7,8 @@ export const AUTH_ERROR_MESSAGES: Record<string, string> = {
   "auth/invalid-email": "Enter a valid email address.",
   "auth/email-already-in-use": "That email is already registered. Try signing in instead.",
   "auth/weak-password": "Use a stronger password with at least 6 characters.",
+  "auth/invalid-username": "Username contains invalid characters.",
+  "auth/username-taken": "That username is already taken. Please choose another.",
   "auth/requires-recent-login": "For security, please sign in again and retry.",
   "auth/too-many-requests": "Too many attempts. Please wait a bit and try again.",
   "auth/popup-closed-by-user": "The sign-in window was closed. Please try again.",

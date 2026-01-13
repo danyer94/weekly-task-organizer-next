@@ -61,7 +61,9 @@ export const migrateRamonData = async (uid: string, email: string) => {
 
       // Also ensure username mapping exists for loginWithUsername
       await set(ref(database, `usernames/ramon`), {
-        email: "ramonfpesante@gmail.com",
+        uid,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       });
 
       console.log("Migration: Data copied successfully.");
