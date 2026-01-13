@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../components/AuthProvider";
 import { useRouter } from "next/navigation";
-import { LogIn, Github, Mail, User, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
+import { LogIn, Github, Mail, User, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { getAuthErrorMessage } from "@/lib/errors";
 
 export default function LoginPage() {
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   // Tabs: 'google', 'email', 'username'
   const [method, setMethod] = useState<'google' | 'email' | 'username'>('google');
@@ -196,14 +197,24 @@ export default function LoginPage() {
                   <label className="text-sm font-medium text-slate-300">Password</label>
                   {!isSignUp && <a href="#" className="text-xs text-sky-400 hover:text-sky-300 transition-colors">Forgot password?</a>}
                 </div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 px-4 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-4 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
             )}
 
