@@ -541,7 +541,10 @@ export const useWeeklyTasks = (
         dayTasks.forEach((task) => {
           const status = task.completed ? "✅" : "⬜";
           const pri = priorityEmoji[task.priority] || "🟠";
-          text += `${status} ${pri} ${task.text}\n`;
+          const time = task.calendarEvent?.startTime
+            ? ` _(${task.calendarEvent.startTime}${task.calendarEvent.endTime ? ` - ${task.calendarEvent.endTime}` : ""})_`
+            : "";
+          text += `${status} ${pri} ${task.text}${time}\n`;
         });
         text += "\n";
       }
