@@ -11,16 +11,24 @@ export async function GET(request: NextRequest) {
   const errorFromGoogle = url.searchParams.get("error");
   const signedState = url.searchParams.get("state"); // This is a signed token containing the UID
 
-  // Build origin from the request URL itself (most reliable in production)
-  // This works because Google redirects to our callback URL, so we can extract the origin from it
   const requestOrigin = url.origin;
+  let envOrigin: string | undefined;
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    try {
+      envOrigin = new URL(process.env.NEXT_PUBLIC_APP_URL).origin;
+    } catch {
+      console.warn("Google Callback: Invalid NEXT_PUBLIC_APP_URL", {
+        appUrl: process.env.NEXT_PUBLIC_APP_URL,
+      });
+    }
+  }
 
-  // Fallback chain for origin detection
+  // Prefer the configured app URL to avoid redirecting to unexpected origins.
   const origin =
+    envOrigin ||
     requestOrigin ||
     request.headers.get("origin") ||
     request.headers.get("referer")?.split("/").slice(0, 3).join("/") ||
-    process.env.NEXT_PUBLIC_APP_URL ||
     "http://localhost:3000";
 
   // Validate environment variables first
