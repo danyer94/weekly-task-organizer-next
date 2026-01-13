@@ -1,7 +1,6 @@
 import { google } from "googleapis";
 import type { OAuth2Client } from "google-auth-library";
-import { database } from "@/lib/firebase";
-import { ref, get, set } from "firebase/database";
+import { adminDb } from "@/lib/firebaseAdmin";
 import { CalendarEventPayload } from "@/types";
 import crypto from "crypto";
 
@@ -39,7 +38,7 @@ export interface GoogleAuthInfo {
 }
 
 const getGoogleAuthRef = (userId: string) =>
-  ref(database, `users/${userId}/googleAuth`);
+  adminDb.ref(`users/${userId}/googleAuth`);
 
 /**
  * Signs a state parameter (UID) to prevent tampering.
@@ -146,13 +145,13 @@ export const saveUserTokens = async (
   userId: string,
   tokens: GoogleAuthInfo
 ): Promise<void> => {
-  await set(getGoogleAuthRef(userId), tokens);
+  await getGoogleAuthRef(userId).set(tokens);
 };
 
 export const getUserTokens = async (
   userId: string
 ): Promise<GoogleAuthInfo | null> => {
-  const snapshot = await get(getGoogleAuthRef(userId));
+  const snapshot = await getGoogleAuthRef(userId).get();
   if (!snapshot.exists()) return null;
   const raw = snapshot.val();
 

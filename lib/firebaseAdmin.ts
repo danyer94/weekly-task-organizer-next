@@ -25,6 +25,8 @@ export const verifyIdToken = async (token: string) => {
   }
 };
 
+export const adminDb = admin.database();
+
 export const getUidFromRequest = async (request: Request) => {
   const authHeader = request.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
