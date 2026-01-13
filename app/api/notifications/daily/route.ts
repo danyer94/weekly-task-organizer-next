@@ -171,6 +171,22 @@ const getDailySummarySettings = async (uid: string) => {
   }
 };
 
+const fetchTasksForWeek = async (
+  uid: string,
+  weekPath: string
+): Promise<TasksByDay | null> => {
+  try {
+    const snapshot = await admin
+      .database()
+      .ref(`users/${uid}/${weekPath}`)
+      .get();
+    return snapshot.exists() ? (snapshot.val() as TasksByDay) : null;
+  } catch (error) {
+    console.error(`Failed to fetch tasks for ${weekPath}`, error);
+    return null;
+  }
+};
+
 const getRecipients = async (
   uid: string,
   dailySettings?: DailySummarySettings | null
@@ -280,10 +296,7 @@ const sendDailySummary = async (params: {
 
   const weekDate = new Date(`${dateKey}T12:00:00Z`);
   const weekPath = getWeekPath(weekDate);
-  const snapshot = (await fetchTasksOnce(
-    params.uid,
-    weekPath
-  )) as TasksByDay | null;
+  const snapshot = await fetchTasksForWeek(params.uid, weekPath);
   const dayTasks = Array.isArray(snapshot?.[weekday])
     ? (snapshot?.[weekday] as Task[])
     : [];
