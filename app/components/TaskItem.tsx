@@ -98,9 +98,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               onChange={() => onToggleSelection(task.id)}
               className="w-5 h-5 text-text-brand rounded focus:ring-border-brand cursor-pointer accent-sky-500"
             />
-            <GripVertical className="w-4 h-4 text-text-tertiary cursor-grab" />
+            <GripVertical className="w-4 h-4 text-text-tertiary cursor-grab hidden sm:inline-flex" />
           </div>
         )}
+
         {!isAdmin && onToggleComplete && (
           <input
             type="checkbox"
@@ -168,7 +169,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                   ) : (
                     <CalendarPlus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   )}
-                  <span className="truncate">
+                  <span className="truncate max-w-[160px] sm:max-w-none">
                     {task.calendarEvent.startTime
                       ? `${task.calendarEvent.startTime}${task.calendarEvent.endTime ? ` - ${task.calendarEvent.endTime}` : ""}`
                       : "All day"}
@@ -186,11 +187,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               </div>
             )}
           </div>
+
         )}
       </div>
 
       {isAdmin && !isEditing && setEditingTaskId && (
-        <div className="flex items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100 sm:self-center">
+        <div className="flex flex-wrap items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100 sm:self-center">
           {onCreateCalendarEvent && (
             <button
               onClick={() => onCreateCalendarEvent(day, task)}
@@ -221,6 +223,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           </button>
         </div>
       )}
+
     </li>
   );
 };

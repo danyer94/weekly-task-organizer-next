@@ -26,7 +26,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDateChange,
 }) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Date Selection */}
       <DatePicker 
         selectedDate={selectedDate} 
@@ -34,7 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       />
 
       {/* Days Navigation */}
-      <div className="glass-panel rounded-2xl p-4 font-sans border border-border-subtle/60">
+      <div className="glass-panel rounded-2xl p-3 sm:p-4 font-sans border border-border-subtle/60">
         <h4 className="font-bold text-text-brand mb-3 px-2 uppercase tracking-[0.3em] text-xs">
           Days
         </h4>
@@ -50,14 +50,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={day}
                 onClick={() => onDayChange(day)}
-                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all hover:-translate-y-0.5 ${
+                className={`w-full flex items-center justify-between px-3 py-2 sm:p-3 rounded-xl transition-all hover:-translate-y-0.5 ${
                   isActive
                     ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
                     : "bg-bg-main/70 text-text-primary hover:bg-sapphire-100/80 dark:hover:bg-sapphire-800/60 hover:text-sapphire-700 dark:hover:text-white"
                 }`}
               >
-                <span className="font-medium">{day}</span>
-                <span className={`text-xs px-2 py-1 rounded-full font-bold ${
+                <span className="font-medium text-sm sm:text-base">{day}</span>
+                <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-bold ${
                   isActive ? "bg-white/90 text-sapphire-600" : "bg-gray-200/80 text-gray-700 dark:bg-gray-700/80 dark:text-gray-200"
                 }`}>
                   {completedCount}/{totalCount}
@@ -72,9 +72,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <TaskStats total={stats.total} completed={stats.completed} />
 
       {/* Quick Actions */}
-      <div className="glass-panel rounded-2xl p-6 border border-border-subtle/60">
+      <div className="glass-panel rounded-2xl p-4 sm:p-6 border border-border-subtle/60">
         <QuickActions {...quickActionsProps} />
       </div>
     </div>
   );
 };
+

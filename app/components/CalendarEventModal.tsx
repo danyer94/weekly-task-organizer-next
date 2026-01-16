@@ -157,22 +157,23 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 bg-bg-main/70 text-text-primary rounded-xl font-medium hover:bg-bg-sidebar transition-colors border border-border-subtle/60"
+              className="w-full sm:flex-1 px-4 py-3 bg-bg-main/70 text-text-primary rounded-xl font-medium hover:bg-bg-sidebar transition-colors border border-border-subtle/60"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!isAllDay && startTime >= endTime}
-              className="flex-1 px-4 py-3 bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white rounded-xl font-medium hover:shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:flex-1 px-4 py-3 bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white rounded-xl font-medium hover:shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isEditMode ? "Update Event" : "Create Event"}
             </button>
           </div>
+
         </form>
       </div>
     </div>

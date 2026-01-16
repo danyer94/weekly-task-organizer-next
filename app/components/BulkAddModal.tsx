@@ -18,7 +18,7 @@ export const BulkAddModal: React.FC<BulkAddModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-slate-950/60 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="glass-panel p-6 rounded-2xl shadow-2xl w-96 transform transition-all scale-100 border border-border-subtle/60">
+      <div className="glass-panel p-6 rounded-2xl shadow-2xl w-full max-w-md mx-4 transform transition-all scale-100 border border-border-subtle/60">
         <div className="flex items-center gap-2 mb-4 text-text-brand">
           <FilePlus2 className="w-6 h-6" />
           <h3 className="text-xl font-bold">Bulk Add Tasks</h3>
@@ -32,10 +32,10 @@ export const BulkAddModal: React.FC<BulkAddModalProps> = ({
           className="w-full h-40 p-3 border border-border-subtle rounded-xl focus:outline-none focus:border-border-brand mb-4 bg-bg-main/70 text-text-primary"
           placeholder="Buy milk&#10;Walk the dog&#10;Call mom"
         />
-        <div className="flex gap-2 justify-end">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-400/80 text-white rounded-xl hover:bg-gray-500 font-medium transition-colors flex items-center gap-2"
+            className="w-full sm:w-auto px-4 py-2 bg-gray-400/80 text-white rounded-xl hover:bg-gray-500 font-medium transition-colors flex items-center justify-center gap-2"
           >
             <XCircle className="w-4 h-4" />
             <span>Cancel</span>
@@ -45,12 +45,13 @@ export const BulkAddModal: React.FC<BulkAddModalProps> = ({
               onConfirm(text);
               setText("");
             }}
-            className="px-4 py-2 bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white rounded-xl hover:shadow-lg font-medium transition-colors flex items-center gap-2"
+            className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white rounded-xl hover:shadow-lg font-medium transition-colors flex items-center justify-center gap-2"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Add Tasks</span>
           </button>
         </div>
+
       </div>
     </div>
   );

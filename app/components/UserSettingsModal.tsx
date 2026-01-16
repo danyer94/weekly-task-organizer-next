@@ -224,11 +224,12 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               <button
                 onClick={handleUpdateName}
                 disabled={savingName}
-                className="px-4 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60"
+                className="w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60"
                 type="button"
               >
                 {savingName ? "Saving..." : "Save name"}
               </button>
+
             </div>
             {email && (
               <p className="mt-3 text-xs text-text-tertiary">
@@ -272,11 +273,12 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             <button
               onClick={handleUpdatePassword}
               disabled={savingPassword}
-              className="mt-3 px-4 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60"
+              className="mt-3 w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60"
               type="button"
             >
               {savingPassword ? "Updating..." : "Update password"}
             </button>
+
             <p className="mt-2 text-xs text-text-tertiary">
               Password updates may require a recent sign-in.
             </p>
@@ -348,7 +350,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               <button
                 onClick={handleSaveDailySummary}
                 disabled={savingDailySummary || dailySummaryLoading}
-                className="h-12 mt-6 sm:mt-7 px-4 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60"
+                className="h-12 w-full sm:w-auto mt-2 sm:mt-7 px-4 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60"
                 type="button"
               >
                 {savingDailySummary
@@ -357,6 +359,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                     ? "Loading..."
                     : "Save preferences"}
               </button>
+
             </div>
             {dailySummaryNotice && (
               <div
