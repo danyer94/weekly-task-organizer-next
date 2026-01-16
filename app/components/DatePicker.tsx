@@ -114,23 +114,26 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
           aria-label="Previous week"
           type="button"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4 sm:w-4 sm:h-4" />
         </button>
+
         <button
           onClick={togglePicker}
-          className="flex-1 flex items-center justify-between gap-3 px-4 py-3 bg-bg-surface/80 rounded-xl border border-border-subtle hover:border-border-hover transition-all group shadow-sm hover:-translate-y-0.5"
+          className="flex-1 flex items-center justify-between gap-3 px-3 sm:px-4 py-3 bg-bg-surface/80 rounded-xl border border-border-subtle hover:border-border-hover transition-all group shadow-sm hover:-translate-y-0.5"
           type="button"
         >
+
           <div className="flex items-center gap-2 overflow-hidden">
             <CalendarIcon className="w-4 h-4 text-text-tertiary group-hover:text-text-brand shrink-0" />
             <div className="flex flex-col items-start truncate">
-              <span className="text-xs font-semibold text-text-brand whitespace-nowrap">
+              <span className="text-xs font-semibold text-text-brand whitespace-nowrap truncate max-w-[140px] sm:max-w-none">
                 {format(selectedDate, "EEEE, MMMM d")}
               </span>
               <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-bold">
                 Week {isoWeek}, {isoWeekYear}
               </span>
             </div>
+
           </div>
           <ChevronRight className={`w-4 h-4 text-text-tertiary transition-transform ${isOpen ? "rotate-90" : ""}`} />
         </button>
@@ -145,7 +148,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-bg-surface/90 rounded-2xl border border-border-subtle shadow-xl z-[100] animate-in fade-in zoom-in duration-200 backdrop-blur-md">
+        <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-bg-surface/90 rounded-2xl border border-border-subtle shadow-xl z-[100] animate-in fade-in zoom-in duration-200 backdrop-blur-md max-w-[calc(100vw-2rem)]">
           <div className="flex items-center justify-between mb-4">
             <button onClick={prevMonth} className="p-1 hover:bg-bg-main rounded-lg text-text-secondary">
               <ChevronLeft className="w-5 h-5" />

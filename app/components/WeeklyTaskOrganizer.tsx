@@ -542,12 +542,21 @@ const WeeklyTaskOrganizer: React.FC = () => {
     }
   };
 
+  const handleConnectGoogle = async () => {
+    try {
+      await connectGoogleCalendar();
+    } catch {
+      alert("Failed to start Google Calendar connection.");
+    }
+  };
+
   // Sync Indicator Color
   const getSyncColor = () => {
     if (syncStatus === "synced") return "bg-green-500";
     if (syncStatus === "connecting") return "bg-yellow-500";
     return "bg-red-500";
   };
+
 
   return (
     <div className="min-h-screen bg-bg-main p-4 font-sans transition-colors duration-300 relative overflow-hidden">
@@ -559,14 +568,14 @@ const WeeklyTaskOrganizer: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <header
             ref={headerRef}
-            className="glass-panel rounded-2xl px-6 py-4 border border-border-subtle/60 shadow-2xl"
+            className="glass-panel rounded-2xl px-4 sm:px-6 py-4 border border-border-subtle/60 shadow-2xl"
           >
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex flex-col">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex flex-wrap items-center gap-3 min-w-0 sm:flex-1 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex flex-col min-w-0">
                     <span className="text-xs uppercase tracking-[0.4em] text-text-tertiary">Neon Ops</span>
-                    <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-fuchsia-400 bg-clip-text text-transparent animate-gradient-pan">
+                    <h1 className="text-lg sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-fuchsia-400 bg-clip-text text-transparent animate-gradient-pan leading-tight">
                       Weekly Task Organizer
                     </h1>
                   </div>
@@ -576,19 +585,6 @@ const WeeklyTaskOrganizer: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <ThemeToggle />
-                  <UserMenu
-                    displayName={displayName}
-                    email={user.email}
-                    photoURL={user.photoURL}
-                    onLogout={logout}
-                    onOpenSettings={() => setShowUserSettings(true)}
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-1 rounded-xl border border-border-subtle bg-bg-main/70 p-1 shrink-0">
                   <button
                     onClick={() => setIsAdmin(true)}
@@ -613,44 +609,28 @@ const WeeklyTaskOrganizer: React.FC = () => {
                     <span className="max-w-[140px] truncate">{displayName}</span>
                   </button>
                 </div>
+              </div>
 
-                {isAdmin && (
-                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
-                    <button
-                      onClick={() => connectGoogleCalendar().catch(() => {
-                        alert("Failed to start Google Calendar connection.");
-                      })}
-                      className={`shrink-0 px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shadow-lg hover:-translate-y-0.5 hover:shadow-xl ${
-                        isGoogleConnected
-                          ? "bg-gradient-to-r from-emerald-500 to-emerald-400 text-white animate-glow-pulse"
-                          : "bg-bg-main/70 text-text-secondary hover:bg-bg-sidebar border border-transparent hover:border-border-hover"
-                      }`}
-                    >
-                      <span>
-                        {isCheckingGoogle
-                          ? "Checking Google..."
-                          : isGoogleConnected
-                          ? "Google Connected"
-                          : "Connect Google Calendar"}
-                      </span>
-                    </button>
-                    {isGoogleConnected && (
-                      <button
-                        onClick={handleSyncCalendar}
-                        className="shrink-0 px-3 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 bg-gradient-to-r from-sapphire-500 via-blue-500 to-cyan-500 text-white shadow-lg hover:-translate-y-0.5"
-                        title="Sync calendar events"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                        <span>Sync Calendar</span>
-                      </button>
-                    )}
-                  </div>
-                )}
+              <div className="flex items-center gap-3 shrink-0">
+                <ThemeToggle />
+                <UserMenu
+                  displayName={displayName}
+                  email={user.email}
+                  photoURL={user.photoURL}
+                  onLogout={logout}
+                  onOpenSettings={() => setShowUserSettings(true)}
+                  isAdmin={isAdmin}
+                  isGoogleConnected={isGoogleConnected}
+                  isCheckingGoogle={isCheckingGoogle}
+                  onConnectGoogle={handleConnectGoogle}
+                  onSyncCalendar={handleSyncCalendar}
+                />
               </div>
             </div>
           </header>
         </div>
       </div>
+
 
       <div
         className="max-w-7xl mx-auto relative z-10"
