@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Day, Priority, Task } from "@/types";
 import { TaskList } from "./TaskList";
 import { PrioritySelector } from "./PrioritySelector";
@@ -75,8 +75,21 @@ export const AdminView: React.FC<AdminViewProps> = ({
   onCreateCalendarEvent,
   onDeleteCalendarEvent,
 }) => {
-  const [viewMode, setViewMode] = useState<TaskViewMode>("list");
+  const [viewMode, setViewMode] = useState<TaskViewMode>("timeline-list");
   const dayTasks = tasks[currentDay] || [];
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("weekly-task-organizer:view-mode-admin");
+    if (stored === "list" || stored === "timeline" || stored === "timeline-list") {
+      setViewMode(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("weekly-task-organizer:view-mode-admin", viewMode);
+  }, [viewMode]);
 
   return (
     <div className="lg:col-span-9 space-y-6">

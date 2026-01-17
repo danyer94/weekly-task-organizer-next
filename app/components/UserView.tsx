@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Day } from "@/types";
 import { TaskList } from "./TaskList";
 import { TaskTimeline } from "./TaskTimeline";
@@ -32,8 +32,21 @@ export const UserView: React.FC<UserViewProps> = ({
   onDateChange,
   displayName,
 }) => {
-  const [viewMode, setViewMode] = useState<TaskViewMode>("list");
+  const [viewMode, setViewMode] = useState<TaskViewMode>("timeline-list");
   const dayTasks = tasks[currentDay] || [];
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("weekly-task-organizer:view-mode-user");
+    if (stored === "list" || stored === "timeline" || stored === "timeline-list") {
+      setViewMode(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("weekly-task-organizer:view-mode-user", viewMode);
+  }, [viewMode]);
 
   return (
     <div className="lg:col-span-9 space-y-6">
