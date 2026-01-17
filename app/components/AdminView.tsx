@@ -1,17 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { Day, Priority, Task } from "@/types";
 import { TaskList } from "./TaskList";
 import { PrioritySelector } from "./PrioritySelector";
+import { TaskTimeline } from "./TaskTimeline";
+import { TaskViewToggle, TaskViewMode } from "./TaskViewToggle";
 import { DatePicker } from "./DatePicker";
-import { 
-  Plus, 
-  Trash2, 
-  ArrowRight, 
-  Copy, 
-  SquareCheck, 
-  SquareX, 
-  Layers 
+import {
+  Plus,
+  Trash2,
+  ArrowRight,
+  Copy,
+  SquareCheck,
+  SquareX,
+  Layers,
 } from "lucide-react";
+
+
 
 interface AdminViewProps {
   currentDay: Day;
@@ -71,15 +75,23 @@ export const AdminView: React.FC<AdminViewProps> = ({
   onCreateCalendarEvent,
   onDeleteCalendarEvent,
 }) => {
+  const [viewMode, setViewMode] = useState<TaskViewMode>("list");
+  const dayTasks = tasks[currentDay] || [];
+
   return (
     <div className="lg:col-span-9 space-y-6">
+
       <div className="glass-panel rounded-2xl border border-border-subtle/60 p-4 glow-border sm:p-6">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-text-primary sm:text-3xl">{currentDay}</h2>
             <p className="text-text-brand font-medium">Mission Control · Weekly Overview</p>
           </div>
+          <div className="w-full max-w-xl">
+            <TaskViewToggle value={viewMode} onChange={setViewMode} />
+          </div>
         </div>
+
 
         <div className="mb-6 flex flex-col gap-3 md:flex-row">
           <PrioritySelector 
@@ -135,44 +147,54 @@ export const AdminView: React.FC<AdminViewProps> = ({
         )}
 
 
-        {/* Task List Header with Options */}
-        <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-           {/* Select All / Deselect All Button */}
-           <button
-            onClick={onSelectAll}
-            className="text-xs font-bold text-text-secondary hover:text-text-brand bg-bg-main/70 px-3 py-2 sm:py-1 rounded-full transition-colors border border-transparent hover:border-border-hover flex items-center gap-1.5 justify-center w-full sm:w-auto"
-          >
-            {(tasks[currentDay] || []).length > 0 && (tasks[currentDay] || []).every((t: any) => selectedTasks.has(t.id)) 
-              ? <><SquareX className="w-3.5 h-3.5" /> Unselect All</>
-              : <><SquareCheck className="w-3.5 h-3.5" /> Select All</>}
-          </button>
+        {(viewMode === "list" || viewMode === "timeline-list") && (
+          <>
+            {/* Task List Header with Options */}
+            <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              {/* Select All / Deselect All Button */}
+              <button
+                onClick={onSelectAll}
+                className="text-xs font-bold text-text-secondary hover:text-text-brand bg-bg-main/70 px-3 py-2 sm:py-1 rounded-full transition-colors border border-transparent hover:border-border-hover flex items-center gap-1.5 justify-center w-full sm:w-auto"
+              >
+                {dayTasks.length > 0 && dayTasks.every((t: any) => selectedTasks.has(t.id))
+                  ? <><SquareX className="w-3.5 h-3.5" /> Unselect All</>
+                  : <><SquareCheck className="w-3.5 h-3.5" /> Select All</>}
+              </button>
 
-          {/* View Toggle */}
-          <button
-            onClick={() => setGroupByPriority(!groupByPriority)}
-            className="text-xs font-bold text-text-brand bg-gradient-to-r from-sapphire-500/10 to-cyan-500/10 px-3 py-2 sm:py-1 rounded-full hover:bg-sapphire-100/80 dark:hover:bg-sapphire-800/60 transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto"
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>{groupByPriority ? "Grouped by Priority" : "Custom Order"}</span>
-          </button>
-        </div>
+              {/* View Toggle */}
+              <button
+                onClick={() => setGroupByPriority(!groupByPriority)}
+                className="text-xs font-bold text-text-brand bg-gradient-to-r from-sapphire-500/10 to-cyan-500/10 px-3 py-2 sm:py-1 rounded-full hover:bg-sapphire-100/80 dark:hover:bg-sapphire-800/60 transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>{groupByPriority ? "Grouped by Priority" : "Custom Order"}</span>
+              </button>
+            </div>
 
+            <TaskList
+              day={currentDay}
+              tasks={dayTasks}
+              groupByPriority={groupByPriority}
+              isAdmin={true}
+              selectedTasks={selectedTasks}
+              onToggleSelection={onToggleSelection}
+              onEdit={onEdit}
+              onDragStart={onDragStart}
+              onDrop={onDrop}
+              editingTaskId={editingTaskId}
+              setEditingTaskId={setEditingTaskId}
+              onCreateCalendarEvent={onCreateCalendarEvent}
+              onDeleteCalendarEvent={onDeleteCalendarEvent}
+            />
+          </>
+        )}
 
-        <TaskList
-          day={currentDay}
-          tasks={tasks[currentDay] || []}
-          groupByPriority={groupByPriority}
-          isAdmin={true}
-          selectedTasks={selectedTasks}
-          onToggleSelection={onToggleSelection}
-          onEdit={onEdit}
-          onDragStart={onDragStart}
-          onDrop={onDrop}
-          editingTaskId={editingTaskId}
-          setEditingTaskId={setEditingTaskId}
-          onCreateCalendarEvent={onCreateCalendarEvent}
-          onDeleteCalendarEvent={onDeleteCalendarEvent}
-        />
+        {(viewMode === "timeline" || viewMode === "timeline-list") && (
+          <div className={viewMode === "timeline-list" ? "mt-8" : ""}>
+            <TaskTimeline tasks={dayTasks} />
+          </div>
+        )}
+
       </div>
     </div>
   );

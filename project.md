@@ -30,6 +30,8 @@
   - `UserView.tsx`: Dashboard with completion-only control.
   - `Sidebar.tsx`: Date picker (admin sidebar), day navigation, stats, quick actions.
   - `TaskList.tsx`, `TaskItem.tsx`: Task rendering, state styling (including dark mode), and interactions.
+  - `TaskTimeline.tsx`: Daily timeline view (all-day, scheduled, unscheduled).
+  - `TaskViewToggle.tsx`: List/timeline mode selector.
   - `PrioritySelector.tsx`: Priority dropdown.
   - `DatePicker.tsx`: ISO week date picker.
   - `QuickActions.tsx`: Bulk actions and import/export.
@@ -38,6 +40,7 @@
   - `ThemeToggle.tsx`: Light/dark mode toggle.
   - `UserMenu.tsx`: Header account menu with settings and logout.
   - `UserSettingsModal.tsx`: Profile and password management modal.
+
 - `hooks/useWeeklyTasks.ts`: Core business logic (state, sync, CRUD, carry-over).
 - `lib/firebase.ts`: Firebase setup, typed helpers, task ID generation.
 - `lib/calendarMapper.ts`: Mapping tasks to calendar payloads and week paths.
@@ -90,10 +93,13 @@ interface Task {
   - Full CRUD, priority control, drag-reorder, selection tools.
   - Week selector in the admin panel header plus sidebar date picker, day navigation, stats, quick actions.
   - Google Calendar connect, event sync, and daily summary sending.
+  - **Timeline view**: daily timeline (all-day, scheduled, unscheduled) with optional list.
 - **User (per account)**
   - Simplified view with day scroller and date picker.
   - Uses the signed-in display name in the UI.
   - Can only toggle completion status.
+  - **Timeline view**: daily timeline with optional list.
+
 
 ### 4.2 Weekly Navigation and Carry-Over
 
@@ -118,7 +124,10 @@ interface Task {
 
 - **Grouped by priority**: High, Medium, Low sections.
 - **Custom order**: Flat list, manual ordering.
+- **Timeline modes**: List only, timeline only, or timeline + list.
+- Timeline sections: All-day, Scheduled, Unscheduled (per current day).
 - Toggle between views from both Admin and User screens.
+
 
 ### 4.5 Bulk Operations
 
