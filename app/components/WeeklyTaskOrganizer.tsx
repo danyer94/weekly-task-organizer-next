@@ -41,7 +41,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const router = useRouter();
 
   // Date State
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
 
   // Logic Hook
   const {
@@ -65,9 +66,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
   // UI State
   const [isAdmin, setIsAdmin] = useState(true);
   const [currentAdminDay, setCurrentAdminDay] = useState<Day>("Monday");
-  const [currentUserDay, setCurrentUserDay] = useState<Day>(
-    DAYS[new Date().getDay() - 1] || "Monday"
-  );
+  const [currentUserDay, setCurrentUserDay] = useState<Day>("Monday");
+
   const [newTaskText, setNewTaskText] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
   const [groupByPriority, setGroupByPriority] = useState(true);
@@ -201,6 +201,15 @@ const WeeklyTaskOrganizer: React.FC = () => {
   }, [isClient, authLoading, user]);
 
   useEffect(() => {
+    if (!isClient) return;
+    const today = new Date();
+    setSelectedDate(today);
+    setCurrentAdminDay(DAYS[(today.getDay() + 6) % 7]);
+    setCurrentUserDay(DAYS[(today.getDay() + 6) % 7]);
+  }, [isClient]);
+
+
+  useEffect(() => {
     if (!user) return;
     const settingsRef = ref(
       database,
@@ -248,7 +257,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
     };
   }, [dailySummaryEnabled, user]);
 
-  if (!isClient || authLoading || !user) return null;
+  if (!isClient || authLoading || !user || !selectedDate) return null;
+
 
   const displayName = user.displayName || user.email?.split("@")[0] || "User";
 
