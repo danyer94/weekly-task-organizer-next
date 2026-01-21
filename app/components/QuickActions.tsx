@@ -55,21 +55,6 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       </button>
 
 
-      <button
-        onClick={onClearCompleted}
-        className="w-full p-2.5 mb-2 bg-bg-main/60 border border-sapphire-500/60 text-sapphire-500 rounded-xl font-semibold hover:bg-sapphire-500/90 hover:text-white transition-all text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5"
-      >
-        <Trash2 className="w-4 h-4" />
-        <span>Clear Completed</span>
-      </button>
-      <button
-        onClick={onBulkAdd}
-        className="w-full p-2.5 mb-2 bg-bg-main/60 border border-sapphire-500/60 text-sapphire-500 rounded-xl font-semibold hover:bg-sapphire-500/90 hover:text-white transition-all text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5"
-      >
-        <FilePlus2 className="w-4 h-4" />
-        <span>Bulk Add</span>
-      </button>
-
       <h4 className="font-bold text-text-brand mb-2 mt-4 uppercase tracking-[0.3em] text-xs">
         Export / Import
       </h4>
