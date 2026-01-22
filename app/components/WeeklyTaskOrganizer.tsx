@@ -125,7 +125,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
         if (active) setIsCheckingGoogle(false);
       }
     };
-    
+
     checkStatus();
 
     // Handle redirect params
@@ -133,7 +133,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
     const googleParam = url.searchParams.get('google');
     const reason = url.searchParams.get('reason');
     const details = url.searchParams.get('details');
-    
+
     if (googleParam === 'connected') {
       // Clear the param without refreshing
       window.history.replaceState({}, '', '/');
@@ -142,10 +142,10 @@ const WeeklyTaskOrganizer: React.FC = () => {
     } else if (googleParam) {
       // Handle errors
       let errorMessage = 'Failed to connect Google Calendar.';
-      
+
       switch (googleParam) {
         case 'error':
-          errorMessage = reason 
+          errorMessage = reason
             ? `Google OAuth error: ${reason}`
             : 'Google OAuth returned an error. Please try again.';
           break;
@@ -168,12 +168,12 @@ const WeeklyTaskOrganizer: React.FC = () => {
           errorMessage = 'Invalid Google OAuth credentials. Please contact support.';
           break;
         case 'callback_error':
-          errorMessage = details 
+          errorMessage = details
             ? `Connection error: ${decodeURIComponent(details)}`
             : 'An error occurred during the connection process. Please try again.';
           break;
       }
-      
+
       alert(errorMessage);
       // Clear the params
       window.history.replaceState({}, '', '/');
@@ -305,7 +305,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const handleSelectAll = () => {
     const dayTasks = tasks[currentAdminDay] || [];
     const ids = dayTasks.map((t) => t.id);
-    
+
     const allSelected = ids.length > 0 && ids.every((id) => selectedTasks.has(id));
 
     if (allSelected) {
@@ -430,7 +430,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
     try {
       const { day, task } = selectedTaskForCalendar;
-      
+
       const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const payload = taskToCalendarEvent(
         day,
@@ -440,7 +440,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
         selectedDate,
         userTimeZone
       );
-      
+
       // If editing and event exists, delete old event first
       if (task.calendarEvent?.eventId) {
         try {
@@ -449,9 +449,9 @@ const WeeklyTaskOrganizer: React.FC = () => {
           console.warn("Failed to delete old event, continuing with creation", error);
         }
       }
-      
+
       const { eventId } = await createTaskEventForRamon(payload);
-      
+
       // Update the task with calendar event information
       updateTaskCalendarEvent(day, task.id, {
         eventId,
@@ -459,7 +459,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
         startTime: payload.startTime,
         endTime: payload.endTime,
       });
-      
+
       alert("✅ Calendar event created for this task!");
     } catch (error) {
       console.error(error);
@@ -608,11 +608,18 @@ const WeeklyTaskOrganizer: React.FC = () => {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex flex-wrap items-center gap-3 min-w-0 sm:flex-1 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-xs uppercase tracking-[0.4em] text-text-tertiary">Neon Ops</span>
-                    <h1 className="text-lg sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-fuchsia-400 bg-clip-text text-transparent animate-gradient-pan leading-tight">
-                      Weekly Task Organizer
-                    </h1>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src="/images/calendar-icon-no-background.png"
+                      alt="Calendar"
+                      className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0"
+                    />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs uppercase tracking-[0.4em] text-text-tertiary">Neon Ops</span>
+                      <h1 className="text-lg sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-fuchsia-400 bg-clip-text text-transparent animate-gradient-pan leading-tight">
+                        Weekly Task Organizer
+                      </h1>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1 bg-bg-main/70 rounded-full text-xs font-medium border border-border-subtle glow-ring shrink-0">
                     <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
@@ -620,25 +627,24 @@ const WeeklyTaskOrganizer: React.FC = () => {
                   </div>
                 </div>
 
+
                 <div className="flex items-center gap-1 rounded-xl border border-border-subtle bg-bg-main/70 p-1 shrink-0">
                   <button
                     onClick={() => setIsAdmin(true)}
-                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                      isAdmin
-                        ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
-                        : "text-text-secondary hover:bg-bg-sidebar"
-                    }`}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${isAdmin
+                      ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
+                      : "text-text-secondary hover:bg-bg-sidebar"
+                      }`}
                   >
                     <ShieldCheck className="w-4 h-4" />
                     <span>Administrator</span>
                   </button>
                   <button
                     onClick={() => setIsAdmin(false)}
-                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                      !isAdmin
-                        ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
-                        : "text-text-secondary hover:bg-bg-sidebar"
-                    }`}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${!isAdmin
+                      ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
+                      : "text-text-secondary hover:bg-bg-sidebar"
+                      }`}
                   >
                     <UserIcon className="w-4 h-4" />
                     <span className="max-w-[140px] truncate">{displayName}</span>
@@ -677,26 +683,26 @@ const WeeklyTaskOrganizer: React.FC = () => {
             <>
               {/* Sidebar (Left Column) */}
               <div className="lg:col-span-3">
-                 <Sidebar
-                   days={DAYS}
-                   currentDay={currentAdminDay}
-                   onDayChange={setCurrentAdminDay}
-                   tasks={tasks}
-                   stats={stats}
-                   quickActionsProps={{
-                      onClearCompleted: clearCompleted,
-                      onBulkAdd: () => setShowBulkModal(true),
-                      onExportWhatsApp: exportToWhatsApp,
-                      onExportJSON: exportToJSON,
-                      onSendDailySummary: handleSendDailySummary,
-                      isSendingDailySummary: isSendingSummary,
-                      onImportJSON: (e: any) => {
-                        if (e.target.files?.[0]) importFromJSON(e.target.files[0]);
-                      }
-                   }}
-                   selectedDate={selectedDate}
-                   onDateChange={setSelectedDate}
-                 />
+                <Sidebar
+                  days={DAYS}
+                  currentDay={currentAdminDay}
+                  onDayChange={setCurrentAdminDay}
+                  tasks={tasks}
+                  stats={stats}
+                  quickActionsProps={{
+                    onClearCompleted: clearCompleted,
+                    onBulkAdd: () => setShowBulkModal(true),
+                    onExportWhatsApp: exportToWhatsApp,
+                    onExportJSON: exportToJSON,
+                    onSendDailySummary: handleSendDailySummary,
+                    isSendingDailySummary: isSendingSummary,
+                    onImportJSON: (e: any) => {
+                      if (e.target.files?.[0]) importFromJSON(e.target.files[0]);
+                    }
+                  }}
+                  selectedDate={selectedDate}
+                  onDateChange={setSelectedDate}
+                />
               </div>
 
               {/* Main Content (Right Column) */}
@@ -739,7 +745,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
           ) : (
             // User View (Full Width)
             <div className="lg:col-span-12">
-               <UserView
+              <UserView
                 currentDay={currentUserDay}
                 days={DAYS}
                 onDayChange={setCurrentUserDay}
