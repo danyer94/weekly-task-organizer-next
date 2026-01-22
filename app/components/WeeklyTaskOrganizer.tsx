@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useWeeklyTasks, DAYS } from "@/hooks/useWeeklyTasks";
 import type { DailySummarySettings } from "@/types";
 import { Day, Priority, Task } from "@/types";
@@ -83,6 +83,9 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [dailySummaryEnabled, setDailySummaryEnabled] = useState(false);
   const headerRef = useRef<HTMLElement | null>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [headerOffset, setHeaderOffset] = useState(0);
+  const [minHeaderHeight, setMinHeaderHeight] = useState(0);
+
 
   // Modal State
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -187,7 +190,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
     }
   }, [user, authLoading, router]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isClient || authLoading || !user) return;
     const header = headerRef.current;
     if (!header) return;
@@ -199,6 +202,28 @@ const WeeklyTaskOrganizer: React.FC = () => {
     observer.observe(header);
     return () => observer.disconnect();
   }, [isClient, authLoading, user]);
+
+  useEffect(() => {
+    if (!isClient) return;
+    const updateOffsets = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setHeaderOffset(32);
+        setMinHeaderHeight(140);
+      } else if (width < 1024) {
+        setHeaderOffset(28);
+        setMinHeaderHeight(120);
+      } else {
+        setHeaderOffset(24);
+        setMinHeaderHeight(104);
+      }
+    };
+
+    updateOffsets();
+    window.addEventListener("resize", updateOffsets);
+    return () => window.removeEventListener("resize", updateOffsets);
+  }, [isClient]);
+
 
   useEffect(() => {
     if (!isClient) return;
@@ -644,8 +669,9 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
       <div
         className="max-w-7xl mx-auto relative z-10"
-        style={{ paddingTop: headerHeight + 24 }}
+        style={{ paddingTop: Math.max(headerHeight, minHeaderHeight) + headerOffset }}
       >
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {isAdmin ? (
             <>
