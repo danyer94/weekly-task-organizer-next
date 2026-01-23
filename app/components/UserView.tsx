@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Day } from "@/types";
+import { Day, Task } from "@/types";
 import { TaskList } from "./TaskList";
 import { TaskTimeline } from "./TaskTimeline";
 import { TaskViewToggle, TaskViewMode } from "./TaskViewToggle";
@@ -13,6 +13,7 @@ interface UserViewProps {
   onDayChange: (day: Day) => void;
   tasks: any;
   onToggleComplete: (day: Day, id: string) => void;
+  onTimelineScheduleChange?: (day: Day, task: Task, startTime: string, endTime: string) => void;
   groupByPriority: boolean;
   setGroupByPriority: (val: boolean) => void;
   selectedDate: Date;
@@ -26,6 +27,7 @@ export const UserView: React.FC<UserViewProps> = ({
   onDayChange,
   tasks,
   onToggleComplete,
+  onTimelineScheduleChange,
   groupByPriority,
   setGroupByPriority,
   selectedDate,
@@ -127,7 +129,15 @@ export const UserView: React.FC<UserViewProps> = ({
 
           {(viewMode === "timeline" || viewMode === "timeline-list") && (
             <div className={viewMode === "timeline-list" ? "mt-8" : ""}>
-              <TaskTimeline tasks={dayTasks} />
+              <TaskTimeline
+                tasks={dayTasks}
+                onScheduleChange={
+                  onTimelineScheduleChange
+                    ? (task, startTime, endTime) =>
+                        onTimelineScheduleChange(currentDay, task, startTime, endTime)
+                    : undefined
+                }
+              />
             </div>
           )}
         </div>

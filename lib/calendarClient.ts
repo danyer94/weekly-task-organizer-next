@@ -82,11 +82,10 @@ export const updateTaskEventForRamon = async (
   eventId: string,
   payload: CalendarEventPayload
 ): Promise<{ eventId: string }> => {
+  const headers = await getAuthHeaders();
   const res = await fetch("/api/google/calendar/events", {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({ eventId, ...payload }),
   });
 
