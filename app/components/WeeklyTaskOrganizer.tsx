@@ -282,10 +282,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
     };
   }, [dailySummaryEnabled, user]);
 
-  if (!isClient || authLoading || !user || !selectedDate) return null;
-
-
-  const displayName = user.displayName || user.email?.split("@")[0] || "User";
+  const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
 
   // Handlers
   const handleAddTask = () => {
@@ -624,6 +621,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
     return "bg-red-500";
   };
 
+
+  if (!isClient || authLoading || !user || !selectedDate) return null;
 
   return (
     <div className="min-h-screen bg-bg-main p-4 font-sans transition-colors duration-300 relative overflow-hidden">
