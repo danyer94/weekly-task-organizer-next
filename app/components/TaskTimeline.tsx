@@ -413,41 +413,83 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                     return (
                       <div
                         key={block.task.id}
-                        className={`absolute min-h-[40px] ${
-                          onScheduleChange
-                            ? "cursor-grab active:cursor-grabbing select-none touch-none"
-                            : ""
-                        }`}
+                        className="absolute min-h-[40px] select-none touch-none"
                         style={{
                           left: leftPos,
                           width,
                           top: `${top}px`,
                           height: `${Math.max(height, 40)}px`,
                         }}
-                        onPointerDown={(event) => handlePointerDown(event, block, "move")}
+                        onPointerDown={onScheduleChange ? (event) => {
+                          const rect = event.currentTarget.getBoundingClientRect();
+                          const relativeY = event.clientY - rect.top;
+                          const totalHeight = rect.height;
+                          
+                          if (relativeY <= 10) {
+                            // Top 10px - resize top
+                            event.stopPropagation();
+                            event.preventDefault();
+                            handlePointerDown(event, block, "resize-top");
+                          } else if (relativeY >= totalHeight - 10) {
+                            // Bottom 10px - resize bottom
+                            event.stopPropagation();
+                            event.preventDefault();
+                            handlePointerDown(event, block, "resize-bottom");
+                          } else {
+                            // Center area - move
+                            event.stopPropagation();
+                            event.preventDefault();
+                            handlePointerDown(event, block, "move");
+                          }
+                        } : undefined}
+                        onMouseMove={onScheduleChange ? (event) => {
+                          const rect = event.currentTarget.getBoundingClientRect();
+                          const relativeY = event.clientY - rect.top;
+                          const totalHeight = rect.height;
+                          
+                          if (relativeY <= 10) {
+                            event.currentTarget.style.cursor = 'ns-resize';
+                          } else if (relativeY >= totalHeight - 10) {
+                            event.currentTarget.style.cursor = 'ns-resize';
+                          } else {
+                            event.currentTarget.style.cursor = 'grab';
+                          }
+                        } : undefined}
+                        onMouseLeave={onScheduleChange ? (event) => {
+                          event.currentTarget.style.cursor = '';
+                        } : undefined}
                       >
+                        {/* TaskCard - visual only */}
+                        <div className="relative h-full pointer-events-none">
+                          <TaskCard
+                            task={block.task}
+                            timeLabel={`${toTimeString(startMinutes)} – ${toTimeString(endMinutes)}`}
+                            isTimed
+                            compact
+                          />
+                        </div>
                         {onScheduleChange && (
                           <>
-                            <div
-                              className="absolute left-1 right-1 top-0 z-10 h-3 cursor-ns-resize rounded-full bg-border-subtle/60"
-                              onPointerDown={(event) =>
-                                handlePointerDown(event, block, "resize-top")
-                              }
-                            />
-                            <div
-                              className="absolute left-1 right-1 bottom-0 z-10 h-3 cursor-ns-resize rounded-full bg-border-subtle/60"
-                              onPointerDown={(event) =>
-                                handlePointerDown(event, block, "resize-bottom")
-                              }
-                            />
+                            {/* Top resize handle indicator - visual only */}
+                            <div className="resize-handle group absolute left-0 right-0 top-0 z-30 h-[10px] pointer-events-none">
+                              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="w-1.5 h-1.5 rounded-full bg-border-brand" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-border-brand" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-border-brand" />
+                              </div>
+                              <div className="absolute inset-x-0 top-0 h-[10px] bg-border-brand/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-2xl" />
+                            </div>
+                            {/* Bottom resize handle indicator - visual only */}
+                            <div className="resize-handle group absolute left-0 right-0 bottom-0 z-30 h-[10px] pointer-events-none">
+                              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="w-1.5 h-1.5 rounded-full bg-border-brand" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-border-brand" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-border-brand" />
+                              </div>
+                              <div className="absolute inset-x-0 bottom-0 h-[10px] bg-border-brand/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-b-2xl" />
+                            </div>
                           </>
                         )}
-                        <TaskCard
-                          task={block.task}
-                          timeLabel={`${toTimeString(startMinutes)} – ${toTimeString(endMinutes)}`}
-                          isTimed
-                          compact
-                        />
                       </div>
                     );
                   })}
