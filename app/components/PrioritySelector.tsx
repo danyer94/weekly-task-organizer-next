@@ -41,7 +41,10 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between border border-border-subtle rounded-xl bg-bg-surface/80 text-text-primary focus:border-border-brand transition-all hover:border-border-hover ${
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-label="Task priority"
+        className={`w-full flex items-center justify-between border border-border-subtle rounded-xl bg-bg-surface/90 text-text-primary focus:border-border-brand transition-colors hover:border-border-hover shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30 ${
           isSmall ? "p-2 sm:p-2.5 text-sm" : "p-3"
         }`}
       >
@@ -53,7 +56,11 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-bg-surface/90 border border-border-subtle rounded-xl shadow-xl z-[60] overflow-hidden animate-fade-in backdrop-blur">
+        <div
+          className="absolute top-full left-0 right-0 mt-2 bg-bg-surface/90 border border-border-subtle rounded-xl shadow-xl z-[60] overflow-hidden animate-fade-in motion-reduce:animate-none backdrop-blur"
+          role="listbox"
+          aria-label="Priority options"
+        >
           {priorities.map((p) => (
             <button
               key={p.value}
@@ -62,12 +69,14 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
                 setPriority(p.value);
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center gap-2 hover:bg-bg-main/70 transition-colors ${
-                priority === p.value ? "bg-bg-main" : ""
+              role="option"
+              aria-selected={priority === p.value}
+              className={`w-full flex items-center gap-2 hover:bg-bg-main/60 transition-colors ${
+                priority === p.value ? "bg-bg-main/60" : ""
               } ${isSmall ? "p-2 text-sm" : "p-3"}`}
             >
               <Circle className={`${isSmall ? "w-2.5 h-2.5" : "w-3 h-3"} fill-current ${p.color}`} />
-              <span className={`font-medium ${priority === p.value ? "text-text-brand" : "text-text-primary"}`}>
+              <span className={`font-medium ${priority === p.value ? "text-text-primary" : "text-text-secondary"}`}>
                 {p.label}
               </span>
             </button>

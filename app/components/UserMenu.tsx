@@ -64,7 +64,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-3 px-2 sm:px-3 py-2 rounded-xl bg-bg-main/70 border border-border-subtle hover:border-border-hover transition-colors"
+        className="flex items-center gap-3 px-2 sm:px-3 py-2 rounded-xl bg-bg-surface/80 border border-border-subtle hover:border-border-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
 
         aria-haspopup="menu"
         aria-expanded={open}
@@ -73,10 +73,12 @@ export const UserMenu: React.FC<UserMenuProps> = ({
           <img
             src={photoURL}
             alt="User"
+            width={40}
+            height={40}
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-border-hover shadow-lg object-cover"
           />
         ) : (
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center text-sky-400 shadow-lg">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-bg-sidebar border border-border-subtle flex items-center justify-center text-text-tertiary shadow-sm">
             <UserIcon className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         )}
@@ -92,7 +94,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
 
       {open && (
         <div
-          className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] glass-panel bg-bg-main rounded-xl border border-border-subtle/60 shadow-2xl overflow-hidden z-50 animate-fade-in"
+          className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] glass-panel bg-bg-surface/80 rounded-xl border border-border-subtle/60 shadow-2xl overflow-hidden z-50 animate-fade-in motion-reduce:animate-none"
           role="menu"
         >
           <div className="px-4 py-3 border-b border-border-subtle/60">
@@ -112,9 +114,9 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                     setOpen(false);
                     onConnectGoogle();
                   }}
-                  className={`w-full px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 ${
+                  className={`w-full px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/40 ${
                     isGoogleConnected
-                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-200"
+                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
                       : "text-text-primary hover:bg-bg-main/70"
                   }`}
                   role="menuitem"
@@ -133,7 +135,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                       setOpen(false);
                       onSyncCalendar();
                     }}
-                    className="w-full px-3 py-2 rounded-lg text-sm font-semibold text-text-primary hover:bg-bg-main/70 transition-colors flex items-center gap-2"
+                    className="w-full px-3 py-2 rounded-lg text-sm font-semibold text-text-primary hover:bg-bg-main/70 transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                     role="menuitem"
                   >
                     <span>Sync Calendar</span>
@@ -151,10 +153,10 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                   setOpen(false);
                   onOpenSettings();
                 }}
-                className="w-full px-3 py-2 rounded-lg text-sm font-semibold text-text-primary hover:bg-bg-main/70 transition-colors flex items-center gap-2"
+                className="w-full px-3 py-2 rounded-lg text-sm font-semibold text-text-primary hover:bg-bg-main/70 transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                 role="menuitem"
               >
-                <Settings className="w-4 h-4 text-sky-400" />
+                <Settings className="w-4 h-4 text-border-brand" />
                 <span>Manage account</span>
               </button>
               <button
@@ -162,7 +164,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                   setOpen(false);
                   handleLogout();
                 }}
-                className="w-full px-3 py-2 rounded-lg text-sm font-semibold text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2"
+                className="w-full px-3 py-2 rounded-lg text-sm font-semibold text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/50"
                 role="menuitem"
               >
                 <LogOut className="w-4 h-4" />

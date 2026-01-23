@@ -127,7 +127,7 @@ const TaskCard: React.FC<{
 }> = ({ task, timeLabel, isTimed = false, compact = false }) => {
   return (
     <div
-      className={`flex h-full min-h-0 flex-col rounded-2xl border border-border-subtle/60 bg-bg-surface/80 shadow-sm transition-all ${
+      className={`flex h-full min-h-0 flex-col rounded-2xl border border-border-subtle/60 bg-bg-surface/85 shadow-sm transition-colors ${
         compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
       } ${task.completed ? "opacity-60" : ""}`}
     >
@@ -137,10 +137,10 @@ const TaskCard: React.FC<{
             {task.text}
           </p>
           <div
-            className={`mt-1 flex items-center gap-2 uppercase tracking-[0.2em] text-text-tertiary ${
-              compact ? "text-[10px]" : "text-[11px]"
-            }`}
-          >
+          className={`mt-1 flex items-center gap-2 uppercase tracking-[0.18em] text-text-tertiary ${
+            compact ? "text-[10px]" : "text-[11px]"
+          }`}
+        >
             {isTimed ? (
               <Clock className="w-3 h-3" />
             ) : (
@@ -152,7 +152,7 @@ const TaskCard: React.FC<{
         <div
           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[10px] font-semibold ${
             task.priority === "high"
-              ? "border-red-200/80 bg-red-50/70 text-red-500"
+              ? "border-rose-200/80 bg-rose-50/70 text-rose-500"
               : task.priority === "medium"
                 ? "border-amber-200/80 bg-amber-50/70 text-amber-500"
                 : "border-emerald-200/80 bg-emerald-50/70 text-emerald-500"
@@ -313,7 +313,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
   const renderEmpty = (label: string, description: string) => (
 
-    <div className="flex items-center gap-3 rounded-2xl border border-dashed border-border-subtle/70 bg-bg-main/40 px-4 py-3 text-sm text-text-tertiary">
+    <div className="flex items-center gap-3 rounded-2xl border border-dashed border-border-subtle/70 bg-bg-main/50 px-4 py-3 text-sm text-text-tertiary">
       <Sparkles className="h-4 w-4 text-text-tertiary" />
       <div>
         <p className="font-semibold text-text-secondary">{label}</p>
@@ -326,7 +326,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
     <div className={`space-y-6 ${className}`}>
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-text-tertiary">
+          <h4 className="text-xs font-semibold uppercase tracking-[0.28em] text-text-tertiary">
             All-day
           </h4>
           <span className="text-xs text-text-tertiary">
@@ -346,7 +346,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-text-tertiary">
+          <h4 className="text-xs font-semibold uppercase tracking-[0.28em] text-text-tertiary">
             Scheduled
           </h4>
           <span className="text-xs text-text-tertiary">
@@ -356,7 +356,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
         {!hasScheduled ? (
           renderEmpty("No scheduled tasks", "Add start times to build your timeline.")
         ) : (
-          <div className="rounded-3xl border border-border-subtle/60 bg-bg-surface/70 px-4 py-6 sm:px-6">
+          <div className="rounded-3xl border border-border-subtle/60 bg-bg-surface/80 px-4 py-6 sm:px-6">
             <div className="max-h-[520px] overflow-y-auto pr-2">
               <div className="grid gap-4 sm:gap-6 sm:grid-cols-[96px_1fr]">
                 <div className="relative" style={{ height: `${timelineContainerHeight}px` }}>
@@ -369,7 +369,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                     return (
                       <div
                         key={`hour-${minuteMark}`}
-                        className="absolute right-0 pr-3 text-xs font-semibold text-text-tertiary"
+                        className="absolute right-0 pr-3 text-xs font-semibold text-text-tertiary font-mono"
                         style={{
                           top: `${top}px`,
                           transform: "translateY(-50%)",
@@ -463,7 +463,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                         <div className="relative h-full pointer-events-none">
                           <TaskCard
                             task={block.task}
-                            timeLabel={`${toTimeString(startMinutes)} – ${toTimeString(endMinutes)}`}
+                            timeLabel={`${toTimeString(startMinutes)} - ${toTimeString(endMinutes)}`}
                             isTimed
                             compact
                           />

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../components/AuthProvider";
 import { useRouter } from "next/navigation";
-import { LogIn, Github, Mail, User, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import { Mail, User, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { getAuthErrorMessage } from "@/lib/errors";
 
 export default function LoginPage() {
@@ -62,43 +62,53 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Dynamic background elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_60%),radial-gradient(circle_at_bottom,_rgba(168,85,247,0.1),_transparent_60%)]"></div>
-      <div className="absolute -top-24 -left-20 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] animate-pulse"></div>
-      <div className="absolute -bottom-24 -right-20 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px] animate-pulse"></div>
+    <div className="min-h-screen bg-bg-main flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,183,0.16),_transparent_55%),radial-gradient(circle_at_85%_12%,_rgba(15,23,42,0.12),_transparent_55%)]"></div>
+      <div className="pointer-events-none absolute inset-0 opacity-35 dark:opacity-25 bg-[linear-gradient(rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:120px_120px]"></div>
       
       <div className="w-full max-w-md relative z-10">
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl">
+        <div className="glass-panel border border-border-subtle/70 rounded-3xl p-8 shadow-2xl">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-sky-400 to-indigo-600 rounded-2xl mb-4 shadow-lg shadow-sky-500/20">
-              <ShieldCheck className="w-8 h-8 text-white" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-bg-main/60 border border-border-subtle rounded-2xl mb-4 shadow-sm">
+              <ShieldCheck className="w-8 h-8 text-border-brand" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
+            <h1 className="text-3xl font-semibold text-text-primary mb-2 tracking-tight">
               {isSignUp ? "Create Account" : "Welcome Back"}
             </h1>
-            <p className="text-slate-400">
+            <p className="text-text-secondary">
               {isSignUp ? "Start organizing your week today" : "Manage your weekly tasks with ease"}
             </p>
           </div>
 
           {!isSignUp && (
-            <div className="flex bg-slate-800/50 p-1 rounded-xl mb-8 border border-slate-700/50">
+            <div className="flex bg-bg-main/60 p-1 rounded-xl mb-8 border border-border-subtle/70">
               <button 
                 onClick={() => setMethod('google')}
-                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${method === 'google' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                  method === 'google'
+                    ? 'bg-bg-surface text-text-primary shadow-sm border border-border-subtle/70'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
               >
                 Google
               </button>
               <button 
                 onClick={() => setMethod('username')}
-                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${method === 'username' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                  method === 'username'
+                    ? 'bg-bg-surface text-text-primary shadow-sm border border-border-subtle/70'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
               >
                 User
               </button>
               <button 
                 onClick={() => setMethod('email')}
-                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${method === 'email' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                  method === 'email'
+                    ? 'bg-bg-surface text-text-primary shadow-sm border border-border-subtle/70'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
               >
                 Email
               </button>
@@ -112,9 +122,9 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="w-full py-4 px-4 bg-white hover:bg-slate-100 text-slate-900 font-bold rounded-2xl transition-all border border-slate-200 shadow-lg flex items-center justify-center gap-3 disabled:opacity-50"
+                  className="w-full py-4 px-4 bg-bg-surface/90 hover:bg-bg-surface text-text-primary font-semibold rounded-2xl transition-colors border border-border-subtle shadow-sm flex items-center justify-center gap-3 disabled:opacity-50"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" /> : (
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -126,10 +136,10 @@ export default function LoginPage() {
                 </button>
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-slate-800"></span>
+                    <span className="w-full border-t border-border-subtle"></span>
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-slate-900 px-2 text-slate-500">Or use another method</span>
+                    <span className="bg-bg-surface px-2 text-text-tertiary">Or use another method</span>
                   </div>
                 </div>
               </div>
@@ -138,15 +148,19 @@ export default function LoginPage() {
             {isSignUp && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300 ml-1">Username (Optional)</label>
+                  <label className="text-sm font-medium text-text-secondary ml-1">Username (Optional)</label>
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-tertiary" />
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="Choose a username"
-                      className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                      name="username"
+                      autoComplete="username"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      className="w-full bg-bg-surface/80 border border-border-subtle rounded-2xl py-4 pl-12 pr-4 text-text-primary focus:outline-none focus:ring-2 focus:ring-border-brand/40 focus:border-border-brand transition-colors"
                     />
                   </div>
                 </div>
@@ -156,15 +170,19 @@ export default function LoginPage() {
             {!isSignUp && method === 'username' && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300 ml-1">Username</label>
+                  <label className="text-sm font-medium text-text-secondary ml-1">Username</label>
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-tertiary" />
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="Enter your username"
-                      className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                      name="username"
+                      autoComplete="username"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      className="w-full bg-bg-surface/80 border border-border-subtle rounded-2xl py-4 pl-12 pr-4 text-text-primary focus:outline-none focus:ring-2 focus:ring-border-brand/40 focus:border-border-brand transition-colors"
                       required
                     />
                   </div>
@@ -175,15 +193,19 @@ export default function LoginPage() {
             {(isSignUp || method === 'email') && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300 ml-1">Email Address</label>
+                  <label className="text-sm font-medium text-text-secondary ml-1">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-tertiary" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@company.com"
-                      className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                      name="email"
+                      autoComplete="email"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      className="w-full bg-bg-surface/80 border border-border-subtle rounded-2xl py-4 pl-12 pr-4 text-text-primary focus:outline-none focus:ring-2 focus:ring-border-brand/40 focus:border-border-brand transition-colors"
                       required
                     />
                   </div>
@@ -194,22 +216,29 @@ export default function LoginPage() {
             {(isSignUp || method === 'email' || method === 'username') && (
               <div className="space-y-2">
                 <div className="flex justify-between items-center ml-1">
-                  <label className="text-sm font-medium text-slate-300">Password</label>
-                  {!isSignUp && <a href="#" className="text-xs text-sky-400 hover:text-sky-300 transition-colors">Forgot password?</a>}
+                  <label className="text-sm font-medium text-text-secondary">Password</label>
+                  {!isSignUp && (
+                    <a href="#" className="text-xs text-border-brand hover:text-text-primary transition-colors">
+                      Forgot password?
+                    </a>
+                  )}
                 </div>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-4 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all"
+                    placeholder="********"
+                    name="password"
+                    autoComplete={isSignUp ? "new-password" : "current-password"}
+                    autoCapitalize="none"
+                    className="w-full bg-bg-surface/80 border border-border-subtle rounded-2xl py-4 pl-4 pr-12 text-text-primary focus:outline-none focus:ring-2 focus:ring-border-brand/40 focus:border-border-brand transition-colors"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary transition-colors"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -222,9 +251,9 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 px-4 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold rounded-2xl transition-all shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 group disabled:opacity-50"
+                className="w-full py-4 px-4 bg-sapphire-700 hover:bg-sapphire-600 text-white font-semibold rounded-2xl transition-colors transition-transform shadow-sm flex items-center justify-center gap-2 group disabled:opacity-50"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                {loading ? <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" /> : (
                   <>
                     {isSignUp ? "Create Account" : "Sign In"}
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -234,18 +263,18 @@ export default function LoginPage() {
             )}
 
             {error && (
-              <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-4">
-                <p className="text-xs text-red-400 text-center font-medium">{error}</p>
+              <div className="bg-red-50/80 border border-red-200 rounded-xl p-4" role="alert">
+                <p className="text-xs text-red-600 text-center font-medium">{error}</p>
               </div>
             )}
           </form>
 
-          <p className="mt-8 text-center text-sm text-slate-500">
+          <p className="mt-8 text-center text-sm text-text-tertiary">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             <a 
               href="#" 
               onClick={toggleMode}
-              className="text-sky-400 font-medium hover:text-sky-300"
+              className="text-border-brand font-medium hover:text-text-primary"
             >
               {isSignUp ? "Sign In" : "Sign Up"}
             </a>

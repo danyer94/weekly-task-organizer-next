@@ -31,18 +31,18 @@ export const ThemeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className={`relative w-24 h-8 rounded-full p-1 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-sapphire-400 ${
-        theme === "dark" ? "bg-sapphire-800" : "bg-sapphire-200"
+      className={`relative w-20 h-10 rounded-full p-1 transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 border border-border-subtle ${
+        theme === "dark" ? "bg-bg-sidebar" : "bg-bg-surface/80"
       }`}
       aria-label="Toggle Theme"
     >
       <div
-        className={`absolute top-1 bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center text-xs z-10 glow-ring ${
-          theme === "dark" ? "translate-x-16 left-1" : "translate-x-0 left-1"
+        className={`absolute top-1 bg-white w-7 h-7 rounded-full shadow-sm transform transition-transform duration-300 flex items-center justify-center text-xs z-10 ${
+          theme === "dark" ? "translate-x-10 left-1" : "translate-x-0 left-1"
         }`}
       >
         {theme === "dark" ? (
-          <Moon className="w-3.5 h-3.5 text-sapphire-900" />
+          <Moon className="w-3.5 h-3.5 text-text-secondary" />
         ) : (
           <Sun className="w-3.5 h-3.5 text-amber-500" />
         )}
@@ -50,8 +50,8 @@ export const ThemeToggle: React.FC = () => {
       <span
         className={`absolute top-0 bottom-0 flex items-center text-[10px] font-bold transition-opacity duration-300 ${
           theme === "dark" 
-            ? "left-3 text-white opacity-100" 
-            : "left-3 text-sapphire-800 opacity-0"
+            ? "left-3 text-text-primary opacity-100" 
+            : "left-3 text-text-secondary opacity-0"
         }`}
       >
         Dark
@@ -59,8 +59,8 @@ export const ThemeToggle: React.FC = () => {
       <span
         className={`absolute top-0 bottom-0 flex items-center text-[10px] font-bold transition-opacity duration-300 ${
           theme === "dark" 
-            ? "right-3 text-white opacity-0" 
-            : "right-3 text-sapphire-800 opacity-100"
+            ? "right-3 text-text-secondary opacity-0" 
+            : "right-3 text-text-secondary opacity-100"
         }`}
       >
         Light

@@ -58,8 +58,8 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm">
-      <div className="glass-panel rounded-2xl shadow-2xl border border-border-subtle/60 w-full max-w-md mx-4 animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm overscroll-contain">
+      <div className="glass-panel rounded-2xl shadow-2xl border border-border-subtle/70 w-full max-w-md mx-4 animate-fade-in motion-reduce:animate-none">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border-subtle/60">
           <h2 className="text-xl font-bold text-text-primary">
@@ -67,7 +67,8 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
           </h2>
           <button
             onClick={onClose}
-            className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded hover:bg-bg-main/70"
+            className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded hover:bg-bg-main/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+            aria-label="Close calendar event modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -80,7 +81,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
             <label className="block text-sm font-medium text-text-secondary mb-1">
               Task
             </label>
-            <p className="text-text-primary bg-bg-main/70 p-3 rounded-xl border border-border-subtle/60">
+            <p className="text-text-primary bg-bg-main/60 p-3 rounded-xl border border-border-subtle/60">
               {taskText}
             </p>
           </div>
@@ -89,7 +90,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
             <label className="block text-sm font-medium text-text-secondary mb-1">
               Day
             </label>
-            <p className="text-text-primary bg-bg-main/70 p-3 rounded-xl border border-border-subtle/60">
+            <p className="text-text-primary bg-bg-main/60 p-3 rounded-xl border border-border-subtle/60">
               {day}
             </p>
           </div>
@@ -101,7 +102,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
               id="allDay"
               checked={isAllDay}
               onChange={(e) => handleAllDayChange(e.target.checked)}
-              className="w-5 h-5 text-sapphire-600 rounded focus:ring-sapphire-500 cursor-pointer accent-sky-500"
+              className="w-5 h-5 text-border-brand rounded focus:ring-border-brand cursor-pointer accent-sky-600"
             />
             <label
               htmlFor="allDay"
@@ -127,7 +128,9 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
                   required={!isAllDay}
-                  className="w-full p-3 border border-border-subtle rounded-xl focus:outline-none focus:border-border-brand transition-colors bg-bg-surface/80 text-text-primary"
+                  name="startTime"
+                  autoComplete="off"
+                  className="w-full p-3 border border-border-subtle rounded-xl focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors bg-bg-surface/80 text-text-primary"
                 />
               </div>
               <div>
@@ -143,7 +146,9 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
                   required={!isAllDay}
-                  className="w-full p-3 border border-border-subtle rounded-xl focus:outline-none focus:border-border-brand transition-colors bg-bg-surface/80 text-text-primary"
+                  name="endTime"
+                  autoComplete="off"
+                  className="w-full p-3 border border-border-subtle rounded-xl focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors bg-bg-surface/80 text-text-primary"
                 />
               </div>
             </div>
@@ -152,7 +157,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
           {/* Validation: End time should be after start time */}
           {!isAllDay && startTime >= endTime && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-red-600 dark:text-red-400">
-              ⚠️ End time must be after start time
+              Warning: End time must be after start time.
             </div>
           )}
 
@@ -161,14 +166,14 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:flex-1 px-4 py-3 bg-bg-main/70 text-text-primary rounded-xl font-medium hover:bg-bg-sidebar transition-colors border border-border-subtle/60"
+              className="w-full sm:flex-1 px-4 py-3 bg-bg-main/60 text-text-primary rounded-xl font-medium hover:bg-bg-main/80 transition-colors border border-border-subtle/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!isAllDay && startTime >= endTime}
-              className="w-full sm:flex-1 px-4 py-3 bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white rounded-xl font-medium hover:shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:flex-1 px-4 py-3 bg-sapphire-700 text-white rounded-xl font-medium hover:bg-sapphire-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
             >
               {isEditMode ? "Update Event" : "Create Event"}
             </button>

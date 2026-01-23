@@ -188,8 +188,8 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/60 flex items-start sm:items-center justify-center z-50 backdrop-blur-sm animate-fade-in overflow-y-auto px-4 py-6">
-      <div className="glass-panel rounded-2xl shadow-2xl border border-border-subtle/60 w-full max-w-lg p-5 sm:p-6 max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-slate-950/50 flex items-start sm:items-center justify-center z-50 backdrop-blur-sm animate-fade-in motion-reduce:animate-none overflow-y-auto px-4 py-6 overscroll-contain">
+      <div className="glass-panel rounded-2xl shadow-2xl border border-border-subtle/70 w-full max-w-lg p-5 sm:p-6 max-h-[92vh] overflow-y-auto">
         <div className="flex items-start justify-between mb-6 gap-3">
           <div>
             <h3 className="text-xl font-bold text-text-primary">User settings</h3>
@@ -199,7 +199,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-text-secondary hover:text-text-primary transition-colors"
+            className="text-text-secondary hover:text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
             aria-label="Close user settings"
           >
             <XCircle className="w-5 h-5" />
@@ -207,9 +207,9 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-2xl border border-border-subtle/60 bg-bg-main/50 p-4">
+          <div className="rounded-2xl border border-border-subtle/60 bg-bg-surface/60 p-4">
             <div className="flex items-center gap-2 mb-4 text-text-primary">
-              <User className="w-4 h-4 text-sky-400" />
+              <User className="w-4 h-4 text-border-brand" />
               <h4 className="text-sm font-bold uppercase tracking-[0.2em]">Profile</h4>
             </div>
             <label className="text-xs font-semibold text-text-secondary block mb-2">Display name</label>
@@ -219,12 +219,14 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 value={displayName}
                 onChange={(event) => setDisplayName(event.target.value)}
                 placeholder="Your display name"
-                className="flex-1 px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand transition-colors"
+                name="displayName"
+                autoComplete="name"
+                className="flex-1 px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
               />
               <button
                 onClick={handleUpdateName}
                 disabled={savingName}
-                className="w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60"
+                className="w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-sapphire-700 text-white shadow-sm hover:bg-sapphire-600 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                 type="button"
               >
                 {savingName ? "Saving..." : "Save name"}
@@ -243,15 +245,17 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                     : "bg-red-500/10 text-red-400 border-red-500/30"
                 }`}
+                role="status"
+                aria-live="polite"
               >
                 {nameNotice.message}
               </div>
             )}
           </div>
 
-          <div className="rounded-2xl border border-border-subtle/60 bg-bg-main/50 p-4">
+          <div className="rounded-2xl border border-border-subtle/60 bg-bg-surface/60 p-4">
             <div className="flex items-center gap-2 mb-4 text-text-primary">
-              <KeyRound className="w-4 h-4 text-sky-400" />
+              <KeyRound className="w-4 h-4 text-border-brand" />
               <h4 className="text-sm font-bold uppercase tracking-[0.2em]">Security</h4>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -260,20 +264,26 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="New password"
-                className="px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand transition-colors"
+                aria-label="New password"
+                name="newPassword"
+                autoComplete="new-password"
+                className="px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
               />
               <input
                 type="password"
                 value={passwordConfirm}
                 onChange={(event) => setPasswordConfirm(event.target.value)}
                 placeholder="Confirm password"
-                className="px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand transition-colors"
+                aria-label="Confirm password"
+                name="confirmPassword"
+                autoComplete="new-password"
+                className="px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
               />
             </div>
             <button
               onClick={handleUpdatePassword}
               disabled={savingPassword}
-              className="mt-3 w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60"
+              className="mt-3 w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-slate-800 text-white shadow-sm hover:bg-slate-700 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
               type="button"
             >
               {savingPassword ? "Updating..." : "Update password"}
@@ -289,15 +299,17 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                     : "bg-red-500/10 text-red-400 border-red-500/30"
                 }`}
+                role="status"
+                aria-live="polite"
               >
                 {passwordNotice.message}
               </div>
             )}
           </div>
 
-          <div className="rounded-2xl border border-border-subtle/60 bg-bg-main/50 p-4">
+          <div className="rounded-2xl border border-border-subtle/60 bg-bg-surface/60 p-4">
             <div className="flex items-center gap-2 mb-4 text-text-primary">
-              <MailCheck className="w-4 h-4 text-sky-400" />
+              <MailCheck className="w-4 h-4 text-border-brand" />
               <h4 className="text-sm font-bold uppercase tracking-[0.2em]">Daily summary</h4>
             </div>
             <p className="text-xs text-text-tertiary mb-4">
@@ -317,9 +329,9 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 role="switch"
                 aria-checked={dailySummaryEnabled}
                 onClick={() => setDailySummaryEnabled((prev) => !prev)}
-                className={`relative inline-flex h-8 w-14 items-center rounded-full border transition-colors focus:outline-none focus:ring-2 focus:ring-sapphire-400 ${
+                className={`relative inline-flex h-8 w-14 items-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 ${
                   dailySummaryEnabled
-                    ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 border-transparent"
+                    ? "bg-border-brand border-transparent"
                     : "bg-bg-main/80 border-border-subtle/60"
                 }`}
               >
@@ -342,7 +354,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                   onChange={(event) => setDailySummaryEmail(event.target.value)}
                   placeholder="name@company.com"
                   disabled={!dailySummaryEnabled}
-                  className={`w-full px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand transition-colors ${
+                  name="dailySummaryEmail"
+                  autoComplete="email"
+                  spellCheck={false}
+                  className={`w-full px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors ${
                     !dailySummaryEnabled ? "opacity-60 cursor-not-allowed" : ""
                   }`}
                 />
@@ -350,7 +365,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               <button
                 onClick={handleSaveDailySummary}
                 disabled={savingDailySummary || dailySummaryLoading}
-                className="h-12 w-full sm:w-auto mt-2 sm:mt-7 px-4 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg hover:-translate-y-0.5 transition-transform disabled:opacity-60"
+                className="h-12 w-full sm:w-auto mt-2 sm:mt-7 px-4 py-3 rounded-xl font-semibold text-sm bg-sapphire-700 text-white shadow-sm hover:bg-sapphire-600 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                 type="button"
               >
                 {savingDailySummary
@@ -368,6 +383,8 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                     : "bg-red-500/10 text-red-400 border-red-500/30"
                 }`}
+                role="status"
+                aria-live="polite"
               >
                 {dailySummaryNotice.message}
               </div>

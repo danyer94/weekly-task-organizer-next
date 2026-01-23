@@ -84,10 +84,10 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
             key={currentDay.toString()}
             onClick={() => handleDateSelect(currentDay)}
             className={`
-              h-8 w-8 rounded-lg text-xs transition-all flex items-center justify-center
+              h-9 w-9 rounded-lg text-xs transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40
               ${!isCurrentMonth ? "text-text-tertiary opacity-30" : "text-text-secondary"}
-              ${isSelected ? "bg-sapphire-500 text-white font-bold shadow-sm" : "hover:bg-bg-main hover:text-text-brand"}
-              ${isToday && !isSelected ? "border border-sapphire-500/50 text-sapphire-500" : ""}
+              ${isSelected ? "bg-border-brand text-white font-semibold shadow-sm" : "hover:bg-bg-main/60 hover:text-text-primary"}
+              ${isToday && !isSelected ? "border border-border-brand/60 text-border-brand" : ""}
             `}
           >
             {format(currentDay, "d")}
@@ -110,7 +110,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
       <div className="flex items-center gap-2 w-full">
         <button
           onClick={() => shiftWeek(-1)}
-          className="p-2 rounded-xl bg-bg-surface/80 border border-border-subtle hover:border-border-hover text-text-secondary hover:text-text-brand transition-colors"
+          className="h-11 w-11 rounded-xl bg-bg-surface/80 border border-border-subtle hover:border-border-hover text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
           aria-label="Previous week"
           type="button"
         >
@@ -119,14 +119,14 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
 
         <button
           onClick={togglePicker}
-          className="flex-1 flex items-center justify-between gap-3 px-3 sm:px-4 py-3 bg-bg-surface/80 rounded-xl border border-border-subtle hover:border-border-hover transition-all group shadow-sm hover:-translate-y-0.5"
+          className="flex-1 flex items-center justify-between gap-3 px-3 sm:px-4 py-3 bg-bg-surface/80 rounded-xl border border-border-subtle hover:border-border-hover transition-colors group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
           type="button"
         >
 
           <div className="flex items-center gap-2 overflow-hidden">
-            <CalendarIcon className="w-4 h-4 text-text-tertiary group-hover:text-text-brand shrink-0" />
+            <CalendarIcon className="w-4 h-4 text-text-tertiary group-hover:text-text-primary shrink-0" />
             <div className="flex flex-col items-start truncate">
-              <span className="text-xs font-semibold text-text-brand whitespace-nowrap truncate max-w-[140px] sm:max-w-none">
+              <span className="text-xs font-semibold text-text-primary whitespace-nowrap truncate max-w-[140px] sm:max-w-none">
                 {format(selectedDate, "EEEE, MMMM d")}
               </span>
               <span className="text-[10px] text-text-tertiary uppercase tracking-wider font-bold">
@@ -139,7 +139,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
         </button>
         <button
           onClick={() => shiftWeek(1)}
-          className="p-2 rounded-xl bg-bg-surface/80 border border-border-subtle hover:border-border-hover text-text-secondary hover:text-text-brand transition-colors"
+          className="h-11 w-11 rounded-xl bg-bg-surface/80 border border-border-subtle hover:border-border-hover text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
           aria-label="Next week"
           type="button"
         >
@@ -148,15 +148,25 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-bg-surface/90 rounded-2xl border border-border-subtle shadow-xl z-[100] animate-in fade-in zoom-in duration-200 backdrop-blur-md max-w-[calc(100vw-2rem)]">
+        <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-bg-surface/90 rounded-2xl border border-border-subtle shadow-xl z-[100] animate-in fade-in zoom-in duration-200 motion-reduce:animate-none motion-reduce:transition-none backdrop-blur-md max-w-[calc(100vw-2rem)]">
           <div className="flex items-center justify-between mb-4">
-            <button onClick={prevMonth} className="p-1 hover:bg-bg-main rounded-lg text-text-secondary">
+            <button
+              onClick={prevMonth}
+              className="p-1 hover:bg-bg-main/60 rounded-lg text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+              aria-label="Previous month"
+              type="button"
+            >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <div className="text-sm font-bold text-text-brand">
+            <div className="text-sm font-semibold text-text-primary">
               {format(viewDate, "MMMM yyyy")}
             </div>
-            <button onClick={nextMonth} className="p-1 hover:bg-bg-main rounded-lg text-text-secondary">
+            <button
+              onClick={nextMonth}
+              className="p-1 hover:bg-bg-main/60 rounded-lg text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+              aria-label="Next month"
+              type="button"
+            >
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
@@ -167,7 +177,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
 
           <button 
             onClick={() => handleDateSelect(new Date())}
-            className="w-full mt-4 py-2 bg-sapphire-500/10 text-sapphire-500 text-xs font-bold rounded-lg hover:bg-sapphire-500/20 transition-colors"
+            className="w-full mt-4 py-2 bg-border-brand/10 text-border-brand text-xs font-semibold rounded-lg hover:bg-border-brand/15 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
           >
             Today
           </button>

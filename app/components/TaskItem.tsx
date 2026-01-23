@@ -52,9 +52,9 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   }, [isEditing, task]);
 
   const priorityColors: Record<Priority, string> = {
-    high: "border-l-red-500",
-    medium: "border-l-orange-500",
-    low: "border-l-green-500",
+    high: "border-l-rose-400",
+    medium: "border-l-amber-400",
+    low: "border-l-emerald-400",
   };
 
   const handleDragStart = () => {
@@ -81,10 +81,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       onDragStart={handleDragStart}
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
-      className={`group flex flex-col gap-3 rounded-2xl border-l-4 p-4 transition-all hover:shadow-lg hover:-translate-y-0.5 sm:flex-row sm:items-center sm:justify-between ${
+      className={`group flex flex-col gap-3 rounded-2xl border-l-2 p-4 transition-colors transition-shadow transition-transform hover:shadow-sm hover:-translate-y-0.5 sm:flex-row sm:items-center sm:justify-between ${
         task.completed
-          ? "bg-emerald-50/70 dark:bg-sapphire-800/70 " + priorityColors[task.priority]
-          : "bg-bg-surface/80 border-border-subtle " + priorityColors[task.priority]
+          ? "bg-bg-main/60 text-text-tertiary border-border-subtle " + priorityColors[task.priority]
+          : "bg-bg-surface/80 border border-border-subtle/60 " + priorityColors[task.priority]
       } ${isSelected ? "ring-2 ring-border-brand glow-ring" : ""} ${
         isAdmin ? "hover:bg-bg-main/70 cursor-move" : ""
       }`}
@@ -96,7 +96,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               type="checkbox"
               checked={isSelected}
               onChange={() => onToggleSelection(task.id)}
-              className="w-5 h-5 text-text-brand rounded focus:ring-border-brand cursor-pointer accent-sky-500"
+              aria-label={`Select task: ${task.text}`}
+              className="w-5 h-5 text-text-brand rounded focus:ring-border-brand cursor-pointer accent-sky-600"
             />
             <GripVertical className="w-4 h-4 text-text-tertiary cursor-grab hidden sm:inline-flex" />
           </div>
@@ -107,11 +108,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             type="checkbox"
             checked={task.completed}
             onChange={() => onToggleComplete(day, task.id)}
+            aria-label={`Mark task as ${task.completed ? "incomplete" : "complete"}: ${task.text}`}
             className="w-6 h-6 text-emerald-500 rounded focus:ring-emerald-500 cursor-pointer mr-2"
           />
         )}
         {isEditing && setEditingTaskId ? (
-          <div className="flex flex-1 flex-col gap-2 animate-fade-in items-stretch sm:flex-row sm:items-center">
+          <div className="flex flex-1 flex-col gap-2 animate-fade-in motion-reduce:animate-none items-stretch sm:flex-row sm:items-center">
             <PrioritySelector 
               priority={editPriority} 
               setPriority={setEditPriority} 
@@ -126,20 +128,23 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 if (e.key === "Enter") handleEditSubmit();
                 if (e.key === "Escape") setEditingTaskId(null);
               }}
-              className="w-full flex-1 p-2 border border-sapphire-500/70 rounded-lg focus:outline-none bg-bg-main/70"
+              name="taskText"
+              autoComplete="off"
+              aria-label="Edit task text"
+              className="w-full flex-1 p-2 border border-border-brand/40 rounded-lg focus:outline-none bg-bg-main/70 focus-visible:ring-2 focus-visible:ring-border-brand/30"
               autoFocus
             />
             <div className="flex items-center gap-2">
               <button
                 onClick={handleEditSubmit}
-                className="px-3 py-1 bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white rounded-lg text-sm hover:shadow-lg transition-colors"
+                className="px-3 py-1 bg-sapphire-700 text-white rounded-lg text-sm hover:bg-sapphire-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                 title="Save"
               >
                 <Save className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setEditingTaskId(null)}
-                className="px-3 py-1 bg-gray-400/80 text-white rounded-lg text-sm hover:bg-gray-500 transition-colors"
+                className="px-3 py-1 bg-bg-main text-text-secondary border border-border-subtle rounded-lg text-sm hover:bg-bg-main/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                 title="Cancel"
               >
                 <X className="w-4 h-4" />
@@ -161,7 +166,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
                 <button
                   onClick={() => onCreateCalendarEvent?.(day, task)}
-                  className="flex max-w-full items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2 py-1 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100/80 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/30 sm:text-sm"
+                  className="flex max-w-full items-center gap-1.5 rounded-full border border-emerald-200/70 bg-emerald-50/70 px-2 py-1 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-100/80 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/30 sm:text-sm"
                   title="Click to edit event time"
                 >
                   {hasCalendarEvent ? (
@@ -178,7 +183,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
                 {onDeleteCalendarEvent && hasCalendarEvent && (
                   <button
                     onClick={() => onDeleteCalendarEvent(day, task)}
-                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50/80 dark:hover:bg-red-900/20 rounded transition-colors"
+                    aria-label="Delete calendar event"
+                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50/80 dark:hover:bg-red-900/20 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/60"
                     title="Delete from calendar"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -196,7 +202,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           {onCreateCalendarEvent && (
             <button
               onClick={() => onCreateCalendarEvent(day, task)}
-              className={`p-2 transition-colors ${
+              aria-label={hasCalendarEvent ? "Edit calendar event" : "Create calendar event"}
+              className={`p-2.5 rounded-full transition-colors ${
                 hasCalendarEvent
                   ? "text-emerald-600 hover:text-emerald-700"
                   : "text-gray-400 hover:text-emerald-600"
@@ -216,7 +223,8 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           )}
           <button
             onClick={() => setEditingTaskId(task.id)}
-            className="text-gray-400 hover:text-sapphire-600 p-2 transition-colors"
+            aria-label="Edit task"
+            className="text-text-tertiary hover:text-text-primary p-2.5 rounded-full transition-colors"
             title="Edit"
           >
             <Pencil className="w-4 h-4" />

@@ -7,8 +7,8 @@ const WeeklyTaskOrganizer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 flex items-center justify-center">
-        <div className="text-white text-2xl font-bold animate-pulse">
+      <div className="min-h-screen bg-bg-main flex items-center justify-center">
+        <div className="text-text-primary text-2xl font-semibold animate-pulse motion-reduce:animate-none">
           Loading...
         </div>
       </div>
@@ -18,7 +18,7 @@ const WeeklyTaskOrganizer = dynamic(
 
 export default function Home() {
   return (
-    <main>
+    <main id="main-content">
       <WeeklyTaskOrganizer />
     </main>
   );
