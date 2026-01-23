@@ -805,14 +805,14 @@ const WeeklyTaskOrganizer: React.FC = () => {
       {/* Modals */}
       <DaySelectionModal
         show={showMoveModal}
-        title="Move to..."
+        title="Move to…"
         days={DAYS}
         onClose={() => setShowMoveModal(false)}
         onConfirm={(days) => handleMoveOrCopy(days, true)}
       />
       <DaySelectionModal
         show={showCopyModal}
-        title="Copy to..."
+        title="Copy to…"
         days={DAYS}
         onClose={() => setShowCopyModal(false)}
         onConfirm={(days) => handleMoveOrCopy(days, false)}

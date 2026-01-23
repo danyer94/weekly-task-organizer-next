@@ -9,7 +9,7 @@ const WeeklyTaskOrganizer = dynamic(
     loading: () => (
       <div className="min-h-screen bg-bg-main flex items-center justify-center">
         <div className="text-text-primary text-2xl font-semibold animate-pulse motion-reduce:animate-none">
-          Loading...
+          Loading…
         </div>
       </div>
     ),

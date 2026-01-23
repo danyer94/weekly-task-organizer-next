@@ -119,7 +119,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             value={newTaskText}
             onChange={(e) => setNewTaskText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && onAddTask()}
-            placeholder="Add new task..."
+            placeholder="Add new task…"
             name="newTask"
             autoComplete="off"
             aria-label="New task"

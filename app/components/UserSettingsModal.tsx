@@ -229,7 +229,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 className="w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-sapphire-700 text-white shadow-sm hover:bg-sapphire-600 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                 type="button"
               >
-                {savingName ? "Saving..." : "Save name"}
+                {savingName ? "Saving…" : "Save name"}
               </button>
 
             </div>
@@ -286,7 +286,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               className="mt-3 w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-slate-800 text-white shadow-sm hover:bg-slate-700 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
               type="button"
             >
-              {savingPassword ? "Updating..." : "Update password"}
+              {savingPassword ? "Updating…" : "Update password"}
             </button>
 
             <p className="mt-2 text-xs text-text-tertiary">
@@ -369,9 +369,9 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 type="button"
               >
                 {savingDailySummary
-                  ? "Saving..."
+                  ? "Saving…"
                   : dailySummaryLoading
-                    ? "Loading..."
+                    ? "Loading…"
                     : "Save preferences"}
               </button>
 

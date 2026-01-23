@@ -36,7 +36,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         }`}
       >
         <Bell className="w-4 h-4" />
-        <span className="truncate">{isSendingDailySummary ? "Sending..." : "Send Daily Summary"}</span>
+        <span className="truncate">{isSendingDailySummary ? "Sending…" : "Send Daily Summary"}</span>
       </button>
       <button
         onClick={onClearCompleted}

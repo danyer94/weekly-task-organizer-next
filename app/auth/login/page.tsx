@@ -218,9 +218,12 @@ export default function LoginPage() {
                 <div className="flex justify-between items-center ml-1">
                   <label className="text-sm font-medium text-text-secondary">Password</label>
                   {!isSignUp && (
-                    <a href="#" className="text-xs text-border-brand hover:text-text-primary transition-colors">
+                    <button
+                      type="button"
+                      className="text-xs text-border-brand hover:text-text-primary transition-colors"
+                    >
                       Forgot password?
-                    </a>
+                    </button>
                   )}
                 </div>
                 <div className="relative">
@@ -271,13 +274,13 @@ export default function LoginPage() {
 
           <p className="mt-8 text-center text-sm text-text-tertiary">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-            <a 
-              href="#" 
+            <button 
+              type="button"
               onClick={toggleMode}
               className="text-border-brand font-medium hover:text-text-primary"
             >
               {isSignUp ? "Sign In" : "Sign Up"}
-            </a>
+            </button>
           </p>
         </div>
       </div>

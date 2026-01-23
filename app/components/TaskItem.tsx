@@ -132,7 +132,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               autoComplete="off"
               aria-label="Edit task text"
               className="w-full flex-1 p-2 border border-border-brand/40 rounded-lg focus:outline-none bg-bg-main/70 focus-visible:ring-2 focus-visible:ring-border-brand/30"
-              autoFocus
             />
             <div className="flex items-center gap-2">
               <button

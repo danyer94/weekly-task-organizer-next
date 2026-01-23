@@ -123,7 +123,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                 >
                   <span>
                     {isCheckingGoogle
-                      ? "Checking Google..."
+                      ? "Checking Google…"
                       : isGoogleConnected
                       ? "Google Connected"
                       : "Connect Google Calendar"}
