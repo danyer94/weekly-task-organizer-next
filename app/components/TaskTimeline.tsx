@@ -51,7 +51,7 @@ const buildTimedBlocks = (tasks: Task[]): TimedTaskBlock[] => {
       return {
         task,
         startMinutes: start,
-        endMinutes: Math.max(end, start + 15),
+        endMinutes: Math.max(end, start + MIN_RESIZE_MINUTES),
       };
     })
     .sort((a, b) => a.startMinutes - b.startMinutes);
@@ -429,13 +429,13 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                         {onScheduleChange && (
                           <>
                             <div
-                              className="absolute left-1 right-1 top-0 h-2 cursor-ns-resize rounded-full bg-border-subtle/40"
+                              className="absolute left-1 right-1 top-0 z-10 h-3 cursor-ns-resize rounded-full bg-border-subtle/60"
                               onPointerDown={(event) =>
                                 handlePointerDown(event, block, "resize-top")
                               }
                             />
                             <div
-                              className="absolute left-1 right-1 bottom-0 h-2 cursor-ns-resize rounded-full bg-border-subtle/40"
+                              className="absolute left-1 right-1 bottom-0 z-10 h-3 cursor-ns-resize rounded-full bg-border-subtle/60"
                               onPointerDown={(event) =>
                                 handlePointerDown(event, block, "resize-bottom")
                               }
