@@ -3,8 +3,8 @@ import { Task } from "@/types";
 import { Calendar, Clock, Sparkles } from "lucide-react";
 
 const DEFAULT_EVENT_DURATION_MINUTES = 60;
-const DAY_START_MINUTES = 6 * 60;
-const DAY_END_MINUTES = 22 * 60;
+const DAY_START_MINUTES = 0;
+const DAY_END_MINUTES = 24 * 60;
 
 interface TimedTaskBlock {
   task: Task;
@@ -37,8 +37,8 @@ const formatHourLabel = (hour: number) => {
   return `${hour12}:00 ${period}`;
 };
 
-const MIN_RESIZE_MINUTES = 15;
-const MINUTE_STEP = 15;
+const MIN_RESIZE_MINUTES = 5;
+const MINUTE_STEP = 5;
 
 const buildTimedBlocks = (tasks: Task[]): TimedTaskBlock[] => {
   const timed = tasks
