@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { Task } from "@/types";
 import { Calendar, Clock, Sparkles } from "lucide-react";
 
@@ -17,6 +17,7 @@ interface TimedTaskBlock {
 interface TaskTimelineProps {
   tasks: Task[];
   className?: string;
+  onScheduleChange?: (task: Task, startTime: string, endTime: string) => void;
 }
 
 const toMinutes = (time: string) => {
@@ -24,9 +25,10 @@ const toMinutes = (time: string) => {
   return hour * 60 + minute;
 };
 
-const toDisplayTime = (time?: string | null) => {
-  if (!time) return "All day";
-  return time;
+const toTimeString = (minutes: number) => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
 };
 
 const formatHourLabel = (hour: number) => {
@@ -35,7 +37,8 @@ const formatHourLabel = (hour: number) => {
   return `${hour12}:00 ${period}`;
 };
 
-
+const MIN_RESIZE_MINUTES = 15;
+const MINUTE_STEP = 15;
 
 const buildTimedBlocks = (tasks: Task[]): TimedTaskBlock[] => {
   const timed = tasks
@@ -116,14 +119,6 @@ const buildTimedBlocks = (tasks: Task[]): TimedTaskBlock[] => {
   return blocks;
 };
 
-const formatTimeRange = (task: Task) => {
-  const start = task.calendarEvent?.startTime;
-  const end = task.calendarEvent?.endTime;
-  if (!start) return "All day";
-  if (!end) return start;
-  return `${start} – ${end}`;
-};
-
 const TaskCard: React.FC<{
   task: Task;
   timeLabel?: string;
@@ -174,6 +169,7 @@ const TaskCard: React.FC<{
 export const TaskTimeline: React.FC<TaskTimelineProps> = ({
   tasks,
   className = "",
+  onScheduleChange,
 }) => {
   const allDayTasks = tasks.filter(
     (task) => task.calendarEvent && !task.calendarEvent.startTime
@@ -182,7 +178,23 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
   const unscheduledTasks = tasks.filter((task) => !task.calendarEvent);
   const hasScheduled = timedTasks.length > 0;
 
-  const blocks = buildTimedBlocks(timedTasks);
+  const blocks = useMemo(() => buildTimedBlocks(timedTasks), [timedTasks]);
+
+  const [dragState, setDragState] = useState<{
+    task: Task;
+    mode: "move" | "resize-top" | "resize-bottom";
+    pointerStartY: number;
+    startMinutes: number;
+    endMinutes: number;
+  } | null>(null);
+  const [previewTimes, setPreviewTimes] = useState<
+    Record<string, { startMinutes: number; endMinutes: number }>
+  >({});
+  const previewRef = useRef(previewTimes);
+
+  useEffect(() => {
+    previewRef.current = previewTimes;
+  }, [previewTimes]);
 
   const timelineRangeStart = Math.min(
     DAY_START_MINUTES,
@@ -199,6 +211,105 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
   const timelineContainerHeight = timelineHeight + timelinePadding * 2;
   const minuteToPx = (minute: number) =>
     ((minute - timelineRangeStart) / 60) * hourHeight + timelinePadding;
+
+  const clampMinutes = useCallback(
+    (value: number, min: number, max: number) => Math.min(Math.max(value, min), max),
+    []
+  );
+
+  const getDeltaMinutes = useCallback(
+    (deltaY: number) => {
+      const rawMinutes = (deltaY / hourHeight) * 60;
+      return Math.round(rawMinutes / MINUTE_STEP) * MINUTE_STEP;
+    },
+    [hourHeight]
+  );
+
+  const handlePointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+    block: TimedTaskBlock,
+    mode: "move" | "resize-top" | "resize-bottom"
+  ) => {
+    if (!onScheduleChange) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setDragState({
+      task: block.task,
+      mode,
+      pointerStartY: event.clientY,
+      startMinutes: block.startMinutes,
+      endMinutes: block.endMinutes,
+    });
+  };
+
+  useEffect(() => {
+    if (!dragState) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const deltaMinutes = getDeltaMinutes(event.clientY - dragState.pointerStartY);
+      let nextStart = dragState.startMinutes;
+      let nextEnd = dragState.endMinutes;
+
+      if (dragState.mode === "move") {
+        const duration = dragState.endMinutes - dragState.startMinutes;
+        nextStart = clampMinutes(
+          dragState.startMinutes + deltaMinutes,
+          DAY_START_MINUTES,
+          DAY_END_MINUTES - duration
+        );
+        nextEnd = nextStart + duration;
+      } else if (dragState.mode === "resize-top") {
+        nextStart = clampMinutes(
+          dragState.startMinutes + deltaMinutes,
+          DAY_START_MINUTES,
+          dragState.endMinutes - MIN_RESIZE_MINUTES
+        );
+        nextEnd = dragState.endMinutes;
+      } else {
+        nextStart = dragState.startMinutes;
+        nextEnd = clampMinutes(
+          dragState.endMinutes + deltaMinutes,
+          dragState.startMinutes + MIN_RESIZE_MINUTES,
+          DAY_END_MINUTES
+        );
+      }
+
+      setPreviewTimes((prev) => ({
+        ...prev,
+        [dragState.task.id]: {
+          startMinutes: nextStart,
+          endMinutes: nextEnd,
+        },
+      }));
+    };
+
+    const handlePointerUp = () => {
+      const preview = previewRef.current[dragState.task.id];
+      const finalStart = preview?.startMinutes ?? dragState.startMinutes;
+      const finalEnd = preview?.endMinutes ?? dragState.endMinutes;
+      setPreviewTimes((prev) => {
+        const next = { ...prev };
+        delete next[dragState.task.id];
+        return next;
+      });
+      setDragState(null);
+      if (onScheduleChange) {
+        onScheduleChange(
+          dragState.task,
+          toTimeString(finalStart),
+          toTimeString(finalEnd)
+        );
+      }
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [clampMinutes, dragState, getDeltaMinutes, onScheduleChange]);
 
   const renderEmpty = (label: string, description: string) => (
 
@@ -287,8 +398,11 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                     );
                   })}
                   {blocks.map((block) => {
-                    const top = minuteToPx(block.startMinutes);
-                    const height = ((block.endMinutes - block.startMinutes) / 60) * hourHeight;
+                    const preview = previewTimes[block.task.id];
+                    const startMinutes = preview?.startMinutes ?? block.startMinutes;
+                    const endMinutes = preview?.endMinutes ?? block.endMinutes;
+                    const top = minuteToPx(startMinutes);
+                    const height = ((endMinutes - startMinutes) / 60) * hourHeight;
                     const columnWidth = 100 / block.columns;
                     const left = columnWidth * block.column;
                     const width = block.columns === 1
@@ -299,17 +413,38 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                     return (
                       <div
                         key={block.task.id}
-                        className="absolute min-h-[40px]"
+                        className={`absolute min-h-[40px] ${
+                          onScheduleChange
+                            ? "cursor-grab active:cursor-grabbing select-none touch-none"
+                            : ""
+                        }`}
                         style={{
                           left: leftPos,
                           width,
                           top: `${top}px`,
                           height: `${Math.max(height, 40)}px`,
                         }}
+                        onPointerDown={(event) => handlePointerDown(event, block, "move")}
                       >
+                        {onScheduleChange && (
+                          <>
+                            <div
+                              className="absolute left-1 right-1 top-0 h-2 cursor-ns-resize rounded-full bg-border-subtle/40"
+                              onPointerDown={(event) =>
+                                handlePointerDown(event, block, "resize-top")
+                              }
+                            />
+                            <div
+                              className="absolute left-1 right-1 bottom-0 h-2 cursor-ns-resize rounded-full bg-border-subtle/40"
+                              onPointerDown={(event) =>
+                                handlePointerDown(event, block, "resize-bottom")
+                              }
+                            />
+                          </>
+                        )}
                         <TaskCard
                           task={block.task}
-                          timeLabel={formatTimeRange(block.task)}
+                          timeLabel={`${toTimeString(startMinutes)} – ${toTimeString(endMinutes)}`}
                           isTimed
                           compact
                         />

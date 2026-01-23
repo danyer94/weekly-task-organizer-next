@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { useWeeklyTasks, DAYS } from "@/hooks/useWeeklyTasks";
 import type { DailySummarySettings } from "@/types";
 import { Day, Priority, Task } from "@/types";
@@ -487,6 +487,38 @@ const WeeklyTaskOrganizer: React.FC = () => {
     }
   };
 
+  const handleTimelineScheduleChange = useCallback(
+    async (day: Day, task: Task, startTime: string, endTime: string) => {
+      if (!task.calendarEvent?.eventId || !selectedDate) return;
+
+      const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const payload = taskToCalendarEvent(
+        day,
+        task,
+        startTime.trim(),
+        endTime.trim(),
+        selectedDate,
+        userTimeZone
+      );
+
+      updateTaskCalendarEvent(day, task.id, {
+        eventId: task.calendarEvent.eventId,
+        date: payload.date,
+        startTime: payload.startTime ?? null,
+        endTime: payload.endTime ?? null,
+      });
+
+      if (!isGoogleConnected) return;
+
+      try {
+        await updateTaskEventForRamon(task.calendarEvent.eventId, payload);
+      } catch (error) {
+        console.error("Failed to update calendar event from timeline", error);
+      }
+    },
+    [isGoogleConnected, selectedDate, updateTaskCalendarEvent]
+  );
+
   const handleSyncCalendar = async () => {
     if (!isGoogleConnected) {
       alert("Please connect Google Calendar first.");
@@ -740,6 +772,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 setEditingTaskId={setEditingTaskId}
                 onCreateCalendarEvent={handleCreateCalendarEvent}
                 onDeleteCalendarEvent={handleDeleteCalendarEvent}
+                onTimelineScheduleChange={handleTimelineScheduleChange}
               />
             </>
           ) : (
@@ -751,6 +784,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 onDayChange={setCurrentUserDay}
                 tasks={tasks}
                 onToggleComplete={toggleComplete}
+                onTimelineScheduleChange={handleTimelineScheduleChange}
                 groupByPriority={groupByPriority}
                 setGroupByPriority={setGroupByPriority}
                 selectedDate={selectedDate}

@@ -45,6 +45,7 @@ interface AdminViewProps {
   setEditingTaskId: (id: string | null) => void;
   onCreateCalendarEvent?: (day: Day, task: Task) => void;
   onDeleteCalendarEvent?: (day: Day, task: Task) => void;
+  onTimelineScheduleChange?: (day: Day, task: Task, startTime: string, endTime: string) => void;
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({
@@ -74,6 +75,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
   setEditingTaskId,
   onCreateCalendarEvent,
   onDeleteCalendarEvent,
+  onTimelineScheduleChange,
 }) => {
   const [viewMode, setViewMode] = useState<TaskViewMode>("timeline-list");
   const dayTasks = tasks[currentDay] || [];
@@ -204,7 +206,15 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
         {(viewMode === "timeline" || viewMode === "timeline-list") && (
           <div className={viewMode === "timeline-list" ? "mt-8" : ""}>
-            <TaskTimeline tasks={dayTasks} />
+            <TaskTimeline
+              tasks={dayTasks}
+              onScheduleChange={
+                onTimelineScheduleChange
+                  ? (task, startTime, endTime) =>
+                      onTimelineScheduleChange(currentDay, task, startTime, endTime)
+                  : undefined
+              }
+            />
           </div>
         )}
 
