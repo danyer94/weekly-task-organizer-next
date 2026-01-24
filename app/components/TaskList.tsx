@@ -75,9 +75,9 @@ export const TaskList: React.FC<TaskListProps> = ({
     });
 
     const priorities = [
-      { key: "high", label: "High Priority", color: "text-red-500" },
-      { key: "medium", label: "Medium Priority", color: "text-orange-500" },
-      { key: "low", label: "Low Priority", color: "text-green-500" },
+      { key: "high", label: "High Priority", color: "text-rose-400" },
+      { key: "medium", label: "Medium Priority", color: "text-amber-400" },
+      { key: "low", label: "Low Priority", color: "text-emerald-400" },
     ];
 
     return (
@@ -87,7 +87,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           if (groupTasks.length === 0) return null;
           return (
             <div key={p.key}>
-              <h4 className="text-sm font-bold text-text-secondary mb-3 uppercase tracking-[0.3em] flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-text-secondary mb-3 uppercase tracking-[0.3em] flex items-center gap-2">
                 <Circle className={`w-3 h-3 fill-current ${p.color}`} />
                 <span>{p.label}</span>
               </h4>

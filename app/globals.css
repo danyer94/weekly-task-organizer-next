@@ -5,17 +5,17 @@
   /* --- PALETTE DEFINITIONS (Raw Colors) --- */
   
   /* Sapphire Scale (Blue/Brand) */
-  --color-sapphire-50: #f0f7fb;
-  --color-sapphire-100: #dbeafe;
-  --color-sapphire-200: #A8C4EC;
-  --color-sapphire-300: #7da0d6;
-  --color-sapphire-400: #5379AE;
-  --color-sapphire-500: #0474C4;
-  --color-sapphire-600: #0360a3;
-  --color-sapphire-700: #06457F;
-  --color-sapphire-800: #2C444C;
-  --color-sapphire-900: #262B40;
-  --color-sapphire-950: #1a1e2e;
+  --color-sapphire-50: #f2f6f8;
+  --color-sapphire-100: #e6edf2;
+  --color-sapphire-200: #cfd9e2;
+  --color-sapphire-300: #b1c1d1;
+  --color-sapphire-400: #8aa2ba;
+  --color-sapphire-500: #5f82a3;
+  --color-sapphire-600: #416581;
+  --color-sapphire-700: #2d4a63;
+  --color-sapphire-800: #22374a;
+  --color-sapphire-900: #182633;
+  --color-sapphire-950: #0c141d;
 
   /* Neutrals */
   --color-white: #ffffff;
@@ -54,35 +54,37 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     /* LIGHT MODE MAPPING */
-    --bg-main: var(--color-sapphire-50);
-    --bg-surface: var(--color-white);
-    --bg-sidebar: var(--color-white);
+    --bg-main: #f4f7f9;
+    --bg-surface: #ffffff;
+    --bg-sidebar: #f7f9fb;
     
-    --text-primary: var(--color-gray-800);
-    --text-secondary: var(--color-gray-600);
-    --text-tertiary: var(--color-gray-400);
-    --text-brand: var(--color-sapphire-600);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    --text-brand: #0f7a8a;
     
-    --border-subtle: var(--color-gray-200);
-    --border-brand: var(--color-sapphire-500);
-    --border-hover: var(--color-sapphire-300);
+    --border-subtle: #e2e8f0;
+    --border-brand: #0ea5b7;
+    --border-hover: #7dd3e3;
   }
 
   .dark {
+    color-scheme: dark;
     /* DARK MODE MAPPING */
-    --bg-main: var(--color-sapphire-950);
-    --bg-surface: var(--color-sapphire-900);
-    --bg-sidebar: var(--color-sapphire-900);
+    --bg-main: #0b1117;
+    --bg-surface: #111823;
+    --bg-sidebar: #0f1722;
     
-    --text-primary: var(--color-sapphire-50);
-    --text-secondary: var(--color-sapphire-200);
-    --text-tertiary: var(--color-sapphire-300);
-    --text-brand: var(--color-sapphire-400);
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+    --text-brand: #5ee0f5;
     
-    --border-subtle: var(--color-sapphire-800);
-    --border-brand: var(--color-sapphire-400);
-    --border-hover: var(--color-sapphire-500);
+    --border-subtle: #1f2937;
+    --border-brand: #38bdf8;
+    --border-hover: #0ea5e9;
   }
 }
 
@@ -133,15 +135,15 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-bg-surface/80 backdrop-blur-xl border border-border-subtle shadow-[0_20px_60px_rgba(15,23,42,0.35)];
+    @apply bg-bg-surface/75 backdrop-blur-xl border border-border-subtle shadow-[0_16px_40px_rgba(15,23,42,0.12)];
   }
 
   .glow-ring {
-    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45), 0 0 28px rgba(56, 189, 248, 0.35);
+    box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.35), 0 10px 30px rgba(15, 23, 42, 0.12);
   }
 
   .glow-border {
-    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2), 0 15px 40px rgba(15, 23, 42, 0.4);
+    box-shadow: inset 0 0 0 1px rgba(125, 211, 227, 0.2), 0 18px 40px rgba(15, 23, 42, 0.16);
   }
 
   .animate-float-slow {
@@ -159,10 +161,23 @@
 
 /* Base styles */
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-bg-main);
   color: var(--color-text-primary);
   transition: background-color 0.3s, color 0.3s;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+button,
+[role="button"],
+a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }

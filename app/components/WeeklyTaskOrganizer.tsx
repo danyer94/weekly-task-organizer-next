@@ -401,7 +401,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
       }
     } catch (error) {
       console.error(error);
-      alert("❌ Failed to update Google Calendar for moved/copied tasks.");
+      alert("Error: Failed to update Google Calendar for moved/copied tasks.");
     }
   };
 
@@ -457,10 +457,10 @@ const WeeklyTaskOrganizer: React.FC = () => {
         endTime: payload.endTime,
       });
 
-      alert("✅ Calendar event created for this task!");
+      alert("Success: Calendar event created for this task.");
     } catch (error) {
       console.error(error);
-      alert("❌ Failed to create calendar event. Check the console for details.");
+      alert("Error: Failed to create calendar event. Check the console for details.");
     } finally {
       setShowCalendarModal(false);
       setSelectedTaskForCalendar(null);
@@ -477,10 +477,10 @@ const WeeklyTaskOrganizer: React.FC = () => {
     try {
       await deleteTaskEventForRamon(task.calendarEvent.eventId);
       updateTaskCalendarEvent(day, task.id, null);
-      alert("✅ Calendar event deleted!");
+      alert("Success: Calendar event deleted.");
     } catch (error) {
       console.error(error);
-      alert("❌ Failed to delete calendar event. Check the console for details.");
+      alert("Error: Failed to delete calendar event. Check the console for details.");
     }
   };
 
@@ -578,14 +578,14 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
       if (deletedCount > 0 || updatedCount > 0) {
         alert(
-          `✅ Sync complete! ${deletedCount} event(s) deleted, ${updatedCount} event(s) updated.`
+          `Sync complete. ${deletedCount} event(s) deleted, ${updatedCount} event(s) updated.`
         );
       } else {
-        alert("✅ Sync complete! All events are up to date.");
+        alert("Sync complete. All events are up to date.");
       }
     } catch (error) {
       console.error(error);
-      alert("❌ Failed to sync calendar events. Check the console for details.");
+      alert("Error: Failed to sync calendar events. Check the console for details.");
     }
   };
 
@@ -626,15 +626,17 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-bg-main p-4 font-sans transition-colors duration-300 relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_55%),radial-gradient(circle_at_20%_20%,_rgba(168,85,247,0.18),_transparent_50%),radial-gradient(circle_at_80%_10%,_rgba(14,165,233,0.2),_transparent_45%)]"></div>
-      <div className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-30 bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:80px_80px]"></div>
-      <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-gradient-to-br from-sky-400/30 via-fuchsia-400/20 to-transparent blur-3xl animate-float-slow"></div>
-      <div className="absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-gradient-to-tr from-cyan-400/25 via-blue-500/20 to-transparent blur-3xl animate-float-slow"></div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,183,0.16),_transparent_55%),radial-gradient(circle_at_85%_12%,_rgba(15,23,42,0.12),_transparent_55%)]"></div>
+      <div className="pointer-events-none absolute inset-0 opacity-35 dark:opacity-25 bg-[linear-gradient(rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:120px_120px]"></div>
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-border-brand/40 to-transparent opacity-40"></div>
+        <div className="absolute left-8 top-20 bottom-10 w-px bg-gradient-to-b from-transparent via-border-brand/30 to-transparent opacity-30"></div>
+      </div>
       <div className="fixed top-0 left-0 right-0 z-50 px-4">
         <div className="max-w-7xl mx-auto">
           <header
             ref={headerRef}
-            className="glass-panel rounded-2xl px-4 sm:px-6 py-4 border border-border-subtle/60 shadow-2xl"
+            className="glass-panel rounded-2xl px-4 sm:px-6 py-4 border border-border-subtle/70 shadow-lg"
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex flex-wrap items-center gap-3 min-w-0 sm:flex-1 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
@@ -643,39 +645,44 @@ const WeeklyTaskOrganizer: React.FC = () => {
                     <img
                       src="/images/calendar-icon-no-background.png"
                       alt="Calendar"
+                      width={44}
+                      height={44}
                       className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0"
                     />
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs uppercase tracking-[0.4em] text-text-tertiary">Neon Ops</span>
-                      <h1 className="text-lg sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-sky-400 via-blue-500 to-fuchsia-400 bg-clip-text text-transparent animate-gradient-pan leading-tight">
+                      <span className="text-xs uppercase tracking-[0.35em] text-text-tertiary">Operations Week</span>
+                      <h1 className="text-lg sm:text-2xl md:text-3xl font-semibold text-text-primary leading-tight">
                         Weekly Task Organizer
                       </h1>
+                      <div className="mt-2 h-px w-20 bg-gradient-to-r from-border-brand/70 via-border-brand/30 to-transparent"></div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 bg-bg-main/70 rounded-full text-xs font-medium border border-border-subtle glow-ring shrink-0">
+                  <div className="flex items-center gap-2 px-3 py-1 bg-bg-main/60 rounded-full text-xs font-medium border border-border-subtle shrink-0">
                     <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
                     <span className="capitalize text-text-secondary">{syncStatus}</span>
                   </div>
                 </div>
 
 
-                <div className="flex items-center gap-1 rounded-xl border border-border-subtle bg-bg-main/70 p-1 shrink-0">
+                <div className="flex items-center gap-1 rounded-2xl border border-border-subtle bg-bg-main/60 p-1 shrink-0">
                   <button
                     onClick={() => setIsAdmin(true)}
-                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${isAdmin
-                      ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
-                      : "text-text-secondary hover:bg-bg-sidebar"
-                      }`}
+                    className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand ${
+                      isAdmin
+                        ? "bg-bg-surface text-text-primary shadow-sm border border-border-subtle/70"
+                        : "text-text-secondary hover:bg-bg-surface/70 hover:text-text-primary"
+                    }`}
                   >
                     <ShieldCheck className="w-4 h-4" />
                     <span>Administrator</span>
                   </button>
                   <button
                     onClick={() => setIsAdmin(false)}
-                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${!isAdmin
-                      ? "bg-gradient-to-r from-sapphire-500 to-cyan-500 text-white shadow-lg"
-                      : "text-text-secondary hover:bg-bg-sidebar"
-                      }`}
+                    className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand ${
+                      !isAdmin
+                        ? "bg-bg-surface text-text-primary shadow-sm border border-border-subtle/70"
+                        : "text-text-secondary hover:bg-bg-surface/70 hover:text-text-primary"
+                    }`}
                   >
                     <UserIcon className="w-4 h-4" />
                     <span className="max-w-[140px] truncate">{displayName}</span>
@@ -798,14 +805,14 @@ const WeeklyTaskOrganizer: React.FC = () => {
       {/* Modals */}
       <DaySelectionModal
         show={showMoveModal}
-        title="Move to..."
+        title="Move to…"
         days={DAYS}
         onClose={() => setShowMoveModal(false)}
         onConfirm={(days) => handleMoveOrCopy(days, true)}
       />
       <DaySelectionModal
         show={showCopyModal}
-        title="Copy to..."
+        title="Copy to…"
         days={DAYS}
         onClose={() => setShowCopyModal(false)}
         onConfirm={(days) => handleMoveOrCopy(days, false)}

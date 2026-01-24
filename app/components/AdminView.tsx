@@ -96,11 +96,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
   return (
     <div className="lg:col-span-9 space-y-6">
 
-      <div className="glass-panel rounded-2xl border border-border-subtle/60 p-4 glow-border sm:p-6">
+      <div className="glass-panel rounded-2xl border border-border-subtle/70 p-4 glow-border sm:p-6">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-text-primary sm:text-3xl">{currentDay}</h2>
-            <p className="text-text-brand font-medium">Mission Control · Weekly Overview</p>
+            <p className="text-text-secondary font-medium">Operations Board - Weekly overview</p>
           </div>
           <div className="w-full max-w-xl">
             <TaskViewToggle value={viewMode} onChange={setViewMode} />
@@ -119,12 +119,15 @@ export const AdminView: React.FC<AdminViewProps> = ({
             value={newTaskText}
             onChange={(e) => setNewTaskText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && onAddTask()}
-            placeholder="Add new task..."
-            className="w-full flex-1 rounded-xl border border-border-subtle bg-bg-surface/80 p-3 text-text-primary placeholder-text-secondary shadow-inner transition-colors focus:border-border-brand focus:outline-none"
+            placeholder="Add new task…"
+            name="newTask"
+            autoComplete="off"
+            aria-label="New task"
+            className="w-full flex-1 rounded-xl border border-border-subtle bg-bg-surface/80 p-3 text-text-primary placeholder-text-tertiary shadow-inner transition-colors focus:border-border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30"
           />
           <button
             onClick={onAddTask}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sapphire-500 via-blue-500 to-cyan-500 px-6 py-3 font-bold text-white transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-95 md:w-auto"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-sapphire-700 px-6 py-3 font-semibold text-white transition-colors transition-transform hover:bg-sapphire-600 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand active:scale-95 md:w-auto"
           >
             <Plus className="w-5 h-5" />
             <span>Add Task</span>
@@ -133,27 +136,27 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
         {/* Selection Actions Toolbar */}
         {selectedTasks.size > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4 p-2 bg-bg-main/70 rounded-lg animate-fade-in border border-border-subtle/60">
-            <span className="flex items-center text-sm font-bold text-text-brand mr-2 w-full sm:w-auto">
+          <div className="flex flex-wrap gap-2 mb-4 p-2 bg-bg-main/60 rounded-xl animate-fade-in motion-reduce:animate-none border border-border-subtle/60">
+            <span className="flex items-center text-sm font-semibold text-text-secondary mr-2 w-full sm:w-auto">
               {selectedTasks.size} selected
             </span>
             <button
               onClick={onDeleteSelected}
-              className="w-full sm:w-auto justify-center px-3 py-1 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg text-sm flex items-center gap-1.5 hover:-translate-y-0.5 transition-transform"
+              className="w-full sm:w-auto justify-center px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 border border-red-300/60 text-red-600 hover:bg-red-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
             >
               <Trash2 className="w-4 h-4" />
               <span>Delete</span>
             </button>
             <button
               onClick={onMoveClick}
-              className="w-full sm:w-auto justify-center px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm flex items-center gap-1.5 hover:-translate-y-0.5 transition-transform"
+              className="w-full sm:w-auto justify-center px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 border border-border-subtle text-text-primary hover:bg-bg-surface transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
             >
               <ArrowRight className="w-4 h-4" />
               <span>Move</span>
             </button>
             <button
               onClick={onCopyClick}
-              className="w-full sm:w-auto justify-center px-3 py-1 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg text-sm flex items-center gap-1.5 hover:-translate-y-0.5 transition-transform"
+              className="w-full sm:w-auto justify-center px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 border border-border-subtle text-text-primary hover:bg-bg-surface transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
             >
               <Copy className="w-4 h-4" />
               <span>Copy</span>
@@ -169,7 +172,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               {/* Select All / Deselect All Button */}
               <button
                 onClick={onSelectAll}
-                className="text-xs font-bold text-text-secondary hover:text-text-brand bg-bg-main/70 px-3 py-2 sm:py-1 rounded-full transition-colors border border-transparent hover:border-border-hover flex items-center gap-1.5 justify-center w-full sm:w-auto"
+                className="text-xs font-semibold text-text-secondary hover:text-text-primary bg-bg-main/60 px-3 py-2 sm:py-1 rounded-full transition-colors border border-border-subtle/50 hover:border-border-hover flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
               >
                 {dayTasks.length > 0 && dayTasks.every((t: any) => selectedTasks.has(t.id))
                   ? <><SquareX className="w-3.5 h-3.5" /> Unselect All</>
@@ -179,7 +182,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               {/* View Toggle */}
               <button
                 onClick={() => setGroupByPriority(!groupByPriority)}
-                className="text-xs font-bold text-text-brand bg-gradient-to-r from-sapphire-500/10 to-cyan-500/10 px-3 py-2 sm:py-1 rounded-full hover:bg-sapphire-100/80 dark:hover:bg-sapphire-800/60 transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto"
+                className="text-xs font-semibold text-text-primary bg-bg-surface/80 px-3 py-2 sm:py-1 rounded-full border border-border-subtle/60 hover:border-border-hover transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span>{groupByPriority ? "Grouped by Priority" : "Custom Order"}</span>
