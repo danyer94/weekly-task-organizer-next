@@ -127,9 +127,13 @@ const TaskCard: React.FC<{
 }> = ({ task, timeLabel, isTimed = false, compact = false }) => {
   return (
     <div
-      className={`flex h-full min-h-0 flex-col rounded-2xl border border-border-subtle/60 bg-bg-surface/85 shadow-sm transition-colors ${
-        compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
-      } ${task.completed ? "opacity-60" : ""}`}
+      className={`flex h-full min-h-0 flex-col rounded-2xl border shadow-sm transition-colors ${
+        isTimed
+          ? "border-border-brand/30 bg-sapphire-50/75 shadow-[0_10px_22px_rgba(59,130,246,0.12)] dark:border-border-brand/50 dark:bg-sapphire-900/35 dark:shadow-[0_16px_30px_rgba(2,6,23,0.55)]"
+          : "border-border-subtle/60 bg-bg-surface/85"
+      } ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"} ${
+        task.completed ? "opacity-60" : ""
+      }`}
     >
       <div className="flex min-h-0 items-start justify-between gap-3">
         <div className="min-w-0">
