@@ -275,6 +275,13 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
   const minuteToPx = useCallback(
     (minute: number) => {
       const clampedMinute = Math.min(Math.max(minute, timelineRangeStart), timelineRangeEnd);
+      if (hourSlots.length === 0) {
+        return timelinePadding;
+      }
+      if (clampedMinute === timelineRangeEnd && clampedMinute % 60 === 0) {
+        const lastSlot = hourSlots[hourSlots.length - 1];
+        return lastSlot ? lastSlot.offset + lastSlot.height : timelinePadding;
+      }
       const hour = Math.floor(clampedMinute / 60);
       const slot = hourSlotMap.get(hour) ?? hourSlots[0];
 
