@@ -63,8 +63,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-bg-main flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,183,0.16),_transparent_55%),radial-gradient(circle_at_85%_12%,_rgba(15,23,42,0.12),_transparent_55%)]"></div>
-      <div className="pointer-events-none absolute inset-0 opacity-35 dark:opacity-25 bg-[linear-gradient(rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:120px_120px]"></div>
+      <div className="pointer-events-none absolute inset-0 dark:bg-[radial-gradient(820px_circle_at_14%_-12%,_rgba(96,165,250,0.16),_transparent_60%),radial-gradient(720px_circle_at_88%_-8%,_rgba(59,130,246,0.14),_transparent_58%)]"></div>
+      <div className="pointer-events-none absolute inset-0 opacity-35 dark:opacity-45 bg-[linear-gradient(rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.08)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:160px_160px]"></div>
+      <div className="pointer-events-none absolute inset-0 dark:bg-[radial-gradient(circle_at_50%_0%,_rgba(96,165,250,0.2),_transparent_44%)]"></div>
       
       <div className="w-full max-w-md relative z-10">
         <div className="glass-panel border border-border-subtle/70 rounded-3xl p-8 shadow-2xl">

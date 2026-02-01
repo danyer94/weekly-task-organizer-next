@@ -626,11 +626,12 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-bg-main p-4 font-sans transition-colors duration-300 relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(14,165,183,0.16),_transparent_55%),radial-gradient(circle_at_85%_12%,_rgba(15,23,42,0.12),_transparent_55%)]"></div>
-      <div className="pointer-events-none absolute inset-0 opacity-35 dark:opacity-25 bg-[linear-gradient(rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:120px_120px]"></div>
+      <div className="pointer-events-none absolute inset-0 dark:bg-[radial-gradient(900px_circle_at_12%_-18%,_rgba(96,165,250,0.18),_transparent_60%),radial-gradient(780px_circle_at_88%_-12%,_rgba(59,130,246,0.14),_transparent_58%)]"></div>
+      <div className="pointer-events-none absolute inset-0 opacity-35 dark:opacity-45 bg-[linear-gradient(rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.08)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:160px_160px]"></div>
+      <div className="pointer-events-none absolute inset-0 dark:bg-[radial-gradient(circle_at_50%_0%,_rgba(96,165,250,0.22),_transparent_42%)]"></div>
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-border-brand/40 to-transparent opacity-40"></div>
-        <div className="absolute left-8 top-20 bottom-10 w-px bg-gradient-to-b from-transparent via-border-brand/30 to-transparent opacity-30"></div>
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-border-brand/40 to-transparent opacity-25 dark:opacity-40"></div>
+        <div className="absolute left-8 top-20 bottom-10 w-px bg-gradient-to-b from-transparent via-border-brand/30 to-transparent opacity-20 dark:opacity-30"></div>
       </div>
       <div className="fixed top-0 left-0 right-0 z-50 px-4">
         <div className="max-w-7xl mx-auto">
