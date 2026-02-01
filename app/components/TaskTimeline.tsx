@@ -39,6 +39,8 @@ const formatHourLabel = (hour: number) => {
 
 const MIN_RESIZE_MINUTES = 5;
 const MINUTE_STEP = 5;
+const BASE_HOUR_HEIGHT = 80;
+const MIN_TIMED_BLOCK_HEIGHT = 44;
 
 const buildTimedBlocks = (tasks: Task[]): TimedTaskBlock[] => {
   const timed = tasks
@@ -127,9 +129,13 @@ const TaskCard: React.FC<{
 }> = ({ task, timeLabel, isTimed = false, compact = false }) => {
   return (
     <div
-      className={`flex h-full min-h-0 flex-col rounded-2xl border border-border-subtle/60 bg-bg-surface/85 shadow-sm transition-colors ${
-        compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"
-      } ${task.completed ? "opacity-60" : ""}`}
+      className={`flex h-full min-h-0 flex-col rounded-2xl border shadow-sm transition-colors ${
+        isTimed
+          ? "border-border-brand/30 bg-sapphire-50/75 shadow-[0_10px_22px_rgba(59,130,246,0.12)] dark:border-border-brand/50 dark:bg-sapphire-900/35 dark:shadow-[0_16px_30px_rgba(2,6,23,0.55)]"
+          : "border-border-subtle/60 bg-bg-surface/85"
+      } ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"} ${
+        task.completed ? "opacity-60" : ""
+      }`}
     >
       <div className="flex min-h-0 items-start justify-between gap-3">
         <div className="min-w-0">
@@ -137,10 +143,10 @@ const TaskCard: React.FC<{
             {task.text}
           </p>
           <div
-          className={`mt-1 flex items-center gap-2 uppercase tracking-[0.18em] text-text-tertiary ${
-            compact ? "text-[10px]" : "text-[11px]"
-          }`}
-        >
+            className={`mt-1 flex items-center gap-2 uppercase tracking-[0.18em] text-text-tertiary ${
+              compact ? "text-[10px]" : "text-[11px]"
+            }`}
+          >
             {isTimed ? (
               <Clock className="w-3 h-3" />
             ) : (
@@ -183,7 +189,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
   const [dragState, setDragState] = useState<{
     task: Task;
     mode: "move" | "resize-top" | "resize-bottom";
-    pointerStartY: number;
+    pointerStartMinutes: number;
     startMinutes: number;
     endMinutes: number;
   } | null>(null);
@@ -191,6 +197,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
     Record<string, { startMinutes: number; endMinutes: number }>
   >({});
   const previewRef = useRef(previewTimes);
+  const timelineRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     previewRef.current = previewTimes;
@@ -204,25 +211,115 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
     DAY_END_MINUTES,
     ...blocks.map((block) => block.endMinutes)
   );
-  const timelineDuration = Math.max(timelineRangeEnd - timelineRangeStart, 1);
-  const hourHeight = 80;
   const timelinePadding = 16;
-  const timelineHeight = (timelineDuration / 60) * hourHeight;
-  const timelineContainerHeight = timelineHeight + timelinePadding * 2;
-  const minuteToPx = (minute: number) =>
-    ((minute - timelineRangeStart) / 60) * hourHeight + timelinePadding;
+  const hourHeights = useMemo(() => {
+    const startHour = Math.floor(timelineRangeStart / 60);
+    const endHour = Math.ceil(timelineRangeEnd / 60);
+    const heights = new Map<number, number>();
+
+    for (let hour = startHour; hour < endHour; hour += 1) {
+      const hourStart = hour * 60;
+      const hourEnd = hourStart + 60;
+      const overlaps = blocks
+        .map((block) => {
+          const overlap = Math.min(block.endMinutes, hourEnd) - Math.max(block.startMinutes, hourStart);
+          return overlap > 0 ? overlap : 0;
+        })
+        .filter((overlap) => overlap > 0);
+
+      if (overlaps.length === 0) {
+        heights.set(hour, BASE_HOUR_HEIGHT);
+        continue;
+      }
+
+      const minOverlap = Math.min(...overlaps);
+      const requiredByDuration =
+        (MIN_TIMED_BLOCK_HEIGHT * 60) / Math.max(minOverlap, MIN_RESIZE_MINUTES);
+      const requiredByCount = overlaps.length * MIN_TIMED_BLOCK_HEIGHT;
+
+      heights.set(hour, Math.max(BASE_HOUR_HEIGHT, requiredByDuration, requiredByCount));
+    }
+
+    return heights;
+  }, [blocks, timelineRangeStart, timelineRangeEnd]);
+
+  const hourSlots = useMemo(() => {
+    const startHour = Math.floor(timelineRangeStart / 60);
+    const endHour = Math.ceil(timelineRangeEnd / 60);
+    let offset = timelinePadding;
+    const slots: Array<{ hour: number; height: number; offset: number }> = [];
+
+    for (let hour = startHour; hour < endHour; hour += 1) {
+      const height = hourHeights.get(hour) ?? BASE_HOUR_HEIGHT;
+      slots.push({ hour, height, offset });
+      offset += height;
+    }
+
+    return slots;
+  }, [hourHeights, timelineRangeStart, timelineRangeEnd, timelinePadding]);
+
+  const hourSlotMap = useMemo(() => {
+    const map = new Map<number, { height: number; offset: number }>();
+    hourSlots.forEach((slot) => {
+      map.set(slot.hour, { height: slot.height, offset: slot.offset });
+    });
+    return map;
+  }, [hourSlots]);
+
+  const timelineContainerHeight = hourSlots.length > 0
+    ? hourSlots[hourSlots.length - 1].offset +
+      hourSlots[hourSlots.length - 1].height +
+      timelinePadding
+    : timelinePadding * 2;
+
+  const minuteToPx = useCallback(
+    (minute: number) => {
+      const clampedMinute = Math.min(Math.max(minute, timelineRangeStart), timelineRangeEnd);
+      const hour = Math.floor(clampedMinute / 60);
+      const slot = hourSlotMap.get(hour) ?? hourSlots[0];
+
+      if (!slot) {
+        return timelinePadding;
+      }
+
+      const withinHour = clampedMinute - hour * 60;
+      return slot.offset + (withinHour / 60) * slot.height;
+    },
+    [hourSlotMap, hourSlots, timelinePadding, timelineRangeEnd, timelineRangeStart]
+  );
+
+  const pxToMinute = useCallback(
+    (y: number) => {
+      if (hourSlots.length === 0) return timelineRangeStart;
+
+      const clampedY = Math.min(
+        Math.max(y, timelinePadding),
+        timelineContainerHeight - timelinePadding
+      );
+
+      const slot =
+        hourSlots.find((item) => clampedY < item.offset + item.height) ??
+        hourSlots[hourSlots.length - 1];
+
+      const within = Math.min(Math.max(clampedY - slot.offset, 0), slot.height);
+      return slot.hour * 60 + (within / slot.height) * 60;
+    },
+    [hourSlots, timelineContainerHeight, timelinePadding, timelineRangeStart]
+  );
 
   const clampMinutes = useCallback(
     (value: number, min: number, max: number) => Math.min(Math.max(value, min), max),
     []
   );
 
-  const getDeltaMinutes = useCallback(
-    (deltaY: number) => {
-      const rawMinutes = (deltaY / hourHeight) * 60;
-      return Math.round(rawMinutes / MINUTE_STEP) * MINUTE_STEP;
+  const getPointerMinutes = useCallback(
+    (clientY: number) => {
+      const container = timelineRef.current;
+      if (!container) return null;
+      const rect = container.getBoundingClientRect();
+      return pxToMinute(clientY - rect.top);
     },
-    [hourHeight]
+    [pxToMinute]
   );
 
   const handlePointerDown = (
@@ -233,10 +330,12 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
     if (!onScheduleChange) return;
     event.preventDefault();
     event.stopPropagation();
+    const pointerMinutes = getPointerMinutes(event.clientY);
+    if (pointerMinutes === null) return;
     setDragState({
       task: block.task,
       mode,
-      pointerStartY: event.clientY,
+      pointerStartMinutes: pointerMinutes,
       startMinutes: block.startMinutes,
       endMinutes: block.endMinutes,
     });
@@ -246,7 +345,11 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
     if (!dragState) return;
 
     const handlePointerMove = (event: PointerEvent) => {
-      const deltaMinutes = getDeltaMinutes(event.clientY - dragState.pointerStartY);
+      const pointerMinutes = getPointerMinutes(event.clientY);
+      if (pointerMinutes === null) return;
+      const rawDeltaMinutes = pointerMinutes - dragState.pointerStartMinutes;
+      const deltaMinutes =
+        Math.round(rawDeltaMinutes / MINUTE_STEP) * MINUTE_STEP;
       let nextStart = dragState.startMinutes;
       let nextEnd = dragState.endMinutes;
 
@@ -309,7 +412,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [clampMinutes, dragState, getDeltaMinutes, onScheduleChange]);
+  }, [clampMinutes, dragState, getPointerMinutes, onScheduleChange]);
 
   const renderEmpty = (label: string, description: string) => (
 
@@ -380,7 +483,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                     );
                   })}
                 </div>
-                <div className="relative pl-4 pr-2" style={{ height: `${timelineContainerHeight}px` }}>
+                <div ref={timelineRef} className="relative pl-4 pr-2" style={{ height: `${timelineContainerHeight}px` }}>
                   <div className="pointer-events-none absolute left-1 top-0 bottom-0 w-px bg-border-subtle/80" />
                   {Array.from(
                     { length: Math.ceil((timelineRangeEnd - timelineRangeStart) / 60) + 1 },
@@ -402,35 +505,38 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                     const startMinutes = preview?.startMinutes ?? block.startMinutes;
                     const endMinutes = preview?.endMinutes ?? block.endMinutes;
                     const top = minuteToPx(startMinutes);
-                    const height = ((endMinutes - startMinutes) / 60) * hourHeight;
+                    const bottom = minuteToPx(endMinutes);
+                    const height = Math.max(bottom - top, 8);
                     const columnWidth = 100 / block.columns;
                     const left = columnWidth * block.column;
                     const width = block.columns === 1
                       ? "100%"
                       : `calc(${columnWidth}% - 10px)`;
                     const leftPos = block.columns === 1 ? "0%" : `calc(${left}% + 5px)`;
+                    const compact = height < 60;
 
                     return (
                       <div
                         key={block.task.id}
-                        className="absolute min-h-[40px] select-none touch-none"
+                        className="absolute select-none touch-none"
                         style={{
                           left: leftPos,
                           width,
                           top: `${top}px`,
-                          height: `${Math.max(height, 40)}px`,
+                          height: `${height}px`,
                         }}
                         onPointerDown={onScheduleChange ? (event) => {
                           const rect = event.currentTarget.getBoundingClientRect();
                           const relativeY = event.clientY - rect.top;
                           const totalHeight = rect.height;
+                          const handleZone = Math.min(10, Math.max(4, totalHeight * 0.35));
                           
-                          if (relativeY <= 10) {
+                          if (relativeY <= handleZone) {
                             // Top 10px - resize top
                             event.stopPropagation();
                             event.preventDefault();
                             handlePointerDown(event, block, "resize-top");
-                          } else if (relativeY >= totalHeight - 10) {
+                          } else if (relativeY >= totalHeight - handleZone) {
                             // Bottom 10px - resize bottom
                             event.stopPropagation();
                             event.preventDefault();
@@ -446,10 +552,11 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                           const rect = event.currentTarget.getBoundingClientRect();
                           const relativeY = event.clientY - rect.top;
                           const totalHeight = rect.height;
+                          const handleZone = Math.min(10, Math.max(4, totalHeight * 0.35));
                           
-                          if (relativeY <= 10) {
+                          if (relativeY <= handleZone) {
                             event.currentTarget.style.cursor = 'ns-resize';
-                          } else if (relativeY >= totalHeight - 10) {
+                          } else if (relativeY >= totalHeight - handleZone) {
                             event.currentTarget.style.cursor = 'ns-resize';
                           } else {
                             event.currentTarget.style.cursor = 'grab';
@@ -465,7 +572,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
                             task={block.task}
                             timeLabel={`${toTimeString(startMinutes)} - ${toTimeString(endMinutes)}`}
                             isTimed
-                            compact
+                            compact={compact}
                           />
                         </div>
                         {onScheduleChange && (
