@@ -37,8 +37,6 @@ const normalizeTasksByDay = (data?: TasksByDay | null): TasksByDay => {
   return normalized;
 };
 
-
-
 export const useWeeklyTasks = (
   selectedDate: Date = new Date(),
   uid?: string
@@ -505,6 +503,87 @@ export const useWeeklyTasks = (
     return { createdTasks };
   };
 
+  /**
+   * Move or copy selected tasks from currentDay to a specific date (any week).
+   * Fetches the target week from Firebase, merges tasks, saves there; if move, removes from current week.
+   */
+  const moveOrCopyTasksToDate = async (
+    currentDay: Day,
+    selectedIds: Set<string>,
+    targetDate: Date,
+    isMove: boolean,
+    keepSchedule: boolean = true
+  ): Promise<{ createdTasks: Array<{ day: Day; task: Task }> }> => {
+    const currentDayTasks = tasks[currentDay] || [];
+    const tasksToProcess = currentDayTasks.filter((t) => selectedIds.has(t.id));
+    const targetPath = getWeekPath(targetDate);
+    const targetDay = toDayName(targetDate);
+    const targetDateKey = toDateKey(targetDate);
+    const createdTasks: Array<{ day: Day; task: Task }> = [];
+
+    const newTasks = tasksToProcess.map((task) => {
+      let calendarEvent: Task["calendarEvent"] = null;
+      if (keepSchedule && task.calendarEvent) {
+        if (isMove) {
+          calendarEvent = {
+            ...task.calendarEvent,
+            date: targetDateKey,
+          };
+        } else {
+          calendarEvent = {
+            eventId: "",
+            date: targetDateKey,
+            startTime: task.calendarEvent.startTime ?? null,
+            endTime: task.calendarEvent.endTime ?? null,
+            lastSynced: null,
+          };
+        }
+      }
+      const newTask: Task = {
+        ...task,
+        id: createTaskId(uid!),
+        completed: false,
+        calendarEvent,
+      };
+      createdTasks.push({ day: targetDay, task: newTask });
+      return newTask;
+    });
+
+    const existing = await fetchTasksOnce(uid!, targetPath);
+    const normalized = normalizeTasksByDay(existing);
+    const currentTargetTasks = [...(normalized[targetDay] || [])];
+    normalized[targetDay] = [...currentTargetTasks, ...newTasks];
+
+    const saved = await saveTasks(uid!, normalized, targetPath);
+    if (!saved) {
+      throw new Error("Failed to save tasks to target week");
+    }
+
+    if (targetPath === currentPath) {
+      updateTasks((prev) => {
+        const next = { ...prev };
+        if (isMove) {
+          next[currentDay] = (next[currentDay] || []).filter(
+            (t) => !selectedIds.has(t.id)
+          );
+        }
+        const targetTasks = next[targetDay] || [];
+        next[targetDay] = [...targetTasks, ...newTasks];
+        return next;
+      });
+    } else if (isMove) {
+      updateTasks((prev) => {
+        const next = { ...prev };
+        next[currentDay] = (next[currentDay] || []).filter(
+          (t) => !selectedIds.has(t.id)
+        );
+        return next;
+      });
+    }
+
+    return { createdTasks };
+  };
+
   const bulkAddTasks = (day: Day, textBlock: string) => {
     const lines = textBlock.split("\n").filter((l) => l.trim());
     if (lines.length === 0) return;
@@ -542,7 +621,11 @@ export const useWeeklyTasks = (
           const status = task.completed ? "✅" : "⬜";
           const pri = priorityEmoji[task.priority] || "🟠";
           const time = task.calendarEvent?.startTime
-            ? ` _(${task.calendarEvent.startTime}${task.calendarEvent.endTime ? ` - ${task.calendarEvent.endTime}` : ""})_`
+            ? ` _(${task.calendarEvent.startTime}${
+                task.calendarEvent.endTime
+                  ? ` - ${task.calendarEvent.endTime}`
+                  : ""
+              })_`
             : "";
           text += `${status} ${pri} ${task.text}${time}\n`;
         });
@@ -622,6 +705,7 @@ export const useWeeklyTasks = (
       deleteSelected,
       clearCompleted,
       moveOrCopyTasks,
+      moveOrCopyTasksToDate,
       bulkAddTasks,
     },
     ioOperations: { exportToWhatsApp, exportToJSON, importFromJSON },
