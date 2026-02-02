@@ -43,6 +43,7 @@ export const getDateForDayInWeek = (baseDate: Date, day: Day): Date => {
 
 /**
  * Maps a Task + Day + Context Date to a simple CalendarEventPayload.
+ * If eventDateOverride is provided (YYYY-MM-DD), that date is used instead of deriving from contextDate + day.
  */
 export const taskToCalendarEvent = (
   day: Day,
@@ -50,9 +51,12 @@ export const taskToCalendarEvent = (
   startTime?: string,
   endTime?: string,
   contextDate: Date = new Date(),
-  timeZone?: string
+  timeZone?: string,
+  eventDateOverride?: string
 ): CalendarEventPayload => {
-  const eventDate = getDateForDayInWeek(contextDate, day);
+  const eventDate = eventDateOverride
+    ? new Date(`${eventDateOverride}T00:00:00`)
+    : getDateForDayInWeek(contextDate, day);
 
   return {
     summary: task.text,

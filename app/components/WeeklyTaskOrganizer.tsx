@@ -7,7 +7,7 @@ import { AdminView } from "./AdminView";
 import { UserView } from "./UserView";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
-import { DaySelectionModal } from "./DaySelectionModal";
+import { DaySelectionModal, type DaySelectionResult } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
 import { CalendarEventModal } from "./CalendarEventModal";
 import { ShieldCheck, RefreshCw } from "lucide-react";
@@ -57,6 +57,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
       deleteSelected,
       clearCompleted,
       moveOrCopyTasks,
+      moveOrCopyTasksToDate,
       bulkAddTasks,
     },
     ioOperations: { exportToWhatsApp, exportToJSON, importFromJSON },
@@ -101,6 +102,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [pendingMoveOrCopy, setPendingMoveOrCopy] = useState<{
     targetDays: Day[];
     isMove: boolean;
+    targetDate?: Date;
   } | null>(null);
 
   // Check Google Calendar connection status when user changes or on mount
@@ -322,8 +324,12 @@ const WeeklyTaskOrganizer: React.FC = () => {
     setShowDeleteConfirm(false);
   };
 
-  const handleMoveOrCopy = (targetDays: Day[], isMove: boolean) => {
-    setPendingMoveOrCopy({ targetDays, isMove });
+  const handleMoveOrCopy = (result: DaySelectionResult, isMove: boolean) => {
+    if (result.type === "other") {
+      setPendingMoveOrCopy({ targetDays: [], isMove, targetDate: result.date });
+    } else {
+      setPendingMoveOrCopy({ targetDays: result.days, isMove });
+    }
     setShowScheduleConfirm(true);
     setShowMoveModal(false);
     setShowCopyModal(false);
@@ -332,13 +338,36 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const handleScheduleDecision = async (keepSchedule: boolean) => {
     if (!pendingMoveOrCopy) return;
 
-    const { createdTasks } = moveOrCopyTasks(
-      currentAdminDay,
-      selectedTasks,
-      pendingMoveOrCopy.targetDays,
-      pendingMoveOrCopy.isMove,
-      keepSchedule
-    );
+    const isOtherDay = !!pendingMoveOrCopy.targetDate;
+    const isMove = pendingMoveOrCopy.isMove;
+    let createdTasks: Array<{ day: Day; task: Task }>;
+
+    try {
+      if (isOtherDay && pendingMoveOrCopy.targetDate) {
+        const result = await moveOrCopyTasksToDate(
+          currentAdminDay,
+          selectedTasks,
+          pendingMoveOrCopy.targetDate,
+          isMove,
+          keepSchedule
+        );
+        createdTasks = result.createdTasks;
+      } else {
+        const result = moveOrCopyTasks(
+          currentAdminDay,
+          selectedTasks,
+          pendingMoveOrCopy.targetDays,
+          isMove,
+          keepSchedule
+        );
+        createdTasks = result.createdTasks;
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error: Failed to move/copy tasks.");
+      return;
+    }
+
     setSelectedTasks(new Set<string>());
     setPendingMoveOrCopy(null);
     setShowScheduleConfirm(false);
@@ -352,8 +381,12 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
     if (tasksWithSchedule.length === 0) return;
 
+    const contextDate = selectedDate ?? new Date();
+    const eventDateOverride = (task: Task) =>
+      task.calendarEvent?.date ?? undefined;
+
     try {
-      if (pendingMoveOrCopy.isMove) {
+      if (isMove) {
         await Promise.all(
           tasksWithSchedule.map(async ({ day, task }) => {
             if (!task.calendarEvent?.eventId) return;
@@ -363,17 +396,20 @@ const WeeklyTaskOrganizer: React.FC = () => {
               task,
               task.calendarEvent.startTime ?? undefined,
               task.calendarEvent.endTime ?? undefined,
-              selectedDate,
-              userTimeZone
+              contextDate,
+              userTimeZone,
+              eventDateOverride(task)
             );
 
             await updateTaskEventForRamon(task.calendarEvent.eventId, payload);
-            updateTaskCalendarEvent(day, task.id, {
-              eventId: task.calendarEvent.eventId,
-              date: payload.date,
-              startTime: payload.startTime ?? null,
-              endTime: payload.endTime ?? null,
-            });
+            if (!isOtherDay) {
+              updateTaskCalendarEvent(day, task.id, {
+                eventId: task.calendarEvent.eventId,
+                date: payload.date,
+                startTime: payload.startTime ?? null,
+                endTime: payload.endTime ?? null,
+              });
+            }
           })
         );
       } else {
@@ -386,16 +422,19 @@ const WeeklyTaskOrganizer: React.FC = () => {
               task,
               task.calendarEvent.startTime ?? undefined,
               task.calendarEvent.endTime ?? undefined,
-              selectedDate,
-              userTimeZone
+              contextDate,
+              userTimeZone,
+              eventDateOverride(task)
             );
             const { eventId } = await createTaskEventForRamon(payload);
-            updateTaskCalendarEvent(day, task.id, {
-              eventId,
-              date: payload.date,
-              startTime: payload.startTime ?? null,
-              endTime: payload.endTime ?? null,
-            });
+            if (!isOtherDay) {
+              updateTaskCalendarEvent(day, task.id, {
+                eventId,
+                date: payload.date,
+                startTime: payload.startTime ?? null,
+                endTime: payload.endTime ?? null,
+              });
+            }
           })
         );
       }
@@ -808,15 +847,17 @@ const WeeklyTaskOrganizer: React.FC = () => {
         show={showMoveModal}
         title="Move to…"
         days={DAYS}
+        baseDate={selectedDate ?? new Date()}
         onClose={() => setShowMoveModal(false)}
-        onConfirm={(days) => handleMoveOrCopy(days, true)}
+        onConfirm={(result) => handleMoveOrCopy(result, true)}
       />
       <DaySelectionModal
         show={showCopyModal}
         title="Copy to…"
         days={DAYS}
+        baseDate={selectedDate ?? new Date()}
         onClose={() => setShowCopyModal(false)}
-        onConfirm={(days) => handleMoveOrCopy(days, false)}
+        onConfirm={(result) => handleMoveOrCopy(result, false)}
       />
       <BulkAddModal
         isOpen={showBulkModal}
