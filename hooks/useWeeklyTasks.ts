@@ -559,7 +559,19 @@ export const useWeeklyTasks = (
       throw new Error("Failed to save tasks to target week");
     }
 
-    if (isMove) {
+    if (targetPath === currentPath) {
+      updateTasks((prev) => {
+        const next = { ...prev };
+        if (isMove) {
+          next[currentDay] = (next[currentDay] || []).filter(
+            (t) => !selectedIds.has(t.id)
+          );
+        }
+        const targetTasks = next[targetDay] || [];
+        next[targetDay] = [...targetTasks, ...newTasks];
+        return next;
+      });
+    } else if (isMove) {
       updateTasks((prev) => {
         const next = { ...prev };
         next[currentDay] = (next[currentDay] || []).filter(
