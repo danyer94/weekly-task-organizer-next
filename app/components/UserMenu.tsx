@@ -65,7 +65,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-3 px-2 sm:px-3 py-2 rounded-xl bg-bg-surface/80 border border-border-subtle hover:border-border-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+        className="glass-control flex items-center gap-3 px-2 sm:px-3 py-2 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
 
         aria-haspopup="menu"
         aria-expanded={open}
@@ -96,7 +96,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
 
       {open && (
         <div
-          className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] glass-panel bg-bg-surface/80 rounded-xl border border-border-subtle/60 shadow-2xl overflow-hidden z-50 animate-fade-in motion-reduce:animate-none"
+          className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] glass-panel rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in motion-reduce:animate-none"
           role="menu"
         >
           <div className="px-4 py-3 border-b border-border-subtle/60">
@@ -106,7 +106,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
           </div>
           <div className="flex flex-col p-2 gap-2">
             {isAdmin && (
-              <div className="flex flex-col gap-1 rounded-lg border border-border-subtle/60 bg-bg-main/60 p-2">
+              <div className="glass-subpanel flex flex-col gap-1 rounded-lg p-2">
                 <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-bg-sidebar/70 text-[10px] uppercase tracking-[0.3em] text-text-tertiary">
                   <Calendar className="w-3 h-3 text-emerald-300" />
                   <span>Calendar</span>
@@ -145,7 +145,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                 )}
               </div>
             )}
-            <div className="flex flex-col gap-1 rounded-lg border border-border-subtle/60 bg-bg-main/60 p-2">
+            <div className="glass-subpanel flex flex-col gap-1 rounded-lg p-2">
               <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-bg-sidebar/70 text-[10px] uppercase tracking-[0.3em] text-text-tertiary">
                 <UserIcon className="w-3 h-3 text-sky-300" />
                 <span>Account</span>

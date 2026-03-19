@@ -207,7 +207,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-2xl border border-border-subtle/60 bg-bg-surface/60 p-4">
+          <div className="glass-subpanel rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-4 text-text-primary">
               <User className="w-4 h-4 text-border-brand" />
               <h4 className="text-sm font-bold uppercase tracking-[0.2em]">Profile</h4>
@@ -221,12 +221,12 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 placeholder="Your display name"
                 name="displayName"
                 autoComplete="name"
-                className="flex-1 px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
+                className="glass-input flex-1 px-4 py-3 rounded-xl text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
               />
               <button
                 onClick={handleUpdateName}
                 disabled={savingName}
-                className="w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-sapphire-700 text-white shadow-sm hover:bg-sapphire-600 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+                className="glass-button-accent w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm text-text-primary shadow-sm transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                 type="button"
               >
                 {savingName ? "Saving…" : "Save name"}
@@ -253,7 +253,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             )}
           </div>
 
-          <div className="rounded-2xl border border-border-subtle/60 bg-bg-surface/60 p-4">
+          <div className="glass-subpanel rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-4 text-text-primary">
               <KeyRound className="w-4 h-4 text-border-brand" />
               <h4 className="text-sm font-bold uppercase tracking-[0.2em]">Security</h4>
@@ -267,7 +267,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 aria-label="New password"
                 name="newPassword"
                 autoComplete="new-password"
-                className="px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
+                className="glass-input px-4 py-3 rounded-xl text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
               />
               <input
                 type="password"
@@ -277,13 +277,13 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 aria-label="Confirm password"
                 name="confirmPassword"
                 autoComplete="new-password"
-                className="px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
+                className="glass-input px-4 py-3 rounded-xl text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
               />
             </div>
             <button
               onClick={handleUpdatePassword}
               disabled={savingPassword}
-              className="mt-3 w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-slate-800 text-white shadow-sm hover:bg-slate-700 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+              className="glass-control mt-3 w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm text-text-primary shadow-sm transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
               type="button"
             >
               {savingPassword ? "Updating…" : "Update password"}
@@ -307,7 +307,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             )}
           </div>
 
-          <div className="rounded-2xl border border-border-subtle/60 bg-bg-surface/60 p-4">
+          <div className="glass-subpanel rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-4 text-text-primary">
               <MailCheck className="w-4 h-4 text-border-brand" />
               <h4 className="text-sm font-bold uppercase tracking-[0.2em]">Daily summary</h4>
@@ -315,7 +315,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             <p className="text-xs text-text-tertiary mb-4">
               Get a daily recap of your tasks delivered to the email you choose.
             </p>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border-subtle/60 bg-bg-surface/60 px-4 py-3">
+            <div className="glass-control flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl px-4 py-3">
               <div>
                 <p className="text-sm font-semibold text-text-primary">
                   Email daily summary
@@ -357,7 +357,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                   name="dailySummaryEmail"
                   autoComplete="email"
                   spellCheck={false}
-                  className={`w-full px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors ${
+                  className={`glass-input w-full px-4 py-3 rounded-xl text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors ${
                     !dailySummaryEnabled ? "opacity-60 cursor-not-allowed" : ""
                   }`}
                 />
@@ -365,7 +365,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               <button
                 onClick={handleSaveDailySummary}
                 disabled={savingDailySummary || dailySummaryLoading}
-                className="h-12 w-full sm:w-auto mt-2 sm:mt-7 px-4 py-3 rounded-xl font-semibold text-sm bg-sapphire-700 text-white shadow-sm hover:bg-sapphire-600 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+                className="glass-button-accent h-12 w-full sm:w-auto mt-2 sm:mt-7 px-4 py-3 rounded-xl font-semibold text-sm text-text-primary shadow-sm transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                 type="button"
               >
                 {savingDailySummary
