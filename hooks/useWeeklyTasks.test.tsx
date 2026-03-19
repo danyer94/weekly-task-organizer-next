@@ -164,4 +164,69 @@ describe("useWeeklyTasks", () => {
     });
     expect(createTaskIdMock).toHaveBeenCalledWith("user-b");
   });
+
+  it("persists calendar event updates for tasks moved to another week", async () => {
+    const selectedDate = new Date("2026-03-16T12:00:00Z");
+    fetchTasksOnceMock.mockResolvedValueOnce({
+      Monday: [
+        {
+          id: "copied-task",
+          text: "Copied task",
+          completed: false,
+          priority: "medium",
+          calendarEvent: {
+            eventId: "",
+            date: "2026-03-23",
+            startTime: "09:00",
+            endTime: "10:00",
+            lastSynced: null,
+          },
+        },
+      ],
+      Tuesday: [],
+      Wednesday: [],
+      Thursday: [],
+      Friday: [],
+      Saturday: [],
+      Sunday: [],
+    });
+
+    const { result } = renderHook(() =>
+      useWeeklyTasks(selectedDate, "user-123")
+    );
+
+    await waitFor(() => {
+      expect(result.current.tasks.Monday).toHaveLength(1);
+    });
+
+    await act(async () => {
+      await result.current.itemOperations.setTaskCalendarEventForDate(
+        new Date("2026-03-23T12:00:00Z"),
+        "Monday",
+        "copied-task",
+        {
+          eventId: "event-99",
+          date: "2026-03-23",
+          startTime: "09:00",
+          endTime: "10:00",
+        }
+      );
+    });
+
+    expect(saveTasksMock).toHaveBeenCalledWith(
+      "user-123",
+      expect.objectContaining({
+        Monday: expect.arrayContaining([
+          expect.objectContaining({
+            id: "copied-task",
+            calendarEvent: expect.objectContaining({
+              eventId: "event-99",
+              date: "2026-03-23",
+            }),
+          }),
+        ]),
+      }),
+      expect.stringMatching(/^weeks\//)
+    );
+  });
 });

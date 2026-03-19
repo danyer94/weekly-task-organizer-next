@@ -410,6 +410,61 @@ export const useWeeklyTasks = (
     }));
   };
 
+  const setTaskCalendarEventForDate = useCallback(
+    async (
+      targetDate: Date,
+      day: Day,
+      id: string,
+      calendarEvent: {
+        eventId: string;
+        date: string;
+        startTime?: string;
+        endTime?: string;
+      } | null
+    ) => {
+      if (!uid) return;
+
+      const targetPath = getWeekPath(targetDate);
+      const weekTasks =
+        targetPath === currentPath
+          ? normalizeTasksByDay(latestTasksRef.current)
+          : normalizeTasksByDay(await fetchTasksOnce(uid, targetPath));
+
+      const nextTasks: TasksByDay = {
+        ...weekTasks,
+        [day]: (weekTasks[day] || []).map((task) =>
+          task.id === id
+            ? {
+                ...task,
+                calendarEvent: calendarEvent
+                  ? {
+                      eventId: calendarEvent.eventId,
+                      date: calendarEvent.date,
+                      startTime: calendarEvent.startTime ?? null,
+                      endTime: calendarEvent.endTime ?? null,
+                      lastSynced: Date.now(),
+                    }
+                  : null,
+              }
+            : task
+        ),
+      };
+
+      const ok = await saveTasks(uid, nextTasks, targetPath);
+      if (!ok) {
+        throw new Error("Failed to persist calendar event");
+      }
+
+      if (targetPath === currentPath) {
+        lastLocalUpdateRef.current = performance.now();
+        lastLocalUpdatePathRef.current = targetPath;
+        applyLocalTasks(nextTasks);
+        setSyncStatus("synced");
+      }
+    },
+    [applyLocalTasks, currentPath, uid]
+  );
+
   const reorderTasks = (day: Day, fromIndex: number, toIndex: number) => {
     updateTasks((prev) => {
       const newDayTasks = [...(prev[day] || [])];
@@ -715,7 +770,12 @@ export const useWeeklyTasks = (
     syncStatus,
     addTask,
     deleteTask,
-    itemOperations: { toggleComplete, editTask, updateTaskCalendarEvent }, // grouping for cleaner props
+    itemOperations: {
+      toggleComplete,
+      editTask,
+      updateTaskCalendarEvent,
+      setTaskCalendarEventForDate,
+    }, // grouping for cleaner props
     reorderTasks,
     bulkOperations: {
       deleteSelected,

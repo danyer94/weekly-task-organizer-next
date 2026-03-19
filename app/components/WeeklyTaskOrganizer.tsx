@@ -52,7 +52,12 @@ const WeeklyTaskOrganizer: React.FC = () => {
     syncStatus,
     addTask,
     deleteTask,
-    itemOperations: { toggleComplete, editTask, updateTaskCalendarEvent },
+    itemOperations: {
+      toggleComplete,
+      editTask,
+      updateTaskCalendarEvent,
+      setTaskCalendarEventForDate,
+    },
     reorderTasks,
     bulkOperations: {
       deleteSelected,
@@ -385,6 +390,10 @@ const WeeklyTaskOrganizer: React.FC = () => {
     const contextDate = selectedDate ?? new Date();
     const eventDateOverride = (task: Task) =>
       task.calendarEvent?.date ?? undefined;
+    const getTaskDate = (task: Task, day: Day) =>
+      task.calendarEvent?.date
+        ? new Date(`${task.calendarEvent.date}T12:00:00`)
+        : getDateForDayInWeek(contextDate, day);
 
     try {
       if (isMove) {
@@ -403,13 +412,21 @@ const WeeklyTaskOrganizer: React.FC = () => {
             );
 
             await updateTaskEventForRamon(task.calendarEvent.eventId, payload);
-            if (!isOtherDay) {
-              updateTaskCalendarEvent(day, task.id, {
-                eventId: task.calendarEvent.eventId,
-                date: payload.date,
-                startTime: payload.startTime ?? null,
-                endTime: payload.endTime ?? null,
-              });
+            const calendarEvent = {
+              eventId: task.calendarEvent.eventId,
+              date: payload.date,
+              startTime: payload.startTime ?? null,
+              endTime: payload.endTime ?? null,
+            };
+            if (isOtherDay) {
+              await setTaskCalendarEventForDate(
+                getTaskDate(task, day),
+                day,
+                task.id,
+                calendarEvent
+              );
+            } else {
+              updateTaskCalendarEvent(day, task.id, calendarEvent);
             }
           })
         );
@@ -428,13 +445,21 @@ const WeeklyTaskOrganizer: React.FC = () => {
               eventDateOverride(task)
             );
             const { eventId } = await createTaskEventForRamon(payload);
-            if (!isOtherDay) {
-              updateTaskCalendarEvent(day, task.id, {
-                eventId,
-                date: payload.date,
-                startTime: payload.startTime ?? null,
-                endTime: payload.endTime ?? null,
-              });
+            const calendarEvent = {
+              eventId,
+              date: payload.date,
+              startTime: payload.startTime ?? null,
+              endTime: payload.endTime ?? null,
+            };
+            if (isOtherDay) {
+              await setTaskCalendarEventForDate(
+                getTaskDate(task, day),
+                day,
+                task.id,
+                calendarEvent
+              );
+            } else {
+              updateTaskCalendarEvent(day, task.id, calendarEvent);
             }
           })
         );
