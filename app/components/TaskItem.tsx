@@ -101,7 +101,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           </div>
         )}
 
-        {onToggleComplete && (
+        {!isAdmin && onToggleComplete && (
           <input
             type="checkbox"
             checked={task.completed}
@@ -194,8 +194,22 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         )}
       </div>
 
-      {isAdmin && !isEditing && setEditingTaskId && (
+      {isAdmin && !isEditing && (onToggleComplete || setEditingTaskId || onCreateCalendarEvent) && (
         <div className="flex flex-wrap items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100 sm:self-center">
+          {onToggleComplete && (
+            <button
+              onClick={() => onToggleComplete(day, task.id)}
+              aria-label={`Mark task as ${task.completed ? "incomplete" : "complete"}: ${task.text}`}
+              className={`p-2.5 rounded-full transition-colors ${
+                task.completed
+                  ? "text-emerald-600 hover:text-emerald-700 bg-emerald-50/80 dark:bg-emerald-900/20"
+                  : "text-text-tertiary hover:text-emerald-600"
+              }`}
+              title={task.completed ? "Mark as incomplete" : "Mark as complete"}
+            >
+              <Check className="w-4 h-4" />
+            </button>
+          )}
           {onCreateCalendarEvent && (
             <button
               onClick={() => onCreateCalendarEvent(day, task)}
@@ -218,14 +232,16 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               )}
             </button>
           )}
-          <button
-            onClick={handleEditStart}
-            aria-label="Edit task"
-            className="text-text-tertiary hover:text-text-primary p-2.5 rounded-full transition-colors"
-            title="Edit"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
+          {setEditingTaskId && (
+            <button
+              onClick={handleEditStart}
+              aria-label="Edit task"
+              className="text-text-tertiary hover:text-text-primary p-2.5 rounded-full transition-colors"
+              title="Edit"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
         </div>
       )}
 
