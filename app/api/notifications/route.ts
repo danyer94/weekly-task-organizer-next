@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { NotificationRequest } from "@/types";
 import { sendNotification } from "@/lib/notifications";
+import { getUidFromRequest } from "@/lib/firebaseAdmin";
 
 export const runtime = "nodejs";
 
@@ -8,6 +9,11 @@ const VALID_CHANNELS = new Set(["email", "whatsapp", "sms"]);
 
 export async function POST(request: NextRequest) {
   try {
+    const uid = await getUidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = (await request.json()) as Partial<NotificationRequest>;
 
     if (!body.channel || !VALID_CHANNELS.has(body.channel)) {
