@@ -38,12 +38,14 @@ const normalizeTasksByDay = (data?: TasksByDay | null): TasksByDay => {
 };
 
 export const useWeeklyTasks = (
-  selectedDate: Date = new Date(),
+  selectedDate: Date | null = new Date(),
   uid?: string
 ) => {
+  const activeSelectedDate = selectedDate ?? new Date();
+
   // Path for current selection
   const currentPath = useMemo(() => {
-    if (!uid) return ""; // Handle unauthenticated state
+    if (!uid || !selectedDate) return ""; // Handle unauthenticated state
     return getWeekPath(selectedDate);
   }, [selectedDate, uid]);
 
@@ -143,7 +145,7 @@ export const useWeeklyTasks = (
         setSyncStatus("error");
       }
     },
-    [currentPath]
+    [currentPath, uid]
   );
 
   const persistLastCarryOverDate = useCallback((dateKey: string) => {
@@ -249,7 +251,7 @@ export const useWeeklyTasks = (
         setSyncStatus(ok ? "synced" : "error");
       }
     },
-    [applyLocalTasks, currentPath]
+    [applyLocalTasks, currentPath, uid]
   );
 
   const ensureCarryOver = useCallback(async () => {
@@ -464,7 +466,9 @@ export const useWeeklyTasks = (
       effectiveTargetDays.forEach((day) => {
         const currentTargetTasks = [...(newTasks[day] || [])];
         const tasksToAdd = tasksToProcess.map((task) => {
-          const targetDate = toDateKey(getDateForDayInWeek(selectedDate, day));
+          const targetDate = toDateKey(
+            getDateForDayInWeek(activeSelectedDate, day)
+          );
           let calendarEvent: Task["calendarEvent"] = null;
 
           if (keepSchedule && task.calendarEvent) {
@@ -524,7 +528,9 @@ export const useWeeklyTasks = (
     const targetPath = getWeekPath(targetDate);
     const targetDay = toDayName(targetDate);
     const targetDateKey = toDateKey(targetDate);
-    const sourceDateKey = toDateKey(getDateForDayInWeek(selectedDate, currentDay));
+    const sourceDateKey = toDateKey(
+      getDateForDayInWeek(activeSelectedDate, currentDay)
+    );
     if (sourceDateKey === targetDateKey) {
       return { createdTasks: [] };
     }
@@ -615,8 +621,8 @@ export const useWeeklyTasks = (
   // --- Import / Export ---
 
   const exportToWhatsApp = () => {
-    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
+    const weekStart = startOfWeek(activeSelectedDate, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(activeSelectedDate, { weekStartsOn: 1 });
     const priorityEmoji = { high: "🔴", medium: "🟠", low: "🟢" };
     let text = `📋 *Weekly Task Organizer (${format(
       weekStart,

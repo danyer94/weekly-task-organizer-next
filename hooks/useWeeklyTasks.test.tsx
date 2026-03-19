@@ -120,4 +120,48 @@ describe("useWeeklyTasks", () => {
     expect(saveTasksMock).not.toHaveBeenCalled();
     expect(fetchTasksOnceMock).not.toHaveBeenCalled();
   });
+
+  it("does not subscribe until a real selected date exists", () => {
+    renderHook(() => useWeeklyTasks(null, "user-123"));
+
+    expect(subscribeToTasksMock).not.toHaveBeenCalled();
+  });
+
+  it("uses the latest uid for task writes after auth changes", async () => {
+    createTaskIdMock.mockImplementation((uid: string) => `task-for-${uid}`);
+
+    const selectedDate = new Date("2026-03-16T12:00:00Z");
+    const { result, rerender } = renderHook(
+      ({ uid }: { uid: string }) => useWeeklyTasks(selectedDate, uid),
+      {
+        initialProps: { uid: "user-a" },
+      }
+    );
+
+    await waitFor(() => {
+      expect(result.current.tasks.Monday).toHaveLength(1);
+    });
+
+    rerender({ uid: "user-b" });
+
+    await act(async () => {
+      result.current.addTask("Monday", "New task", "medium");
+    });
+
+    await waitFor(() => {
+      expect(saveTasksMock).toHaveBeenLastCalledWith(
+        "user-b",
+        expect.objectContaining({
+          Monday: expect.arrayContaining([
+            expect.objectContaining({
+              id: "task-for-user-b",
+              text: "New task",
+            }),
+          ]),
+        }),
+        expect.any(String)
+      );
+    });
+    expect(createTaskIdMock).toHaveBeenCalledWith("user-b");
+  });
 });
