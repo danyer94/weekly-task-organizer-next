@@ -8,7 +8,10 @@ import type {
   TasksByDay,
   Task,
 } from "@/types";
-import { getUidFromRequest } from "@/lib/firebaseAdmin";
+import {
+  ensureFirebaseAdminInitialized,
+  getUidFromRequest,
+} from "@/lib/firebaseAdmin";
 import * as admin from "firebase-admin";
 
 export const runtime = "nodejs";
@@ -462,6 +465,13 @@ export async function GET(request: NextRequest) {
     const force = searchParams.get("force") === "true";
 
     if (isAuthorizedCronRequest(request)) {
+      if (!ensureFirebaseAdminInitialized()) {
+        return NextResponse.json(
+          { error: "Firebase Admin is not configured" },
+          { status: 500 }
+        );
+      }
+
       const payload = await sendDailySummariesForEnabledUsers({
         date,
         channels,

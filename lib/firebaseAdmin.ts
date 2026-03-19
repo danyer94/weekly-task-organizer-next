@@ -24,6 +24,12 @@ const initializeAdminApp = () => {
   return adminApp;
 };
 
+
+export const ensureFirebaseAdminInitialized = () => {
+  const app = initializeAdminApp();
+  return Boolean(app);
+};
+
 const getAdminAuth = () => {
   const app = initializeAdminApp();
   return app ? admin.auth(app) : null;
