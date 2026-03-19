@@ -35,6 +35,7 @@ import { UserMenu } from "./UserMenu";
 import { UserSettingsModal } from "./UserSettingsModal";
 import { database, getUserPath } from "@/lib/firebase";
 import { onValue, ref } from "firebase/database";
+import { upsertCalendarEvent } from "@/lib/calendarEventMutations";
 
 const WeeklyTaskOrganizer: React.FC = () => {
   const { user, loading: authLoading, logout } = useAuth();
@@ -476,17 +477,12 @@ const WeeklyTaskOrganizer: React.FC = () => {
         selectedDate,
         userTimeZone
       );
-
-      // If editing and event exists, delete old event first
-      if (task.calendarEvent?.eventId) {
-        try {
-          await deleteTaskEventForRamon(task.calendarEvent.eventId);
-        } catch (error) {
-          console.warn("Failed to delete old event, continuing with creation", error);
-        }
-      }
-
-      const { eventId } = await createTaskEventForRamon(payload);
+      const { eventId } = await upsertCalendarEvent({
+        existingEventId: task.calendarEvent?.eventId,
+        payload,
+        createEvent: createTaskEventForRamon,
+        updateEvent: updateTaskEventForRamon,
+      });
 
       // Update the task with calendar event information
       updateTaskCalendarEvent(day, task.id, {
