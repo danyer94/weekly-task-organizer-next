@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { X } from "lucide-react";
 
 interface CalendarEventModalProps {
@@ -25,15 +25,6 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
   const [startTime, setStartTime] = useState(initialStartTime || "09:00");
   const [endTime, setEndTime] = useState(initialEndTime || "10:00");
   const [isAllDay, setIsAllDay] = useState(!initialStartTime && !initialEndTime);
-  
-  // Update state when initial values change (when modal opens with different task)
-  useEffect(() => {
-    if (isOpen) {
-      setStartTime(initialStartTime || "09:00");
-      setEndTime(initialEndTime || "10:00");
-      setIsAllDay(!initialStartTime && !initialEndTime);
-    }
-  }, [isOpen, initialStartTime, initialEndTime]);
 
   if (!isOpen) return null;
 

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useWeeklyTasks, DAYS } from "@/hooks/useWeeklyTasks";
 import type { DailySummarySettings } from "@/types";
 import { Day, Priority, Task } from "@/types";
@@ -35,6 +36,7 @@ import { UserMenu } from "./UserMenu";
 import { UserSettingsModal } from "./UserSettingsModal";
 import { database, getUserPath } from "@/lib/firebase";
 import { onValue, ref } from "firebase/database";
+import { upsertCalendarEvent } from "@/lib/calendarEventMutations";
 
 const WeeklyTaskOrganizer: React.FC = () => {
   const { user, loading: authLoading, logout } = useAuth();
@@ -51,7 +53,12 @@ const WeeklyTaskOrganizer: React.FC = () => {
     syncStatus,
     addTask,
     deleteTask,
-    itemOperations: { toggleComplete, editTask, updateTaskCalendarEvent },
+    itemOperations: {
+      toggleComplete,
+      editTask,
+      updateTaskCalendarEvent,
+      setTaskCalendarEventForDate,
+    },
     reorderTasks,
     bulkOperations: {
       deleteSelected,
@@ -384,6 +391,10 @@ const WeeklyTaskOrganizer: React.FC = () => {
     const contextDate = selectedDate ?? new Date();
     const eventDateOverride = (task: Task) =>
       task.calendarEvent?.date ?? undefined;
+    const getTaskDate = (task: Task, day: Day) =>
+      task.calendarEvent?.date
+        ? new Date(`${task.calendarEvent.date}T12:00:00`)
+        : getDateForDayInWeek(contextDate, day);
 
     try {
       if (isMove) {
@@ -402,13 +413,21 @@ const WeeklyTaskOrganizer: React.FC = () => {
             );
 
             await updateTaskEventForRamon(task.calendarEvent.eventId, payload);
-            if (!isOtherDay) {
-              updateTaskCalendarEvent(day, task.id, {
-                eventId: task.calendarEvent.eventId,
-                date: payload.date,
-                startTime: payload.startTime ?? null,
-                endTime: payload.endTime ?? null,
-              });
+            const calendarEvent = {
+              eventId: task.calendarEvent.eventId,
+              date: payload.date,
+              startTime: payload.startTime ?? null,
+              endTime: payload.endTime ?? null,
+            };
+            if (isOtherDay) {
+              await setTaskCalendarEventForDate(
+                getTaskDate(task, day),
+                day,
+                task.id,
+                calendarEvent
+              );
+            } else {
+              updateTaskCalendarEvent(day, task.id, calendarEvent);
             }
           })
         );
@@ -427,13 +446,21 @@ const WeeklyTaskOrganizer: React.FC = () => {
               eventDateOverride(task)
             );
             const { eventId } = await createTaskEventForRamon(payload);
-            if (!isOtherDay) {
-              updateTaskCalendarEvent(day, task.id, {
-                eventId,
-                date: payload.date,
-                startTime: payload.startTime ?? null,
-                endTime: payload.endTime ?? null,
-              });
+            const calendarEvent = {
+              eventId,
+              date: payload.date,
+              startTime: payload.startTime ?? null,
+              endTime: payload.endTime ?? null,
+            };
+            if (isOtherDay) {
+              await setTaskCalendarEventForDate(
+                getTaskDate(task, day),
+                day,
+                task.id,
+                calendarEvent
+              );
+            } else {
+              updateTaskCalendarEvent(day, task.id, calendarEvent);
             }
           })
         );
@@ -476,17 +503,12 @@ const WeeklyTaskOrganizer: React.FC = () => {
         selectedDate,
         userTimeZone
       );
-
-      // If editing and event exists, delete old event first
-      if (task.calendarEvent?.eventId) {
-        try {
-          await deleteTaskEventForRamon(task.calendarEvent.eventId);
-        } catch (error) {
-          console.warn("Failed to delete old event, continuing with creation", error);
-        }
-      }
-
-      const { eventId } = await createTaskEventForRamon(payload);
+      const { eventId } = await upsertCalendarEvent({
+        existingEventId: task.calendarEvent?.eventId,
+        payload,
+        createEvent: createTaskEventForRamon,
+        updateEvent: updateTaskEventForRamon,
+      });
 
       // Update the task with calendar event information
       updateTaskCalendarEvent(day, task.id, {
@@ -682,7 +704,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
               <div className="flex flex-wrap items-center gap-3 min-w-0 sm:flex-1 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex items-center gap-3 min-w-0">
-                    <img
+                    <Image
                       src="/images/calendar-icon-no-background.png"
                       alt="Calendar"
                       width={44}
@@ -800,6 +822,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 selectedTasks={selectedTasks}
                 tasks={tasks}
                 onToggleSelection={handleToggleSelection}
+                onToggleComplete={toggleComplete}
                 onEdit={editTask}
                 onDragStart={(task, index, day) => {
                   setDraggedTask({ task, index, day });
@@ -894,6 +917,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
       />
       {selectedTaskForCalendar && (
         <CalendarEventModal
+          key={`${selectedTaskForCalendar.task.id}:${selectedTaskForCalendar.task.calendarEvent?.eventId ?? "new"}`}
           isOpen={showCalendarModal}
           onClose={() => {
             setShowCalendarModal(false);

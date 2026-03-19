@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Task, Day, Priority } from "@/types";
 import { PrioritySelector } from "./PrioritySelector";
 import { Pencil, Save, X, GripVertical, Check, CalendarPlus, CalendarCheck, Trash2 } from "lucide-react";
@@ -43,14 +43,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   
   const isEditing = editingTaskId === task.id;
 
-  // Sync state with task when not editing
-  useEffect(() => {
-    if (!isEditing) {
-      setEditText(task.text);
-      setEditPriority(task.priority);
-    }
-  }, [isEditing, task]);
-
   const priorityColors: Record<Priority, string> = {
     high: "border-l-rose-400",
     medium: "border-l-amber-400",
@@ -71,6 +63,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       onEdit(day, task.id, editText, editPriority);
       if (setEditingTaskId) setEditingTaskId(null);
     }
+  };
+
+  const handleEditStart = () => {
+    setEditText(task.text);
+    setEditPriority(task.priority);
+    setEditingTaskId?.(task.id);
   };
 
   const hasCalendarEvent = !!task.calendarEvent?.eventId;
@@ -109,7 +107,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             checked={task.completed}
             onChange={() => onToggleComplete(day, task.id)}
             aria-label={`Mark task as ${task.completed ? "incomplete" : "complete"}: ${task.text}`}
-            className="w-6 h-6 text-emerald-500 rounded focus:ring-emerald-500 cursor-pointer mr-2"
+            className="w-5 h-5 shrink-0 text-emerald-500 rounded focus:ring-emerald-500 cursor-pointer mt-0.5 sm:mt-0"
           />
         )}
         {isEditing && setEditingTaskId ? (
@@ -196,8 +194,22 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         )}
       </div>
 
-      {isAdmin && !isEditing && setEditingTaskId && (
+      {isAdmin && !isEditing && (onToggleComplete || setEditingTaskId || onCreateCalendarEvent) && (
         <div className="flex flex-wrap items-center gap-1 opacity-70 transition-opacity group-hover:opacity-100 sm:self-center">
+          {onToggleComplete && (
+            <button
+              onClick={() => onToggleComplete(day, task.id)}
+              aria-label={`Mark task as ${task.completed ? "incomplete" : "complete"}: ${task.text}`}
+              className={`p-2.5 rounded-full transition-colors ${
+                task.completed
+                  ? "text-emerald-600 hover:text-emerald-700 bg-emerald-50/80 dark:bg-emerald-900/20"
+                  : "text-text-tertiary hover:text-emerald-600"
+              }`}
+              title={task.completed ? "Mark as incomplete" : "Mark as complete"}
+            >
+              <Check className="w-4 h-4" />
+            </button>
+          )}
           {onCreateCalendarEvent && (
             <button
               onClick={() => onCreateCalendarEvent(day, task)}
@@ -220,14 +232,16 @@ export const TaskItem: React.FC<TaskItemProps> = ({
               )}
             </button>
           )}
-          <button
-            onClick={() => setEditingTaskId(task.id)}
-            aria-label="Edit task"
-            className="text-text-tertiary hover:text-text-primary p-2.5 rounded-full transition-colors"
-            title="Edit"
-          >
-            <Pencil className="w-4 h-4" />
-          </button>
+          {setEditingTaskId && (
+            <button
+              onClick={handleEditStart}
+              aria-label="Edit task"
+              className="text-text-tertiary hover:text-text-primary p-2.5 rounded-full transition-colors"
+              title="Edit"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
         </div>
       )}
 

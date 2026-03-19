@@ -27,14 +27,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Update viewDate when selectedDate changes from outside (and picker is closed)
-  useEffect(() => {
+  const togglePicker = () => {
     if (!isOpen) {
       setViewDate(new Date(selectedDate));
     }
-  }, [selectedDate, isOpen]);
-
-  const togglePicker = () => setIsOpen(!isOpen);
+    setIsOpen((open) => !open);
+  };
 
   const handleDateSelect = (date: Date) => {
     onChange(date);

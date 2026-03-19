@@ -38,12 +38,14 @@ const normalizeTasksByDay = (data?: TasksByDay | null): TasksByDay => {
 };
 
 export const useWeeklyTasks = (
-  selectedDate: Date = new Date(),
+  selectedDate: Date | null = new Date(),
   uid?: string
 ) => {
+  const activeSelectedDate = selectedDate ?? new Date();
+
   // Path for current selection
   const currentPath = useMemo(() => {
-    if (!uid) return ""; // Handle unauthenticated state
+    if (!uid || !selectedDate) return ""; // Handle unauthenticated state
     return getWeekPath(selectedDate);
   }, [selectedDate, uid]);
 
@@ -143,7 +145,7 @@ export const useWeeklyTasks = (
         setSyncStatus("error");
       }
     },
-    [currentPath]
+    [currentPath, uid]
   );
 
   const persistLastCarryOverDate = useCallback((dateKey: string) => {
@@ -249,7 +251,7 @@ export const useWeeklyTasks = (
         setSyncStatus(ok ? "synced" : "error");
       }
     },
-    [applyLocalTasks, currentPath]
+    [applyLocalTasks, currentPath, uid]
   );
 
   const ensureCarryOver = useCallback(async () => {
@@ -408,6 +410,61 @@ export const useWeeklyTasks = (
     }));
   };
 
+  const setTaskCalendarEventForDate = useCallback(
+    async (
+      targetDate: Date,
+      day: Day,
+      id: string,
+      calendarEvent: {
+        eventId: string;
+        date: string;
+        startTime?: string;
+        endTime?: string;
+      } | null
+    ) => {
+      if (!uid) return;
+
+      const targetPath = getWeekPath(targetDate);
+      const weekTasks =
+        targetPath === currentPath
+          ? normalizeTasksByDay(latestTasksRef.current)
+          : normalizeTasksByDay(await fetchTasksOnce(uid, targetPath));
+
+      const nextTasks: TasksByDay = {
+        ...weekTasks,
+        [day]: (weekTasks[day] || []).map((task) =>
+          task.id === id
+            ? {
+                ...task,
+                calendarEvent: calendarEvent
+                  ? {
+                      eventId: calendarEvent.eventId,
+                      date: calendarEvent.date,
+                      startTime: calendarEvent.startTime ?? null,
+                      endTime: calendarEvent.endTime ?? null,
+                      lastSynced: Date.now(),
+                    }
+                  : null,
+              }
+            : task
+        ),
+      };
+
+      const ok = await saveTasks(uid, nextTasks, targetPath);
+      if (!ok) {
+        throw new Error("Failed to persist calendar event");
+      }
+
+      if (targetPath === currentPath) {
+        lastLocalUpdateRef.current = performance.now();
+        lastLocalUpdatePathRef.current = targetPath;
+        applyLocalTasks(nextTasks);
+        setSyncStatus("synced");
+      }
+    },
+    [applyLocalTasks, currentPath, uid]
+  );
+
   const reorderTasks = (day: Day, fromIndex: number, toIndex: number) => {
     updateTasks((prev) => {
       const newDayTasks = [...(prev[day] || [])];
@@ -449,6 +506,11 @@ export const useWeeklyTasks = (
     isMove: boolean,
     keepSchedule: boolean = true
   ) => {
+    const effectiveTargetDays = targetDays.filter((day) => day !== currentDay);
+    if (effectiveTargetDays.length === 0) {
+      return { createdTasks: [] };
+    }
+
     const currentDayTasks = tasks[currentDay] || [];
     const tasksToProcess = currentDayTasks.filter((t) => selectedIds.has(t.id));
     const createdTasks: Array<{ day: Day; task: Task }> = [];
@@ -456,10 +518,12 @@ export const useWeeklyTasks = (
     updateTasks((prev) => {
       const newTasks = { ...prev };
 
-      targetDays.forEach((day) => {
+      effectiveTargetDays.forEach((day) => {
         const currentTargetTasks = [...(newTasks[day] || [])];
         const tasksToAdd = tasksToProcess.map((task) => {
-          const targetDate = toDateKey(getDateForDayInWeek(selectedDate, day));
+          const targetDate = toDateKey(
+            getDateForDayInWeek(activeSelectedDate, day)
+          );
           let calendarEvent: Task["calendarEvent"] = null;
 
           if (keepSchedule && task.calendarEvent) {
@@ -519,6 +583,13 @@ export const useWeeklyTasks = (
     const targetPath = getWeekPath(targetDate);
     const targetDay = toDayName(targetDate);
     const targetDateKey = toDateKey(targetDate);
+    const sourceDateKey = toDateKey(
+      getDateForDayInWeek(activeSelectedDate, currentDay)
+    );
+    if (sourceDateKey === targetDateKey) {
+      return { createdTasks: [] };
+    }
+
     const createdTasks: Array<{ day: Day; task: Task }> = [];
 
     const newTasks = tasksToProcess.map((task) => {
@@ -605,8 +676,8 @@ export const useWeeklyTasks = (
   // --- Import / Export ---
 
   const exportToWhatsApp = () => {
-    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
+    const weekStart = startOfWeek(activeSelectedDate, { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(activeSelectedDate, { weekStartsOn: 1 });
     const priorityEmoji = { high: "🔴", medium: "🟠", low: "🟢" };
     let text = `📋 *Weekly Task Organizer (${format(
       weekStart,
@@ -699,7 +770,12 @@ export const useWeeklyTasks = (
     syncStatus,
     addTask,
     deleteTask,
-    itemOperations: { toggleComplete, editTask, updateTaskCalendarEvent }, // grouping for cleaner props
+    itemOperations: {
+      toggleComplete,
+      editTask,
+      updateTaskCalendarEvent,
+      setTaskCalendarEventForDate,
+    }, // grouping for cleaner props
     reorderTasks,
     bulkOperations: {
       deleteSelected,

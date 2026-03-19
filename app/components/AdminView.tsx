@@ -15,8 +15,17 @@ import {
   Layers,
 } from "lucide-react";
 
+const readAdminViewMode = (): TaskViewMode => {
+  if (typeof window === "undefined") return "timeline-list";
 
+  const stored = window.localStorage.getItem(
+    "weekly-task-organizer:view-mode-admin"
+  );
 
+  return stored === "list" || stored === "timeline" || stored === "timeline-list"
+    ? stored
+    : "timeline-list";
+};
 interface AdminViewProps {
   currentDay: Day;
   days: Day[];
@@ -34,6 +43,7 @@ interface AdminViewProps {
   tasks: any;
   // Handlers passed down to TaskList
   onToggleSelection: (id: string) => void;
+  onToggleComplete: (day: Day, id: string) => void;
   onEdit: (day: Day, id: string, text: string, priority: Priority) => void;
   onDragStart: (task: any, index: number, day: Day) => void;
   onDrop: (targetDay: Day, targetIndex: number) => void;
@@ -64,6 +74,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
   selectedTasks,
   tasks,
   onToggleSelection,
+  onToggleComplete,
   onEdit,
   onDragStart,
   onDrop,
@@ -77,16 +88,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   onDeleteCalendarEvent,
   onTimelineScheduleChange,
 }) => {
-  const [viewMode, setViewMode] = useState<TaskViewMode>("timeline-list");
+  const [viewMode, setViewMode] = useState<TaskViewMode>(readAdminViewMode);
   const dayTasks = tasks[currentDay] || [];
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem("weekly-task-organizer:view-mode-admin");
-    if (stored === "list" || stored === "timeline" || stored === "timeline-list") {
-      setViewMode(stored);
-    }
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -196,6 +199,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               isAdmin={true}
               selectedTasks={selectedTasks}
               onToggleSelection={onToggleSelection}
+              onToggleComplete={onToggleComplete}
               onEdit={onEdit}
               onDragStart={onDragStart}
               onDrop={onDrop}

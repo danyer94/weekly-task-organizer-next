@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Calendar, ChevronDown, LogOut, Settings, User as UserIcon } from "lucide-react";
 
 interface UserMenuProps {
@@ -70,11 +71,12 @@ export const UserMenu: React.FC<UserMenuProps> = ({
         aria-expanded={open}
       >
         {photoURL ? (
-          <img
+          <Image
             src={photoURL}
             alt="User"
             width={40}
             height={40}
+            unoptimized
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-border-hover shadow-lg object-cover"
           />
         ) : (

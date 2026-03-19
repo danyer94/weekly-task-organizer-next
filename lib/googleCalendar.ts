@@ -1,8 +1,9 @@
 import { google } from "googleapis";
 import type { OAuth2Client } from "google-auth-library";
-import { adminDb } from "@/lib/firebaseAdmin";
+import { getAdminDb } from "@/lib/firebaseAdmin";
 import { CalendarEventPayload } from "@/types";
 import crypto from "crypto";
+import { buildTimedEventRange } from "@/lib/googleCalendarEventTime";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -38,7 +39,7 @@ export interface GoogleAuthInfo {
 }
 
 const getGoogleAuthRef = (userId: string) =>
-  adminDb.ref(`users/${userId}/googleAuth`);
+  getAdminDb().ref(`users/${userId}/googleAuth`);
 
 /**
  * Signs a state parameter (UID) to prevent tampering.
@@ -310,39 +311,21 @@ export const createGoogleCalendarEventForUser = async (
     // Use the provided timezone or fall back to system timezone
     const eventTimeZone =
       payload.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    // Construct ISO string for local time (YYYY-MM-DDTHH:mm:ss)
-    // We avoid using new Date() on the server to prevent UTC/Local conversion issues
-    const formatDateTime = (dateStr: string, timeStr: string) => {
-      return `${dateStr}T${timeStr}:00`;
-    };
-
-    const startDateTimeStr = formatDateTime(payload.date, payload.startTime);
-
-    // Calculate end time
-    let endDateTimeStr: string;
-    if (payload.endTime) {
-      endDateTimeStr = formatDateTime(payload.date, payload.endTime);
-    } else {
-      // Default to 1 hour after start
-      const [hours, minutes] = payload.startTime.split(":").map(Number);
-      const endHours = (hours + 1) % 24;
-      const endHoursStr = String(endHours).padStart(2, "0");
-      endDateTimeStr = formatDateTime(
-        payload.date,
-        `${endHoursStr}:${String(minutes).padStart(2, "0")}`
-      );
-    }
+    const { startDateTime, endDateTime } = buildTimedEventRange(
+      payload.date,
+      payload.startTime,
+      payload.endTime
+    );
 
     const event = {
       summary: payload.summary,
       description: payload.description,
       start: {
-        dateTime: startDateTimeStr,
+        dateTime: startDateTime,
         timeZone: eventTimeZone,
       },
       end: {
-        dateTime: endDateTimeStr,
+        dateTime: endDateTime,
         timeZone: eventTimeZone,
       },
     };
@@ -394,35 +377,21 @@ export const updateGoogleCalendarEventForUser = async (
   if (payload.startTime) {
     const eventTimeZone =
       payload.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    const formatDateTime = (dateStr: string, timeStr: string) => {
-      return `${dateStr}T${timeStr}:00`;
-    };
-
-    const startDateTimeStr = formatDateTime(payload.date, payload.startTime);
-
-    let endDateTimeStr: string;
-    if (payload.endTime) {
-      endDateTimeStr = formatDateTime(payload.date, payload.endTime);
-    } else {
-      const [hours, minutes] = payload.startTime.split(":").map(Number);
-      const endHours = (hours + 1) % 24;
-      const endHoursStr = String(endHours).padStart(2, "0");
-      endDateTimeStr = formatDateTime(
-        payload.date,
-        `${endHoursStr}:${String(minutes).padStart(2, "0")}`
-      );
-    }
+    const { startDateTime, endDateTime } = buildTimedEventRange(
+      payload.date,
+      payload.startTime,
+      payload.endTime
+    );
 
     const event = {
       summary: payload.summary,
       description: payload.description,
       start: {
-        dateTime: startDateTimeStr,
+        dateTime: startDateTime,
         timeZone: eventTimeZone,
       },
       end: {
-        dateTime: endDateTimeStr,
+        dateTime: endDateTime,
         timeZone: eventTimeZone,
       },
     };
