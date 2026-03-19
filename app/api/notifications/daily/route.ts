@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchTasksOnce } from "@/lib/firebase";
 import { getWeekPath } from "@/lib/calendarMapper";
 import { sendNotification } from "@/lib/notifications";
 import type {
@@ -9,7 +8,7 @@ import type {
   TasksByDay,
   Task,
 } from "@/types";
-import { getUidFromRequest, verifyIdToken } from "@/lib/firebaseAdmin";
+import { getUidFromRequest } from "@/lib/firebaseAdmin";
 import * as admin from "firebase-admin";
 
 export const runtime = "nodejs";
@@ -17,6 +16,7 @@ export const runtime = "nodejs";
 const TIME_ZONE = process.env.NOTIFICATIONS_TIME_ZONE || "America/New_York";
 const NOTIFY_SMS_TO = process.env.NOTIFY_SMS_TO || "";
 const NOTIFY_WHATSAPP_TO = process.env.NOTIFY_WHATSAPP_TO || "";
+const CRON_SECRET = process.env.CRON_SECRET || "";
 
 const DATE_PARAM_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DAILY_SEND_HOUR = Number(process.env.NOTIFY_DAILY_HOUR ?? "9");
@@ -244,16 +244,48 @@ const parseChannelFilter = (value: unknown): NotificationChannel[] | null => {
   ) as NotificationChannel[];
 };
 
+const isAuthorizedCronRequest = (request: NextRequest) => {
+  if (!CRON_SECRET) return false;
+  return request.headers.get("authorization") === `Bearer ${CRON_SECRET}`;
+};
+
+const listDailySummaryEnabledUsers = async () => {
+  const users: Array<{ uid: string; settings: DailySummarySettings }> = [];
+  let pageToken: string | undefined;
+
+  do {
+    const page = await admin.auth().listUsers(1000, pageToken);
+    const settings = await Promise.all(
+      page.users.map(async (user) => ({
+        uid: user.uid,
+        settings: await getDailySummarySettings(user.uid),
+      }))
+    );
+
+    settings.forEach(({ uid, settings }) => {
+      if (settings?.enabled) {
+        users.push({ uid, settings });
+      }
+    });
+
+    pageToken = page.pageToken;
+  } while (pageToken);
+
+  return users;
+};
+
 const sendDailySummary = async (params: {
   uid: string;
   date?: string | null;
   channels?: NotificationChannel[] | null;
   force?: boolean;
+  skipTimeWindowCheck?: boolean;
+  dailySettings?: DailySummarySettings | null;
 }) => {
   const dateCandidate = params?.date ? parseDateParam(params.date) : null;
   const targetDate = dateCandidate || new Date();
 
-  if (!params?.force) {
+  if (!params?.force && !params?.skipTimeWindowCheck) {
     const { hour, minute } = getZonedTimeInfo(targetDate, TIME_ZONE);
     const { weekday } = getZonedDateInfo(targetDate, TIME_ZONE);
     const weekdaySet = parseWeekdaySet(DAILY_SEND_WEEKDAYS);
@@ -283,7 +315,8 @@ const sendDailySummary = async (params: {
   }
 
   const { dateKey, weekday } = getZonedDateInfo(targetDate, TIME_ZONE);
-  const dailySettings = await getDailySummarySettings(params.uid);
+  const dailySettings =
+    params.dailySettings ?? (await getDailySummarySettings(params.uid));
 
   if (!params?.force && dailySettings?.lastSentDateKey === dateKey) {
     return {
@@ -369,17 +402,79 @@ const sendDailySummary = async (params: {
   };
 };
 
+const sendDailySummariesForEnabledUsers = async (params: {
+  date?: string | null;
+  channels?: NotificationChannel[] | null;
+  force?: boolean;
+}) => {
+  const enabledUsers = await listDailySummaryEnabledUsers();
+  const results = await Promise.allSettled(
+    enabledUsers.map(async ({ uid, settings }) => ({
+      uid,
+      result: await sendDailySummary({
+        uid,
+        date: params.date,
+        channels: params.channels,
+        force: params.force,
+        skipTimeWindowCheck: true,
+        dailySettings: settings,
+      }),
+    }))
+  );
+
+  const summary = results.map((entry, index) => {
+    const user = enabledUsers[index];
+    if (entry.status === "fulfilled") {
+      return {
+        uid: entry.value.uid,
+        ...entry.value.result,
+      };
+    }
+
+    return {
+      uid: user.uid,
+      error:
+        entry.reason instanceof Error
+          ? entry.reason.message
+          : "Failed to send daily summary",
+    };
+  });
+
+  return {
+    cron: true,
+    processed: summary.filter((entry) => !("error" in entry)).length,
+    sent: summary.filter(
+      (entry) => !("error" in entry) && !entry.skipped
+    ).length,
+    skipped: summary.filter(
+      (entry) => !("error" in entry) && entry.skipped
+    ).length,
+    failed: summary.filter((entry) => "error" in entry).length,
+    results: summary,
+  };
+};
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const date = searchParams.get("date");
+    const channels = parseChannelFilter(searchParams.get("channels"));
+    const force = searchParams.get("force") === "true";
+
+    if (isAuthorizedCronRequest(request)) {
+      const payload = await sendDailySummariesForEnabledUsers({
+        date,
+        channels,
+        force,
+      });
+      return NextResponse.json({ success: true, ...payload });
+    }
+
     const uid = await getUidFromRequest(request);
     if (!uid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const date = searchParams.get("date");
-    const channels = parseChannelFilter(searchParams.get("channels"));
-    const force = searchParams.get("force") === "true";
     const payload = await sendDailySummary({ uid, date, channels, force });
     return NextResponse.json({ success: true, ...payload });
   } catch (error) {
