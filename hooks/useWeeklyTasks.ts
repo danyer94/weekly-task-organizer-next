@@ -449,6 +449,11 @@ export const useWeeklyTasks = (
     isMove: boolean,
     keepSchedule: boolean = true
   ) => {
+    const effectiveTargetDays = targetDays.filter((day) => day !== currentDay);
+    if (effectiveTargetDays.length === 0) {
+      return { createdTasks: [] };
+    }
+
     const currentDayTasks = tasks[currentDay] || [];
     const tasksToProcess = currentDayTasks.filter((t) => selectedIds.has(t.id));
     const createdTasks: Array<{ day: Day; task: Task }> = [];
@@ -456,7 +461,7 @@ export const useWeeklyTasks = (
     updateTasks((prev) => {
       const newTasks = { ...prev };
 
-      targetDays.forEach((day) => {
+      effectiveTargetDays.forEach((day) => {
         const currentTargetTasks = [...(newTasks[day] || [])];
         const tasksToAdd = tasksToProcess.map((task) => {
           const targetDate = toDateKey(getDateForDayInWeek(selectedDate, day));
@@ -519,6 +524,11 @@ export const useWeeklyTasks = (
     const targetPath = getWeekPath(targetDate);
     const targetDay = toDayName(targetDate);
     const targetDateKey = toDateKey(targetDate);
+    const sourceDateKey = toDateKey(getDateForDayInWeek(selectedDate, currentDay));
+    if (sourceDateKey === targetDateKey) {
+      return { createdTasks: [] };
+    }
+
     const createdTasks: Array<{ day: Day; task: Task }> = [];
 
     const newTasks = tasksToProcess.map((task) => {
