@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as admin from "firebase-admin";
-import { adminDb, getUidFromRequest } from "@/lib/firebaseAdmin";
+import { getAdminDb, getUidFromRequest } from "@/lib/firebaseAdmin";
 
 export const runtime = "nodejs";
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const usernameRef = adminDb.ref(`usernames/${username}`);
+    const usernameRef = getAdminDb().ref(`usernames/${username}`);
     const snapshot = await usernameRef.get();
     if (!snapshot.exists()) {
       return jsonResponse(
@@ -218,7 +218,7 @@ export async function PUT(request: NextRequest) {
 
     const user = await admin.auth().getUser(uid);
     const userEmail = user.email?.toLowerCase() ?? null;
-    const usernameRef = adminDb.ref(`usernames/${username}`);
+    const usernameRef = getAdminDb().ref(`usernames/${username}`);
     const now = Date.now();
 
     const result = await usernameRef.transaction(

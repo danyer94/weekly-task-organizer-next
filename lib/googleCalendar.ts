@@ -1,6 +1,6 @@
 import { google } from "googleapis";
 import type { OAuth2Client } from "google-auth-library";
-import { adminDb } from "@/lib/firebaseAdmin";
+import { getAdminDb } from "@/lib/firebaseAdmin";
 import { CalendarEventPayload } from "@/types";
 import crypto from "crypto";
 import { buildTimedEventRange } from "@/lib/googleCalendarEventTime";
@@ -39,7 +39,7 @@ export interface GoogleAuthInfo {
 }
 
 const getGoogleAuthRef = (userId: string) =>
-  adminDb.ref(`users/${userId}/googleAuth`);
+  getAdminDb().ref(`users/${userId}/googleAuth`);
 
 /**
  * Signs a state parameter (UID) to prevent tampering.
