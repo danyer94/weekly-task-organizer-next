@@ -34,6 +34,7 @@ interface AdminViewProps {
   tasks: any;
   // Handlers passed down to TaskList
   onToggleSelection: (id: string) => void;
+  onToggleComplete: (day: Day, id: string) => void;
   onEdit: (day: Day, id: string, text: string, priority: Priority) => void;
   onDragStart: (task: any, index: number, day: Day) => void;
   onDrop: (targetDay: Day, targetIndex: number) => void;
@@ -64,6 +65,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
   selectedTasks,
   tasks,
   onToggleSelection,
+  onToggleComplete,
   onEdit,
   onDragStart,
   onDrop,
@@ -196,6 +198,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               isAdmin={true}
               selectedTasks={selectedTasks}
               onToggleSelection={onToggleSelection}
+              onToggleComplete={onToggleComplete}
               onEdit={onEdit}
               onDragStart={onDragStart}
               onDrop={onDrop}

@@ -800,6 +800,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 selectedTasks={selectedTasks}
                 tasks={tasks}
                 onToggleSelection={handleToggleSelection}
+                onToggleComplete={toggleComplete}
                 onEdit={editTask}
                 onDragStart={(task, index, day) => {
                   setDraggedTask({ task, index, day });

@@ -103,13 +103,13 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           </div>
         )}
 
-        {!isAdmin && onToggleComplete && (
+        {onToggleComplete && (
           <input
             type="checkbox"
             checked={task.completed}
             onChange={() => onToggleComplete(day, task.id)}
             aria-label={`Mark task as ${task.completed ? "incomplete" : "complete"}: ${task.text}`}
-            className="w-6 h-6 text-emerald-500 rounded focus:ring-emerald-500 cursor-pointer mr-2"
+            className="w-5 h-5 shrink-0 text-emerald-500 rounded focus:ring-emerald-500 cursor-pointer mt-0.5 sm:mt-0"
           />
         )}
         {isEditing && setEditingTaskId ? (
