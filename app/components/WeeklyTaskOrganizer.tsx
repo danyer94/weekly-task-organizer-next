@@ -868,7 +868,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
       {/* Modals */}
       <DaySelectionModal
         show={showMoveModal}
-        title="Move to…"
+        title="Move to..."
         days={DAYS}
         baseDate={selectedDate ?? new Date()}
         onClose={() => setShowMoveModal(false)}
@@ -876,7 +876,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
       />
       <DaySelectionModal
         show={showCopyModal}
-        title="Copy to…"
+        title="Copy to..."
         days={DAYS}
         baseDate={selectedDate ?? new Date()}
         onClose={() => setShowCopyModal(false)}

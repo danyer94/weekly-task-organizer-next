@@ -1,5 +1,6 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Calendar, ChevronDown, LogOut, Settings, User as UserIcon } from "lucide-react";
 
@@ -16,7 +17,6 @@ interface UserMenuProps {
   onSyncCalendar: () => void;
 }
 
-
 export const UserMenu: React.FC<UserMenuProps> = ({
   displayName,
   email,
@@ -30,24 +30,48 @@ export const UserMenu: React.FC<UserMenuProps> = ({
   onSyncCalendar,
 }) => {
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{
+    top: number;
+    right: number;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
 
+    const updateMenuPosition = () => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 8,
+        right: Math.max(window.innerWidth - rect.right, 16),
+      });
+    };
+
+    updateMenuPosition();
+
     const handleClick = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
 
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
 
+    window.addEventListener("resize", updateMenuPosition);
+    window.addEventListener("scroll", updateMenuPosition, true);
     document.addEventListener("mousedown", handleClick);
     document.addEventListener("keydown", handleKey);
+
     return () => {
+      window.removeEventListener("resize", updateMenuPosition);
+      window.removeEventListener("scroll", updateMenuPosition, true);
       document.removeEventListener("mousedown", handleClick);
       document.removeEventListener("keydown", handleKey);
     };
@@ -61,42 +85,15 @@ export const UserMenu: React.FC<UserMenuProps> = ({
     }
   };
 
-  return (
-    <div className="relative" ref={containerRef}>
-      <button
-        onClick={() => setOpen((prev) => !prev)}
-        className="glass-control flex items-center gap-3 px-2 sm:px-3 py-2 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
-
-        aria-haspopup="menu"
-        aria-expanded={open}
-      >
-        {photoURL ? (
-          <Image
-            src={photoURL}
-            alt="User"
-            width={40}
-            height={40}
-            unoptimized
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-border-hover shadow-lg object-cover"
-          />
-        ) : (
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-bg-sidebar border border-border-subtle flex items-center justify-center text-text-tertiary shadow-sm">
-            <UserIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        )}
-        <div className="hidden sm:flex flex-col items-start min-w-0">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-text-tertiary">Account</span>
-          <span className="text-sm font-semibold text-text-primary truncate max-w-[140px]">
-            {displayName}
-          </span>
-        </div>
-        <ChevronDown className={`w-4 h-4 sm:w-4 sm:h-4 text-text-secondary transition-transform ${open ? "rotate-180" : ""}`} />
-
-      </button>
-
-      {open && (
+  const menu = open && menuPosition
+    ? createPortal(
         <div
-          className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] glass-panel rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in motion-reduce:animate-none"
+          ref={menuRef}
+          className="fixed w-64 max-w-[calc(100vw-2rem)] glass-panel rounded-xl shadow-2xl overflow-hidden z-[120] animate-fade-in motion-reduce:animate-none"
+          style={{
+            top: menuPosition.top,
+            right: menuPosition.right,
+          }}
           role="menu"
         >
           <div className="px-4 py-3 border-b border-border-subtle/60">
@@ -125,7 +122,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                 >
                   <span>
                     {isCheckingGoogle
-                      ? "Checking Google…"
+                      ? "Checking Google..."
                       : isGoogleConnected
                       ? "Google Connected"
                       : "Connect Google Calendar"}
@@ -174,9 +171,44 @@ export const UserMenu: React.FC<UserMenuProps> = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
+      )
+    : null;
 
-      )}
-    </div>
+  return (
+    <>
+      <div className="relative" ref={containerRef}>
+        <button
+          onClick={() => setOpen((prev) => !prev)}
+          className="glass-control flex items-center gap-3 px-2 sm:px-3 py-2 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+          aria-haspopup="menu"
+          aria-expanded={open}
+        >
+          {photoURL ? (
+            <Image
+              src={photoURL}
+              alt="User"
+              width={40}
+              height={40}
+              unoptimized
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-border-hover shadow-lg object-cover"
+            />
+          ) : (
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-bg-sidebar border border-border-subtle flex items-center justify-center text-text-tertiary shadow-sm">
+              <UserIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            </div>
+          )}
+          <div className="hidden sm:flex flex-col items-start min-w-0">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-text-tertiary">Account</span>
+            <span className="text-sm font-semibold text-text-primary truncate max-w-[140px]">
+              {displayName}
+            </span>
+          </div>
+          <ChevronDown className={`w-4 h-4 sm:w-4 sm:h-4 text-text-secondary transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+      {menu}
+    </>
   );
 };
