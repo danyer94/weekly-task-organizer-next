@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useWeeklyTasks, DAYS } from "@/hooks/useWeeklyTasks";
 import type { DailySummarySettings } from "@/types";
 import { Day, Priority, Task } from "@/types";
@@ -703,7 +704,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
               <div className="flex flex-wrap items-center gap-3 min-w-0 sm:flex-1 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex items-center gap-3 min-w-0">
-                    <img
+                    <Image
                       src="/images/calendar-icon-no-background.png"
                       alt="Calendar"
                       width={44}
