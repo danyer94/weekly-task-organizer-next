@@ -29,23 +29,22 @@ describe("UserMenu", () => {
     onSyncCalendar: vi.fn(),
   });
 
-  it("renders the dropdown menu through a portal", async () => {
+  it("renders the dropdown menu as an anchored dropdown", async () => {
     const props = createProps();
     const { container } = render(<UserMenu {...props} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /accountdanyer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open account menu/i }));
 
     const menu = await screen.findByRole("menu");
     expect(menu).toBeInTheDocument();
-    expect(container.querySelector('[role="menu"]')).toBeNull();
-    expect(document.body.querySelector('[role="menu"]')).toBe(menu);
+    expect(container.querySelector('[role="menu"]')).toBe(menu);
   });
 
   it("closes the dropdown when clicking outside", async () => {
     const props = createProps();
     render(<UserMenu {...props} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /accountdanyer/i }));
+    fireEvent.click(screen.getByRole("button", { name: /open account menu/i }));
     expect(await screen.findByRole("menu")).toBeInTheDocument();
 
     fireEvent.mouseDown(document.body);

@@ -698,9 +698,9 @@ const WeeklyTaskOrganizer: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <header
             ref={headerRef}
-            className="glass-panel rounded-2xl px-4 sm:px-6 py-4 border border-border-subtle/70 shadow-lg"
+            className="glass-panel overflow-visible rounded-2xl px-4 sm:px-6 py-4 border border-border-subtle/70 shadow-lg"
           >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex flex-wrap items-center gap-3 min-w-0 sm:flex-1 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex items-center gap-3 min-w-0">
