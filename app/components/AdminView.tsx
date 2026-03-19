@@ -15,8 +15,17 @@ import {
   Layers,
 } from "lucide-react";
 
+const readAdminViewMode = (): TaskViewMode => {
+  if (typeof window === "undefined") return "timeline-list";
 
+  const stored = window.localStorage.getItem(
+    "weekly-task-organizer:view-mode-admin"
+  );
 
+  return stored === "list" || stored === "timeline" || stored === "timeline-list"
+    ? stored
+    : "timeline-list";
+};
 interface AdminViewProps {
   currentDay: Day;
   days: Day[];
@@ -79,16 +88,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   onDeleteCalendarEvent,
   onTimelineScheduleChange,
 }) => {
-  const [viewMode, setViewMode] = useState<TaskViewMode>("timeline-list");
+  const [viewMode, setViewMode] = useState<TaskViewMode>(readAdminViewMode);
   const dayTasks = tasks[currentDay] || [];
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem("weekly-task-organizer:view-mode-admin");
-    if (stored === "list" || stored === "timeline" || stored === "timeline-list") {
-      setViewMode(stored);
-    }
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

@@ -895,6 +895,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
       />
       {selectedTaskForCalendar && (
         <CalendarEventModal
+          key={`${selectedTaskForCalendar.task.id}:${selectedTaskForCalendar.task.calendarEvent?.eventId ?? "new"}`}
           isOpen={showCalendarModal}
           onClose={() => {
             setShowCalendarModal(false);

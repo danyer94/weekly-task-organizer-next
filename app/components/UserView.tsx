@@ -6,6 +6,17 @@ import { TaskViewToggle, TaskViewMode } from "./TaskViewToggle";
 import { Layers, Sparkles } from "lucide-react";
 import { DatePicker } from "./DatePicker";
 
+const readUserViewMode = (): TaskViewMode => {
+  if (typeof window === "undefined") return "timeline-list";
+
+  const stored = window.localStorage.getItem(
+    "weekly-task-organizer:view-mode-user"
+  );
+
+  return stored === "list" || stored === "timeline" || stored === "timeline-list"
+    ? stored
+    : "timeline-list";
+};
 
 interface UserViewProps {
   currentDay: Day;
@@ -34,16 +45,8 @@ export const UserView: React.FC<UserViewProps> = ({
   onDateChange,
   displayName,
 }) => {
-  const [viewMode, setViewMode] = useState<TaskViewMode>("timeline-list");
+  const [viewMode, setViewMode] = useState<TaskViewMode>(readUserViewMode);
   const dayTasks = tasks[currentDay] || [];
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem("weekly-task-organizer:view-mode-user");
-    if (stored === "list" || stored === "timeline" || stored === "timeline-list") {
-      setViewMode(stored);
-    }
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

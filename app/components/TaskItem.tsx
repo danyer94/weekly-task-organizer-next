@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Task, Day, Priority } from "@/types";
 import { PrioritySelector } from "./PrioritySelector";
 import { Pencil, Save, X, GripVertical, Check, CalendarPlus, CalendarCheck, Trash2 } from "lucide-react";
@@ -43,14 +43,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   
   const isEditing = editingTaskId === task.id;
 
-  // Sync state with task when not editing
-  useEffect(() => {
-    if (!isEditing) {
-      setEditText(task.text);
-      setEditPriority(task.priority);
-    }
-  }, [isEditing, task]);
-
   const priorityColors: Record<Priority, string> = {
     high: "border-l-rose-400",
     medium: "border-l-amber-400",
@@ -71,6 +63,12 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       onEdit(day, task.id, editText, editPriority);
       if (setEditingTaskId) setEditingTaskId(null);
     }
+  };
+
+  const handleEditStart = () => {
+    setEditText(task.text);
+    setEditPriority(task.priority);
+    setEditingTaskId?.(task.id);
   };
 
   const hasCalendarEvent = !!task.calendarEvent?.eventId;
@@ -221,7 +219,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             </button>
           )}
           <button
-            onClick={() => setEditingTaskId(task.id)}
+            onClick={handleEditStart}
             aria-label="Edit task"
             className="text-text-tertiary hover:text-text-primary p-2.5 rounded-full transition-colors"
             title="Edit"
