@@ -48,6 +48,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
 
   useEffect(() => {
     if (!isOpen || !user) return;
+
     const loadSettings = async () => {
       setDailySummaryLoading(true);
       setDailySummaryNotice(null);
@@ -62,11 +63,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           setDailySummaryEmail(email || "");
           return;
         }
+
         const settings = snapshot.val() as DailySummarySettings;
         setDailySummaryEnabled(Boolean(settings?.enabled));
-        setDailySummaryEmail(
-          settings?.email ?? email ?? ""
-        );
+        setDailySummaryEmail(settings?.email ?? email ?? "");
       } catch (error) {
         console.error("Failed to load daily summary settings", error);
         setDailySummaryNotice({
@@ -97,7 +97,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
       await updateDisplayName(trimmed);
       setNameNotice({ type: "success", message: "Display name updated." });
     } catch (error) {
-      setNameNotice({ type: "error", message: getAuthErrorMessage(error, "We couldn't update your name.") });
+      setNameNotice({
+        type: "error",
+        message: getAuthErrorMessage(error, "We couldn't update your name."),
+      });
     } finally {
       setSavingName(false);
     }
@@ -105,7 +108,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
 
   const handleUpdatePassword = async () => {
     if (password.length < 6) {
-      setPasswordNotice({ type: "error", message: "Password should be at least 6 characters." });
+      setPasswordNotice({
+        type: "error",
+        message: "Password should be at least 6 characters.",
+      });
       return;
     }
     if (password !== passwordConfirm) {
@@ -123,7 +129,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
     } catch (error) {
       setPasswordNotice({
         type: "error",
-        message: getAuthErrorMessage(error, "We couldn't update your password. Please try again."),
+        message: getAuthErrorMessage(
+          error,
+          "We couldn't update your password. Please try again."
+        ),
       });
     } finally {
       setSavingPassword(false);
@@ -189,10 +198,17 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-slate-950/50 flex items-start sm:items-center justify-center z-50 backdrop-blur-sm animate-fade-in motion-reduce:animate-none overflow-y-auto px-4 py-6 overscroll-contain">
-      <div className="glass-panel rounded-2xl shadow-2xl border border-border-subtle/70 w-full max-w-lg p-5 sm:p-6 max-h-[92vh] overflow-y-auto">
-        <div className="flex items-start justify-between mb-6 gap-3">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="user-settings-title"
+        className="glass-panel rounded-2xl shadow-2xl border border-border-subtle/70 w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[92vh] overflow-hidden flex flex-col"
+      >
+        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 sm:px-6 sm:pt-6 sm:pb-5 shrink-0">
           <div>
-            <h3 className="text-xl font-bold text-text-primary">User settings</h3>
+            <h3 id="user-settings-title" className="text-xl font-bold text-text-primary">
+              User settings
+            </h3>
             <p className="text-sm text-text-secondary">
               Update your profile and security settings.
             </p>
@@ -206,189 +222,208 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           </button>
         </div>
 
-        <div className="space-y-5">
-          <div className="rounded-2xl border border-border-subtle/60 bg-bg-surface/60 p-4">
-            <div className="flex items-center gap-2 mb-4 text-text-primary">
-              <User className="w-4 h-4 text-border-brand" />
-              <h4 className="text-sm font-bold uppercase tracking-[0.2em]">Profile</h4>
-            </div>
-            <label className="text-xs font-semibold text-text-secondary block mb-2">Display name</label>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
-                placeholder="Your display name"
-                name="displayName"
-                autoComplete="name"
-                className="flex-1 px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
-              />
-              <button
-                onClick={handleUpdateName}
-                disabled={savingName}
-                className="w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-sapphire-700 text-white shadow-sm hover:bg-sapphire-600 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
-                type="button"
-              >
-                {savingName ? "Saving…" : "Save name"}
-              </button>
-
-            </div>
-            {email && (
-              <p className="mt-3 text-xs text-text-tertiary">
-                Signed in as <span className="text-text-secondary">{email}</span>
-              </p>
-            )}
-            {nameNotice && (
-              <div
-                className={`mt-3 text-xs rounded-lg px-3 py-2 border ${
-                  nameNotice.type === "success"
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                    : "bg-red-500/10 text-red-400 border-red-500/30"
-                }`}
-                role="status"
-                aria-live="polite"
-              >
-                {nameNotice.message}
+        <div
+          data-testid="user-settings-scroll-region"
+          className="min-h-0 overflow-y-auto px-5 pb-5 sm:px-6 sm:pb-6"
+        >
+          <div className="space-y-5 pr-1">
+            <div className="glass-subpanel rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-4 text-text-primary">
+                <User className="w-4 h-4 text-border-brand" />
+                <h4 className="text-sm font-bold uppercase tracking-[0.2em]">
+                  Profile
+                </h4>
               </div>
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-border-subtle/60 bg-bg-surface/60 p-4">
-            <div className="flex items-center gap-2 mb-4 text-text-primary">
-              <KeyRound className="w-4 h-4 text-border-brand" />
-              <h4 className="text-sm font-bold uppercase tracking-[0.2em]">Security</h4>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="New password"
-                aria-label="New password"
-                name="newPassword"
-                autoComplete="new-password"
-                className="px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
-              />
-              <input
-                type="password"
-                value={passwordConfirm}
-                onChange={(event) => setPasswordConfirm(event.target.value)}
-                placeholder="Confirm password"
-                aria-label="Confirm password"
-                name="confirmPassword"
-                autoComplete="new-password"
-                className="px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
-              />
-            </div>
-            <button
-              onClick={handleUpdatePassword}
-              disabled={savingPassword}
-              className="mt-3 w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm bg-slate-800 text-white shadow-sm hover:bg-slate-700 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
-              type="button"
-            >
-              {savingPassword ? "Updating…" : "Update password"}
-            </button>
-
-            <p className="mt-2 text-xs text-text-tertiary">
-              Password updates may require a recent sign-in.
-            </p>
-            {passwordNotice && (
-              <div
-                className={`mt-3 text-xs rounded-lg px-3 py-2 border ${
-                  passwordNotice.type === "success"
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                    : "bg-red-500/10 text-red-400 border-red-500/30"
-                }`}
-                role="status"
-                aria-live="polite"
+              <label
+                htmlFor="display-name"
+                className="text-xs font-semibold text-text-secondary block mb-2"
               >
-                {passwordNotice.message}
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-border-subtle/60 bg-bg-surface/60 p-4">
-            <div className="flex items-center gap-2 mb-4 text-text-primary">
-              <MailCheck className="w-4 h-4 text-border-brand" />
-              <h4 className="text-sm font-bold uppercase tracking-[0.2em]">Daily summary</h4>
-            </div>
-            <p className="text-xs text-text-tertiary mb-4">
-              Get a daily recap of your tasks delivered to the email you choose.
-            </p>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-border-subtle/60 bg-bg-surface/60 px-4 py-3">
-              <div>
-                <p className="text-sm font-semibold text-text-primary">
-                  Email daily summary
-                </p>
-                <p className="text-xs text-text-tertiary">
-                  Turn this on to receive your scheduled summary.
-                </p>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={dailySummaryEnabled}
-                onClick={() => setDailySummaryEnabled((prev) => !prev)}
-                className={`relative inline-flex h-8 w-14 items-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 ${
-                  dailySummaryEnabled
-                    ? "bg-border-brand border-transparent"
-                    : "bg-bg-main/80 border-border-subtle/60"
-                }`}
-              >
-                <span
-                  className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform ${
-                    dailySummaryEnabled ? "translate-x-7" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-start">
-              <div>
-                <label className="text-xs font-semibold text-text-secondary block mb-2">
-                  Summary delivery email
-                </label>
+                Display name
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input
-                  type="email"
-                  value={dailySummaryEmail}
-                  onChange={(event) => setDailySummaryEmail(event.target.value)}
-                  placeholder="name@company.com"
-                  disabled={!dailySummaryEnabled}
-                  name="dailySummaryEmail"
-                  autoComplete="email"
-                  spellCheck={false}
-                  className={`w-full px-4 py-3 rounded-xl border border-border-subtle bg-bg-surface/80 text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors ${
-                    !dailySummaryEnabled ? "opacity-60 cursor-not-allowed" : ""
+                  id="display-name"
+                  type="text"
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  placeholder="Your display name"
+                  name="displayName"
+                  autoComplete="name"
+                  className="glass-input flex-1 px-4 py-3 rounded-xl text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
+                />
+                <button
+                  onClick={handleUpdateName}
+                  disabled={savingName}
+                  className="glass-button-accent w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm text-text-primary shadow-sm transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+                  type="button"
+                >
+                  {savingName ? "Saving..." : "Save name"}
+                </button>
+              </div>
+              {email && (
+                <p className="mt-3 text-xs text-text-tertiary">
+                  Signed in as <span className="text-text-secondary">{email}</span>
+                </p>
+              )}
+              {nameNotice && (
+                <div
+                  className={`mt-3 text-xs rounded-lg px-3 py-2 border ${
+                    nameNotice.type === "success"
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                      : "bg-red-500/10 text-red-400 border-red-500/30"
                   }`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {nameNotice.message}
+                </div>
+              )}
+            </div>
+
+            <div className="glass-subpanel rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-4 text-text-primary">
+                <KeyRound className="w-4 h-4 text-border-brand" />
+                <h4 className="text-sm font-bold uppercase tracking-[0.2em]">
+                  Security
+                </h4>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="New password"
+                  aria-label="New password"
+                  name="newPassword"
+                  autoComplete="new-password"
+                  className="glass-input px-4 py-3 rounded-xl text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
+                />
+                <input
+                  type="password"
+                  value={passwordConfirm}
+                  onChange={(event) => setPasswordConfirm(event.target.value)}
+                  placeholder="Confirm password"
+                  aria-label="Confirm password"
+                  name="confirmPassword"
+                  autoComplete="new-password"
+                  className="glass-input px-4 py-3 rounded-xl text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors"
                 />
               </div>
               <button
-                onClick={handleSaveDailySummary}
-                disabled={savingDailySummary || dailySummaryLoading}
-                className="h-12 w-full sm:w-auto mt-2 sm:mt-7 px-4 py-3 rounded-xl font-semibold text-sm bg-sapphire-700 text-white shadow-sm hover:bg-sapphire-600 transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+                onClick={handleUpdatePassword}
+                disabled={savingPassword}
+                className="glass-control mt-3 w-full sm:w-auto px-4 py-3 rounded-xl font-semibold text-sm text-text-primary shadow-sm transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                 type="button"
               >
-                {savingDailySummary
-                  ? "Saving…"
-                  : dailySummaryLoading
-                    ? "Loading…"
-                    : "Save preferences"}
+                {savingPassword ? "Updating..." : "Update password"}
               </button>
 
+              <p className="mt-2 text-xs text-text-tertiary">
+                Password updates may require a recent sign-in.
+              </p>
+              {passwordNotice && (
+                <div
+                  className={`mt-3 text-xs rounded-lg px-3 py-2 border ${
+                    passwordNotice.type === "success"
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                      : "bg-red-500/10 text-red-400 border-red-500/30"
+                  }`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {passwordNotice.message}
+                </div>
+              )}
             </div>
-            {dailySummaryNotice && (
-              <div
-                className={`mt-3 text-xs rounded-lg px-3 py-2 border ${
-                  dailySummaryNotice.type === "success"
-                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
-                    : "bg-red-500/10 text-red-400 border-red-500/30"
-                }`}
-                role="status"
-                aria-live="polite"
-              >
-                {dailySummaryNotice.message}
+
+            <div className="glass-subpanel rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-4 text-text-primary">
+                <MailCheck className="w-4 h-4 text-border-brand" />
+                <h4 className="text-sm font-bold uppercase tracking-[0.2em]">
+                  Daily summary
+                </h4>
               </div>
-            )}
+              <p className="text-xs text-text-tertiary mb-4">
+                Get a daily recap of your tasks delivered to the email you choose.
+              </p>
+              <div className="glass-control flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-text-primary">
+                    Email daily summary
+                  </p>
+                  <p className="text-xs text-text-tertiary">
+                    Turn this on to receive your scheduled summary.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={dailySummaryEnabled}
+                  onClick={() => setDailySummaryEnabled((prev) => !prev)}
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 ${
+                    dailySummaryEnabled
+                      ? "bg-border-brand border-transparent"
+                      : "bg-bg-main/80 border-border-subtle/60"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform ${
+                      dailySummaryEnabled ? "translate-x-7" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-start">
+                <div>
+                  <label
+                    htmlFor="daily-summary-email"
+                    className="text-xs font-semibold text-text-secondary block mb-2"
+                  >
+                    Summary delivery email
+                  </label>
+                  <input
+                    id="daily-summary-email"
+                    type="email"
+                    value={dailySummaryEmail}
+                    onChange={(event) => setDailySummaryEmail(event.target.value)}
+                    placeholder="name@company.com"
+                    disabled={!dailySummaryEnabled}
+                    name="dailySummaryEmail"
+                    autoComplete="email"
+                    spellCheck={false}
+                    className={`glass-input w-full px-4 py-3 rounded-xl text-text-primary focus:outline-none focus:border-border-brand focus-visible:ring-2 focus-visible:ring-border-brand/30 transition-colors ${
+                      !dailySummaryEnabled ? "opacity-60 cursor-not-allowed" : ""
+                    }`}
+                  />
+                </div>
+                <button
+                  onClick={handleSaveDailySummary}
+                  disabled={savingDailySummary || dailySummaryLoading}
+                  className="glass-button-accent h-12 w-full sm:w-auto mt-2 sm:mt-7 px-4 py-3 rounded-xl font-semibold text-sm text-text-primary shadow-sm transition-colors disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+                  type="button"
+                >
+                  {savingDailySummary
+                    ? "Saving..."
+                    : dailySummaryLoading
+                      ? "Loading..."
+                      : "Save preferences"}
+                </button>
+              </div>
+              {dailySummaryNotice && (
+                <div
+                  className={`mt-3 text-xs rounded-lg px-3 py-2 border ${
+                    dailySummaryNotice.type === "success"
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                      : "bg-red-500/10 text-red-400 border-red-500/30"
+                  }`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {dailySummaryNotice.message}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

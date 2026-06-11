@@ -126,11 +126,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
             name="newTask"
             autoComplete="off"
             aria-label="New task"
-            className="w-full flex-1 rounded-xl border border-border-subtle bg-bg-surface/80 p-3 text-text-primary placeholder-text-tertiary shadow-inner transition-colors focus:border-border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30"
+            className="glass-input w-full flex-1 rounded-xl p-3 text-text-primary placeholder-text-tertiary transition-colors focus:border-border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30"
           />
           <button
             onClick={onAddTask}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-sapphire-700 px-6 py-3 font-semibold text-white transition-colors transition-transform hover:bg-sapphire-600 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand active:scale-95 md:w-auto"
+            className="glass-button-accent flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-text-primary transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand active:scale-95 md:w-auto"
           >
             <Plus className="w-5 h-5" />
             <span>Add Task</span>
@@ -139,27 +139,27 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
         {/* Selection Actions Toolbar */}
         {selectedTasks.size > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4 p-2 bg-bg-main/60 rounded-xl animate-fade-in motion-reduce:animate-none border border-border-subtle/60">
+          <div className="glass-subpanel flex flex-wrap gap-2 mb-4 p-2 rounded-xl animate-fade-in motion-reduce:animate-none">
             <span className="flex items-center text-sm font-semibold text-text-secondary mr-2 w-full sm:w-auto">
               {selectedTasks.size} selected
             </span>
             <button
               onClick={onDeleteSelected}
-              className="w-full sm:w-auto justify-center px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 border border-red-300/60 text-red-600 hover:bg-red-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+              className="w-full sm:w-auto justify-center px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 border border-red-300/60 bg-white/45 text-red-700 hover:bg-red-50/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
             >
               <Trash2 className="w-4 h-4" />
               <span>Delete</span>
             </button>
             <button
               onClick={onMoveClick}
-              className="w-full sm:w-auto justify-center px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 border border-border-subtle text-text-primary hover:bg-bg-surface transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+              className="glass-control w-full sm:w-auto justify-center px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
             >
               <ArrowRight className="w-4 h-4" />
               <span>Move</span>
             </button>
             <button
               onClick={onCopyClick}
-              className="w-full sm:w-auto justify-center px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 border border-border-subtle text-text-primary hover:bg-bg-surface transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+              className="glass-control w-full sm:w-auto justify-center px-3 py-2 rounded-lg text-sm flex items-center gap-1.5 text-text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
             >
               <Copy className="w-4 h-4" />
               <span>Copy</span>
@@ -175,7 +175,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               {/* Select All / Deselect All Button */}
               <button
                 onClick={onSelectAll}
-                className="text-xs font-semibold text-text-secondary hover:text-text-primary bg-bg-main/60 px-3 py-2 sm:py-1 rounded-full transition-colors border border-border-subtle/50 hover:border-border-hover flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+                className="glass-pill text-xs font-semibold text-text-secondary hover:text-text-primary px-3 py-2 sm:py-1 rounded-full transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
               >
                 {dayTasks.length > 0 && dayTasks.every((t: any) => selectedTasks.has(t.id))
                   ? <><SquareX className="w-3.5 h-3.5" /> Unselect All</>
@@ -185,7 +185,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
               {/* View Toggle */}
               <button
                 onClick={() => setGroupByPriority(!groupByPriority)}
-                className="text-xs font-semibold text-text-primary bg-bg-surface/80 px-3 py-2 sm:py-1 rounded-full border border-border-subtle/60 hover:border-border-hover transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+                className="glass-pill text-xs font-semibold text-text-primary px-3 py-2 sm:py-1 rounded-full transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span>{groupByPriority ? "Grouped by Priority" : "Custom Order"}</span>

@@ -81,10 +81,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({
       onDrop={handleDrop}
       className={`group flex flex-col gap-3 rounded-2xl border-l-2 p-4 transition-colors transition-shadow transition-transform hover:shadow-sm hover:-translate-y-0.5 sm:flex-row sm:items-center sm:justify-between ${
         task.completed
-          ? "bg-bg-main/60 text-text-tertiary border-border-subtle " + priorityColors[task.priority]
-          : "bg-bg-surface/80 border border-border-subtle/60 " + priorityColors[task.priority]
+          ? "glass-subpanel text-text-tertiary border-border-subtle " + priorityColors[task.priority]
+          : "glass-control border border-white/50 " + priorityColors[task.priority]
       } ${isSelected ? "ring-2 ring-border-brand glow-ring" : ""} ${
-        isAdmin ? "hover:bg-bg-main/70 cursor-move" : ""
+        isAdmin ? "hover:bg-white/38 cursor-move" : ""
       }`}
     >
       <div className="flex flex-1 items-start gap-3 min-w-0 sm:items-center">

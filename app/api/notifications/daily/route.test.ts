@@ -6,12 +6,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const {
   authMock,
   databaseMock,
+  ensureFirebaseAdminInitializedMock,
   getUidFromRequestMock,
   sendNotificationMock,
   getWeekPathMock,
 } = vi.hoisted(() => ({
   authMock: vi.fn(),
   databaseMock: vi.fn(),
+  ensureFirebaseAdminInitializedMock: vi.fn(),
   getUidFromRequestMock: vi.fn(),
   sendNotificationMock: vi.fn(),
   getWeekPathMock: vi.fn(),
@@ -23,6 +25,7 @@ vi.mock("firebase-admin", () => ({
 }));
 
 vi.mock("@/lib/firebaseAdmin", () => ({
+  ensureFirebaseAdminInitialized: ensureFirebaseAdminInitializedMock,
   getUidFromRequest: getUidFromRequestMock,
 }));
 
@@ -50,6 +53,7 @@ describe("GET /api/notifications/daily", () => {
     process.env.NOTIFY_DAILY_MINUTE = "0";
     process.env.NOTIFY_DAILY_WEEKDAYS = "1,2,3,4,5";
     process.env.CRON_SECRET = "cron-secret";
+    ensureFirebaseAdminInitializedMock.mockReturnValue(true);
     getWeekPathMock.mockReturnValue("weeks/2026/12");
   });
 

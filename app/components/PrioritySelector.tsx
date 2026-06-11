@@ -44,7 +44,7 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label="Task priority"
-        className={`w-full flex items-center justify-between border border-border-subtle rounded-xl bg-bg-surface/90 text-text-primary focus:border-border-brand transition-colors hover:border-border-hover shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30 ${
+        className={`glass-control w-full flex items-center justify-between rounded-xl text-text-primary focus:border-border-brand transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30 ${
           isSmall ? "p-2 sm:p-2.5 text-sm" : "p-3"
         }`}
       >
@@ -57,7 +57,7 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 right-0 mt-2 bg-bg-surface/90 border border-border-subtle rounded-xl shadow-xl z-[60] overflow-hidden animate-fade-in motion-reduce:animate-none backdrop-blur"
+          className="glass-panel absolute top-full left-0 right-0 mt-2 rounded-xl shadow-xl z-[60] overflow-hidden animate-fade-in motion-reduce:animate-none"
           role="listbox"
           aria-label="Priority options"
         >
@@ -71,8 +71,8 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
               }}
               role="option"
               aria-selected={priority === p.value}
-              className={`w-full flex items-center gap-2 hover:bg-bg-main/60 transition-colors ${
-                priority === p.value ? "bg-bg-main/60" : ""
+              className={`w-full flex items-center gap-2 hover:bg-white/35 transition-colors ${
+                priority === p.value ? "bg-white/38" : ""
               } ${isSmall ? "p-2 text-sm" : "p-3"}`}
             >
               <Circle className={`${isSmall ? "w-2.5 h-2.5" : "w-3 h-3"} fill-current ${p.color}`} />

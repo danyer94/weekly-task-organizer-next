@@ -108,7 +108,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
       <div className="flex items-center gap-2 w-full">
         <button
           onClick={() => shiftWeek(-1)}
-          className="h-11 w-11 rounded-xl bg-bg-surface/80 border border-border-subtle hover:border-border-hover text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+          className="glass-control h-11 w-11 rounded-xl text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
           aria-label="Previous week"
           type="button"
         >
@@ -117,7 +117,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
 
         <button
           onClick={togglePicker}
-          className="flex-1 flex items-center justify-between gap-3 px-3 sm:px-4 py-3 bg-bg-surface/80 rounded-xl border border-border-subtle hover:border-border-hover transition-colors group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+          className="glass-control flex-1 flex items-center justify-between gap-3 px-3 sm:px-4 py-3 rounded-xl transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
           type="button"
         >
 
@@ -137,7 +137,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
         </button>
         <button
           onClick={() => shiftWeek(1)}
-          className="h-11 w-11 rounded-xl bg-bg-surface/80 border border-border-subtle hover:border-border-hover text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+          className="glass-control h-11 w-11 rounded-xl text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
           aria-label="Next week"
           type="button"
         >
@@ -146,7 +146,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 p-4 bg-bg-surface/90 rounded-2xl border border-border-subtle shadow-xl z-[100] animate-in fade-in zoom-in duration-200 motion-reduce:animate-none motion-reduce:transition-none backdrop-blur-md max-w-[calc(100vw-2rem)]">
+        <div className="glass-panel absolute top-full left-0 right-0 mt-2 p-4 rounded-2xl z-[100] animate-in fade-in zoom-in duration-200 motion-reduce:animate-none motion-reduce:transition-none max-w-[calc(100vw-2rem)]">
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={prevMonth}

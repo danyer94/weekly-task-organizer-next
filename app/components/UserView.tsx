@@ -87,10 +87,10 @@ export const UserView: React.FC<UserViewProps> = ({
               <button
                 key={day}
                 onClick={() => onDayChange(day)}
-                className={`flex w-28 snap-start flex-shrink-0 flex-col rounded-xl border px-3 py-2.5 transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:w-32 sm:p-3 ${
+                className={`flex w-28 snap-start flex-shrink-0 flex-col rounded-xl px-3 py-2.5 transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:w-32 sm:p-3 ${
                   currentDay === day
-                    ? "border-border-brand bg-bg-main/60 shadow-sm"
-                    : "border-border-subtle bg-bg-surface/80 text-text-secondary hover:border-border-hover"
+                    ? "glass-control shadow-sm"
+                    : "glass-subpanel text-text-secondary hover:bg-white/38"
                 }`}
               >
                 <div className="mb-1 text-sm font-bold text-text-primary sm:text-base truncate">{day}</div>
@@ -103,7 +103,7 @@ export const UserView: React.FC<UserViewProps> = ({
         </div>
 
 
-        <div className="min-h-[320px] rounded-2xl border border-border-subtle/60 bg-bg-surface/70 p-4 sm:min-h-[400px] sm:p-6">
+        <div className="glass-subpanel min-h-[320px] rounded-2xl p-4 sm:min-h-[400px] sm:p-6">
           {(viewMode === "list" || viewMode === "timeline-list") && (
             <>
               <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -112,7 +112,7 @@ export const UserView: React.FC<UserViewProps> = ({
                 {/* View Toggle */}
                 <button
                   onClick={() => setGroupByPriority(!groupByPriority)}
-                  className="flex items-center gap-1.5 self-start rounded-full bg-bg-surface/80 border border-border-subtle/60 px-3 py-2 sm:py-1 text-xs font-semibold text-text-primary transition-colors hover:border-border-hover sm:self-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+                  className="glass-pill flex items-center gap-1.5 self-start rounded-full px-3 py-2 sm:py-1 text-xs font-semibold text-text-primary transition-colors sm:self-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
                 >
                   <Layers className="w-3.5 h-3.5" />
                   <span>{groupByPriority ? "Grouped by Priority" : "Custom Order"}</span>

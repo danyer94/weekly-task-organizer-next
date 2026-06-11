@@ -53,13 +53,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => onDayChange(day)}
                 className={`w-full flex items-center justify-between px-3 py-2 sm:p-3 rounded-xl transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 ${
                   isActive
-                    ? "bg-bg-surface text-text-primary shadow-sm border border-border-subtle/70"
-                    : "bg-bg-main/60 text-text-primary hover:bg-bg-surface/80 border border-border-subtle/50"
+                    ? "glass-control text-text-primary"
+                    : "glass-subpanel text-text-primary hover:bg-white/40"
                 }`}
               >
                 <span className="font-medium text-sm sm:text-base">{day}</span>
                 <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-semibold ${
-                  isActive ? "bg-bg-main text-text-secondary" : "bg-bg-surface/80 text-text-tertiary"
+                  isActive ? "glass-pill text-text-secondary" : "glass-pill text-text-tertiary"
                 }`}>
                   {completedCount}/{totalCount}
                 </span>

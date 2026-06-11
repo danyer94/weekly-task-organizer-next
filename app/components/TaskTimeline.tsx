@@ -129,10 +129,10 @@ const TaskCard: React.FC<{
 }> = ({ task, timeLabel, isTimed = false, compact = false }) => {
   return (
     <div
-      className={`flex h-full min-h-0 flex-col rounded-2xl border shadow-sm transition-colors ${
+        className={`flex h-full min-h-0 flex-col rounded-2xl border shadow-sm transition-colors ${
         isTimed
-          ? "border-border-brand/30 bg-sapphire-50/75 shadow-[0_10px_22px_rgba(59,130,246,0.12)] dark:border-border-brand/50 dark:bg-sapphire-900/35 dark:shadow-[0_16px_30px_rgba(2,6,23,0.55)]"
-          : "border-border-subtle/60 bg-bg-surface/85"
+          ? "border-[rgba(106,184,208,0.45)] bg-[linear-gradient(180deg,rgba(213,243,251,0.88)_0%,rgba(161,216,233,0.42)_100%)] shadow-[0_18px_34px_rgba(102,164,191,0.16)] dark:border-border-brand/50 dark:bg-sapphire-900/35 dark:shadow-[0_16px_30px_rgba(2,6,23,0.55)]"
+          : "glass-control border-white/55"
       } ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"} ${
         task.completed ? "opacity-60" : ""
       }`}
@@ -423,7 +423,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
   const renderEmpty = (label: string, description: string) => (
 
-    <div className="flex items-center gap-3 rounded-2xl border border-dashed border-border-subtle/70 bg-bg-main/50 px-4 py-3 text-sm text-text-tertiary">
+    <div className="glass-subpanel flex items-center gap-3 rounded-2xl border border-dashed border-white/50 px-4 py-3 text-sm text-text-tertiary">
       <Sparkles className="h-4 w-4 text-text-tertiary" />
       <div>
         <p className="font-semibold text-text-secondary">{label}</p>
@@ -466,7 +466,7 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
         {!hasScheduled ? (
           renderEmpty("No scheduled tasks", "Add start times to build your timeline.")
         ) : (
-          <div className="rounded-3xl border border-border-subtle/60 bg-bg-surface/80 px-4 py-6 sm:px-6">
+          <div className="glass-subpanel rounded-3xl px-4 py-6 sm:px-6">
             <div className="max-h-[520px] overflow-y-auto pr-2">
               <div className="grid gap-4 sm:gap-6 sm:grid-cols-[96px_1fr]">
                 <div className="relative" style={{ height: `${timelineContainerHeight}px` }}>

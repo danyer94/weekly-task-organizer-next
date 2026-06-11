@@ -687,9 +687,9 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-bg-main p-4 font-sans transition-colors duration-300 relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 dark:bg-[radial-gradient(900px_circle_at_12%_-18%,_rgba(96,165,250,0.18),_transparent_60%),radial-gradient(780px_circle_at_88%_-12%,_rgba(59,130,246,0.14),_transparent_58%)]"></div>
-      <div className="pointer-events-none absolute inset-0 opacity-35 dark:opacity-45 bg-[linear-gradient(rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.08)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:160px_160px]"></div>
-      <div className="pointer-events-none absolute inset-0 dark:bg-[radial-gradient(circle_at_50%_0%,_rgba(96,165,250,0.22),_transparent_42%)]"></div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(860px_circle_at_12%_-10%,_rgba(255,255,255,0.92),_transparent_52%),radial-gradient(760px_circle_at_90%_0%,_rgba(118,194,218,0.26),_transparent_48%),radial-gradient(520px_circle_at_16%_86%,_rgba(191,218,255,0.22),_transparent_52%)] dark:bg-[radial-gradient(900px_circle_at_12%_-18%,_rgba(96,165,250,0.18),_transparent_60%),radial-gradient(780px_circle_at_88%_-12%,_rgba(59,130,246,0.14),_transparent_58%)]"></div>
+      <div className="pointer-events-none absolute inset-0 opacity-20 dark:opacity-45 bg-[linear-gradient(rgba(148,163,184,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.16)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:160px_160px]"></div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(255,255,255,0.66),_transparent_40%)] dark:bg-[radial-gradient(circle_at_50%_0%,_rgba(96,165,250,0.22),_transparent_42%)]"></div>
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-border-brand/40 to-transparent opacity-25 dark:opacity-40"></div>
         <div className="absolute left-8 top-20 bottom-10 w-px bg-gradient-to-b from-transparent via-border-brand/30 to-transparent opacity-20 dark:opacity-30"></div>
@@ -700,7 +700,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
             ref={headerRef}
             className="glass-panel rounded-2xl px-4 sm:px-6 py-4 border border-border-subtle/70 shadow-lg"
           >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex flex-wrap items-center gap-3 min-w-0 sm:flex-1 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="flex items-center gap-3 min-w-0">
@@ -719,20 +719,20 @@ const WeeklyTaskOrganizer: React.FC = () => {
                       <div className="mt-2 h-px w-20 bg-gradient-to-r from-border-brand/70 via-border-brand/30 to-transparent"></div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 bg-bg-main/60 rounded-full text-xs font-medium border border-border-subtle shrink-0">
+                  <div className="glass-pill flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium shrink-0">
                     <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
                     <span className="capitalize text-text-secondary">{syncStatus}</span>
                   </div>
                 </div>
 
 
-                <div className="flex items-center gap-1 rounded-2xl border border-border-subtle bg-bg-main/60 p-1 shrink-0">
+                <div className="glass-subpanel flex items-center gap-1 rounded-2xl p-1 shrink-0">
                   <button
                     onClick={() => setIsAdmin(true)}
                     className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand ${
                       isAdmin
-                        ? "bg-bg-surface text-text-primary shadow-sm border border-border-subtle/70"
-                        : "text-text-secondary hover:bg-bg-surface/70 hover:text-text-primary"
+                        ? "glass-control text-text-primary"
+                        : "text-text-secondary hover:bg-white/35 hover:text-text-primary"
                     }`}
                   >
                     <ShieldCheck className="w-4 h-4" />
@@ -742,8 +742,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
                     onClick={() => setIsAdmin(false)}
                     className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand ${
                       !isAdmin
-                        ? "bg-bg-surface text-text-primary shadow-sm border border-border-subtle/70"
-                        : "text-text-secondary hover:bg-bg-surface/70 hover:text-text-primary"
+                        ? "glass-control text-text-primary"
+                        : "text-text-secondary hover:bg-white/35 hover:text-text-primary"
                     }`}
                   >
                     <UserIcon className="w-4 h-4" />
@@ -868,7 +868,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
       {/* Modals */}
       <DaySelectionModal
         show={showMoveModal}
-        title="Move to…"
+        title="Move to..."
         days={DAYS}
         baseDate={selectedDate ?? new Date()}
         onClose={() => setShowMoveModal(false)}
@@ -876,7 +876,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
       />
       <DaySelectionModal
         show={showCopyModal}
-        title="Copy to…"
+        title="Copy to..."
         days={DAYS}
         baseDate={selectedDate ?? new Date()}
         onClose={() => setShowCopyModal(false)}
