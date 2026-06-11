@@ -42,3 +42,6 @@ next-env.d.ts
 
 #folders
 /firebase_data
+
+#cache
+.temp
