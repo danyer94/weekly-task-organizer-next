@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "../../components/AuthProvider";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, User, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { getAuthErrorMessage } from "@/lib/errors";
@@ -282,6 +283,15 @@ export default function LoginPage() {
             >
               {isSignUp ? "Sign In" : "Sign Up"}
             </button>
+          </p>
+          <p className="mt-4 text-center text-xs text-text-tertiary">
+            <Link href="/privacy" className="hover:text-text-primary">
+              Privacy Policy
+            </Link>
+            <span className="mx-2">·</span>
+            <Link href="/terms" className="hover:text-text-primary">
+              Terms
+            </Link>
           </p>
         </div>
       </div>
