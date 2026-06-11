@@ -176,7 +176,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                       setOpen(false);
                       handleLogout();
                     }}
-                    className="w-full px-3 py-2 rounded-lg text-sm font-semibold text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/50"
+                    className="w-full px-3 py-2 rounded-lg text-sm font-semibold text-red-700 dark:text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/50"
                     role="menuitem"
                   >
                     <LogOut className="w-4 h-4" />
