@@ -1,0 +1,98 @@
+/* Hallmark · macrostructure: Marquee Hero · tone: technical · anchor hue: 256 (cobalt)
+ * theme: Cobalt (dark-adapted) · paper oklch(8% 0.015 250) · accent oklch(72% 0.14 256)
+ * display: IBM Plex Sans · body: IBM Plex Sans · outlier: IBM Plex Mono
+ */
+:root {
+  /* Paper */
+  --color-paper: oklch(8% 0.015 250);
+  --color-paper-2: oklch(10% 0.018 250);
+  --color-paper-3: oklch(13% 0.016 250);
+
+  /* Ink */
+  --color-ink: oklch(92% 0.008 250);
+  --color-ink-2: oklch(72% 0.012 250);
+  --color-ink-muted: oklch(52% 0.010 250);
+
+  /* Accent */
+  --color-accent: oklch(72% 0.14 256);
+  --color-accent-dim: oklch(62% 0.12 256);
+  --color-accent-ink: oklch(15% 0.02 250);
+
+  /* Rule */
+  --color-rule: oklch(20% 0.012 250);
+  --color-rule-2: oklch(28% 0.010 250);
+
+  /* Graphite (dark card) */
+  --color-graphite: oklch(12% 0.016 260);
+
+  /* Focus */
+  --color-focus: oklch(72% 0.14 256);
+
+  /* Fonts */
+  --font-display: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Spacing */
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --space-4xl: 9rem;
+
+  /* Text scale */
+  --text-xs: 0.64rem;
+  --text-sm: 0.8rem;
+  --text-base: 1rem;
+  --text-md: 1.25rem;
+  --text-lg: 1.5625rem;
+  --text-xl: 1.9531rem;
+  --text-2xl: 2.4414rem;
+  --text-3xl: 3.0518rem;
+  --text-4xl: 3.8147rem;
+  --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+
+  /* Easings */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Durations */
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+
+  /* Z-index */
+  --z-base: 1;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 400;
+
+  /* Page */
+  --page-max: 1200px;
+  --page-gutter: clamp(1rem, 4vw, 1.5rem);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+}
+
+/* Bridge: Hallmark tokens → App semantic tokens */
+:root {
+  --bg-main: var(--color-paper);
+  --bg-surface: var(--color-graphite);
+  --bg-sidebar: var(--color-paper-2);
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-ink-2);
+  --text-tertiary: var(--color-ink-muted);
+  --text-brand: var(--color-accent);
+  --border-subtle: var(--color-rule);
+  --border-brand: var(--color-accent);
+  --border-hover: var(--color-rule-2);
+}

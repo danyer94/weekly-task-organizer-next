@@ -1,4 +1,5 @@
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import "../tokens.css";
 import "./globals.css";
 
 const plexSans = IBM_Plex_Sans({
@@ -23,7 +24,7 @@ import { AuthProvider } from "./components/AuthProvider";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="dark">
       <body
         className={`${plexSans.variable} ${plexMono.variable} antialiased`}
       >
