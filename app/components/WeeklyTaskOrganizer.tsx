@@ -686,7 +686,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
   if (!isClient || authLoading || !user || !selectedDate) return null;
 
   return (
-    <div className="min-h-screen bg-bg-main p-4 font-sans transition-colors duration-300 relative overflow-hidden">
+    <div className="admin-shell min-h-screen bg-bg-main p-3 font-sans transition-colors duration-300 relative overflow-hidden sm:p-4">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(860px_circle_at_12%_-10%,_rgba(255,255,255,0.92),_transparent_52%),radial-gradient(760px_circle_at_90%_0%,_rgba(118,194,218,0.26),_transparent_48%),radial-gradient(520px_circle_at_16%_86%,_rgba(191,218,255,0.22),_transparent_52%)] dark:bg-[radial-gradient(900px_circle_at_12%_-18%,_rgba(96,165,250,0.18),_transparent_60%),radial-gradient(780px_circle_at_88%_-12%,_rgba(59,130,246,0.14),_transparent_58%)]"></div>
       <div className="pointer-events-none absolute inset-0 opacity-20 dark:opacity-45 bg-[linear-gradient(rgba(148,163,184,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.16)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:160px_160px]"></div>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(255,255,255,0.66),_transparent_40%)] dark:bg-[radial-gradient(circle_at_50%_0%,_rgba(96,165,250,0.22),_transparent_42%)]"></div>
@@ -694,11 +694,11 @@ const WeeklyTaskOrganizer: React.FC = () => {
         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-border-brand/40 to-transparent opacity-25 dark:opacity-40"></div>
         <div className="absolute left-8 top-20 bottom-10 w-px bg-gradient-to-b from-transparent via-border-brand/30 to-transparent opacity-20 dark:opacity-30"></div>
       </div>
-      <div className="fixed top-0 left-0 right-0 z-50 px-4">
+      <div className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-4">
         <div className="max-w-7xl mx-auto">
           <header
             ref={headerRef}
-            className="glass-panel rounded-2xl px-4 sm:px-6 py-4 border border-border-subtle/70 shadow-lg"
+            className="admin-topbar rounded-2xl px-4 py-3 sm:px-5 sm:py-4"
           >
             <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex flex-wrap items-center gap-3 min-w-0 sm:flex-1 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
@@ -709,11 +709,11 @@ const WeeklyTaskOrganizer: React.FC = () => {
                       alt="Calendar"
                       width={44}
                       height={44}
-                      className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0"
+                      className="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0"
                     />
                     <div className="flex flex-col min-w-0">
-                      <span className="text-xs uppercase tracking-[0.35em] text-text-tertiary">Operations Week</span>
-                      <h1 className="text-lg sm:text-2xl md:text-3xl font-semibold text-text-primary leading-tight">
+                      <span className="text-[10px] uppercase tracking-[0.28em] text-text-tertiary sm:text-xs">Operations Week</span>
+                      <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-text-primary leading-tight">
                         Weekly Task Organizer
                       </h1>
                       <div className="mt-2 h-px w-20 bg-gradient-to-r from-border-brand/70 via-border-brand/30 to-transparent"></div>
@@ -726,7 +726,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 </div>
 
 
-                <div className="glass-subpanel flex items-center gap-1 rounded-2xl p-1 shrink-0">
+                <div className="admin-segmented flex items-center gap-1 rounded-2xl p-1 shrink-0">
                   <button
                     onClick={() => setIsAdmin(true)}
                     className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand ${
@@ -752,7 +752,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <ThemeToggle />
                 <UserMenu
                   displayName={displayName}
@@ -778,11 +778,11 @@ const WeeklyTaskOrganizer: React.FC = () => {
         style={{ paddingTop: Math.max(headerHeight, minHeaderHeight) + headerOffset }}
       >
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
           {isAdmin ? (
             <>
               {/* Sidebar (Left Column) */}
-              <div className="lg:col-span-3">
+              <div className="order-2 lg:order-1 lg:col-span-3">
                 <Sidebar
                   days={DAYS}
                   currentDay={currentAdminDay}

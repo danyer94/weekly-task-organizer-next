@@ -1,7 +1,7 @@
 import React from "react";
 import { Task, Day } from "@/types";
 import { TaskItem } from "./TaskItem";
-import { Circle } from "lucide-react";
+import { Circle, Plus } from "lucide-react";
 
 interface TaskListProps {
   day: Day;
@@ -38,8 +38,16 @@ export const TaskList: React.FC<TaskListProps> = ({
 }) => {
   if (tasks.length === 0) {
     return (
-      <div className="text-center text-text-tertiary py-12 italic">
-        No tasks for this day
+      <div className="admin-empty-state my-8 rounded-2xl px-5 py-10 text-center">
+        <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 text-border-brand shadow-sm dark:bg-white/5">
+          <Plus className="h-5 w-5" />
+        </div>
+        <p className="text-base font-semibold text-text-primary">No tasks for this day</p>
+        {isAdmin && (
+          <p className="mx-auto mt-1 max-w-sm text-sm text-text-secondary">
+            Add the first task above to start shaping this day&apos;s plan.
+          </p>
+        )}
       </div>
     );
   }

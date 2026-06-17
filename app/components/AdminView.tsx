@@ -97,25 +97,28 @@ export const AdminView: React.FC<AdminViewProps> = ({
   }, [viewMode]);
 
   return (
-    <div className="lg:col-span-9 space-y-6">
+    <div className="order-1 space-y-4 lg:order-2 lg:col-span-9 lg:space-y-6">
 
-      <div className="glass-panel rounded-2xl border border-border-subtle/70 p-4 glow-border sm:p-6">
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="admin-board rounded-2xl p-4 sm:p-6">
+        <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-text-primary sm:text-3xl">{currentDay}</h2>
-            <p className="text-text-secondary font-medium">Operations Board - Weekly overview</p>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
+              Today&apos;s command center
+            </p>
+            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-text-primary sm:text-4xl">{currentDay}</h2>
+            <p className="mt-1 text-sm font-medium text-text-secondary sm:text-base">Operations Board - Weekly overview</p>
           </div>
-          <div className="w-full max-w-xl">
+          <div className="w-full md:max-w-xl">
             <TaskViewToggle value={viewMode} onChange={setViewMode} />
           </div>
         </div>
 
 
-        <div className="mb-6 flex flex-col gap-3 md:flex-row">
+        <div className="admin-compose mb-5 grid gap-3 md:grid-cols-[180px_1fr_auto]">
           <PrioritySelector 
             priority={priority} 
             setPriority={setPriority} 
-            className="w-full min-w-[180px] md:w-auto"
+            className="w-full min-w-[180px]"
           />
           <input
             type="text"
@@ -126,11 +129,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
             name="newTask"
             autoComplete="off"
             aria-label="New task"
-            className="glass-input w-full flex-1 rounded-xl p-3 text-text-primary placeholder-text-tertiary transition-colors focus:border-border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30"
+            className="admin-input w-full rounded-xl p-3 text-text-primary placeholder-text-tertiary transition-colors focus:border-border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30"
           />
           <button
             onClick={onAddTask}
-            className="glass-button-accent flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-text-primary transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand active:scale-95 md:w-auto"
+            className="admin-primary-action flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-text-primary transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand active:scale-95 md:w-auto"
           >
             <Plus className="w-5 h-5" />
             <span>Add Task</span>
@@ -139,7 +142,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
         {/* Selection Actions Toolbar */}
         {selectedTasks.size > 0 && (
-          <div className="glass-subpanel flex flex-wrap gap-2 mb-4 p-2 rounded-xl animate-fade-in motion-reduce:animate-none">
+          <div className="admin-toolbar flex flex-wrap gap-2 mb-4 p-2 rounded-xl animate-fade-in motion-reduce:animate-none">
             <span className="flex items-center text-sm font-semibold text-text-secondary mr-2 w-full sm:w-auto">
               {selectedTasks.size} selected
             </span>
@@ -171,7 +174,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
         {(viewMode === "list" || viewMode === "timeline-list") && (
           <>
             {/* Task List Header with Options */}
-            <div className="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               {/* Select All / Deselect All Button */}
               <button
                 onClick={onSelectAll}

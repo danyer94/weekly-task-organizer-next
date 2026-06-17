@@ -32,7 +32,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         className={`w-full px-3 py-2.5 sm:p-3 mb-2 rounded-xl font-semibold transition-colors transition-transform text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 ${
           isSendingDailySummary
             ? "glass-subpanel text-text-tertiary cursor-not-allowed"
-            : "glass-button-amber text-amber-900 hover:bg-amber-50/70"
+            : "glass-button-amber text-amber-900 hover:bg-amber-50/70 dark:text-amber-100 dark:hover:bg-amber-950/30"
         }`}
       >
         <Bell className="w-4 h-4" />
@@ -57,7 +57,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       </h4>
       <button
         onClick={onExportWhatsApp}
-        className="glass-button-emerald w-full px-3 py-2.5 sm:p-3 mb-2 text-emerald-900 rounded-xl font-semibold transition-colors transition-transform text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60"
+        className="glass-button-emerald w-full px-3 py-2.5 sm:p-3 mb-2 text-emerald-900 rounded-xl font-semibold transition-colors transition-transform text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60 dark:text-emerald-100"
       >
         <MessageCircle className="w-4 h-4" />
         <span className="truncate">WhatsApp</span>

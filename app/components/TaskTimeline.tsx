@@ -423,10 +423,10 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
   const renderEmpty = (label: string, description: string) => (
 
-    <div className="glass-subpanel flex items-center gap-3 rounded-2xl border border-dashed border-white/50 px-4 py-3 text-sm text-text-tertiary">
-      <Sparkles className="h-4 w-4 text-text-tertiary" />
+    <div className="admin-timeline-empty flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-text-tertiary">
+      <Sparkles className="h-4 w-4 text-border-brand" />
       <div>
-        <p className="font-semibold text-text-secondary">{label}</p>
+        <p className="font-semibold text-text-primary">{label}</p>
         <p className="text-xs text-text-tertiary">{description}</p>
       </div>
     </div>
