@@ -216,14 +216,14 @@ const WeeklyTaskOrganizer: React.FC = () => {
     const updateOffsets = () => {
       const width = window.innerWidth;
       if (width < 640) {
-        setHeaderOffset(32);
-        setMinHeaderHeight(140);
+        setHeaderOffset(18);
+        setMinHeaderHeight(96);
       } else if (width < 1024) {
-        setHeaderOffset(28);
-        setMinHeaderHeight(120);
+        setHeaderOffset(22);
+        setMinHeaderHeight(96);
       } else {
         setHeaderOffset(24);
-        setMinHeaderHeight(104);
+        setMinHeaderHeight(88);
       }
     };
 
@@ -697,74 +697,100 @@ const WeeklyTaskOrganizer: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <header
             ref={headerRef}
-            className="admin-topbar rounded-2xl px-4 py-3 sm:px-5 sm:py-4"
+            className="admin-topbar rounded-2xl px-3 py-2 sm:px-4 sm:py-3"
           >
-            <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="flex flex-wrap items-center gap-3 min-w-0 sm:flex-1 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Image
-                      src="/images/calendar-icon-no-background.png"
-                      alt="Calendar"
-                      width={44}
-                      height={44}
-                      className="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0"
-                    />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] uppercase tracking-[0.28em] text-text-tertiary sm:text-xs">Operations Week</span>
-                      <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-text-primary leading-tight">
-                        Weekly Task Organizer
+            <div className="relative z-10 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center justify-between gap-2 min-w-0 sm:flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Image
+                    src="/images/calendar-icon-no-background.png"
+                    alt="Calendar"
+                    width={40}
+                    height={40}
+                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain shrink-0"
+                  />
+                  <div className="flex flex-col min-w-0">
+                    <span className="hidden text-[10px] uppercase tracking-[0.26em] text-text-tertiary sm:block">
+                      Operations Week
+                    </span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <h1 className="truncate text-base font-semibold leading-tight text-text-primary sm:text-xl md:text-2xl">
+                        <span className="sm:hidden">Weekly Tasks</span>
+                        <span className="hidden sm:inline">Weekly Task Organizer</span>
                       </h1>
-                      <div className="mt-2 h-px w-20 bg-gradient-to-r from-border-brand/70 via-border-brand/30 to-transparent"></div>
+                      <span
+                        className={`h-2 w-2 rounded-full ${getSyncColor()} sm:hidden`}
+                        aria-label={`Calendar sync status: ${syncStatus}`}
+                      ></span>
                     </div>
-                  </div>
-                  <div className="glass-pill flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium shrink-0">
-                    <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
-                    <span className="capitalize text-text-secondary">{syncStatus}</span>
+                    <div className="mt-1 hidden h-px w-16 bg-gradient-to-r from-border-brand/70 via-border-brand/30 to-transparent sm:block"></div>
                   </div>
                 </div>
 
+                <div className="flex items-center gap-1.5 sm:hidden">
+                  <ThemeToggle />
+                  <UserMenu
+                    displayName={displayName}
+                    email={user.email}
+                    photoURL={user.photoURL}
+                    onLogout={logout}
+                    onOpenSettings={() => setShowUserSettings(true)}
+                    isAdmin={isAdmin}
+                    isGoogleConnected={isGoogleConnected}
+                    isCheckingGoogle={isCheckingGoogle}
+                    onConnectGoogle={handleConnectGoogle}
+                    onSyncCalendar={handleSyncCalendar}
+                  />
+                </div>
+              </div>
 
-                <div className="admin-segmented flex items-center gap-1 rounded-2xl p-1 shrink-0">
+              <div className="flex items-center gap-2 min-w-0 sm:justify-end">
+                <div className="admin-segmented grid flex-1 grid-cols-2 items-center gap-1 rounded-xl p-0.5 sm:flex sm:flex-none sm:rounded-2xl sm:p-1">
                   <button
                     onClick={() => setIsAdmin(true)}
-                    className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand ${
+                    className={`flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm ${
                       isAdmin
                         ? "glass-control text-text-primary"
                         : "text-text-secondary hover:bg-white/35 hover:text-text-primary"
                     }`}
                   >
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Administrator</span>
+                    <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="sm:hidden">Admin</span>
+                    <span className="hidden sm:inline">Administrator</span>
                   </button>
                   <button
                     onClick={() => setIsAdmin(false)}
-                    className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand ${
+                    className={`flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm ${
                       !isAdmin
                         ? "glass-control text-text-primary"
                         : "text-text-secondary hover:bg-white/35 hover:text-text-primary"
                     }`}
                   >
-                    <UserIcon className="w-4 h-4" />
-                    <span className="max-w-[140px] truncate">{displayName}</span>
+                    <UserIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="max-w-[90px] truncate sm:max-w-[140px]">{displayName}</span>
                   </button>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <ThemeToggle />
-                <UserMenu
-                  displayName={displayName}
-                  email={user.email}
-                  photoURL={user.photoURL}
-                  onLogout={logout}
-                  onOpenSettings={() => setShowUserSettings(true)}
-                  isAdmin={isAdmin}
-                  isGoogleConnected={isGoogleConnected}
-                  isCheckingGoogle={isCheckingGoogle}
-                  onConnectGoogle={handleConnectGoogle}
-                  onSyncCalendar={handleSyncCalendar}
-                />
+                <div className="glass-pill hidden items-center gap-2 rounded-full px-3 py-1 text-xs font-medium sm:flex">
+                  <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
+                  <span className="capitalize text-text-secondary">{syncStatus}</span>
+                </div>
+
+                <div className="hidden items-center gap-2 shrink-0 sm:flex">
+                  <ThemeToggle />
+                  <UserMenu
+                    displayName={displayName}
+                    email={user.email}
+                    photoURL={user.photoURL}
+                    onLogout={logout}
+                    onOpenSettings={() => setShowUserSettings(true)}
+                    isAdmin={isAdmin}
+                    isGoogleConnected={isGoogleConnected}
+                    isCheckingGoogle={isCheckingGoogle}
+                    onConnectGoogle={handleConnectGoogle}
+                    onSyncCalendar={handleSyncCalendar}
+                  />
+                </div>
               </div>
             </div>
           </header>
