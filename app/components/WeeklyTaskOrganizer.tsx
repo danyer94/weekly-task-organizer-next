@@ -6,7 +6,6 @@ import type { DailySummarySettings } from "@/types";
 import { Day, Priority, Task } from "@/types";
 import { AdminView } from "./AdminView";
 import { UserView } from "./UserView";
-import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { DaySelectionModal, type DaySelectionResult } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
@@ -67,7 +66,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
       moveOrCopyTasksToDate,
       bulkAddTasks,
     },
-    ioOperations: { exportToWhatsApp, exportToJSON, importFromJSON },
+    ioOperations: { exportToWhatsApp },
     stats,
   } = useWeeklyTasks(selectedDate, user?.uid);
 
@@ -780,33 +779,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
           {isAdmin ? (
-            <>
-              {/* Sidebar (Left Column) */}
-              <div className="order-2 lg:sticky lg:top-36 lg:order-1 lg:col-span-3 lg:self-start">
-                <Sidebar
-                  days={DAYS}
-                  currentDay={currentAdminDay}
-                  onDayChange={setCurrentAdminDay}
-                  tasks={tasks}
-                  stats={stats}
-                  quickActionsProps={{
-                    onClearCompleted: clearCompleted,
-                    onBulkAdd: () => setShowBulkModal(true),
-                    onExportWhatsApp: exportToWhatsApp,
-                    onExportJSON: exportToJSON,
-                    onSendDailySummary: handleSendDailySummary,
-                    isSendingDailySummary: isSendingSummary,
-                    onImportJSON: (e: any) => {
-                      if (e.target.files?.[0]) importFromJSON(e.target.files[0]);
-                    }
-                  }}
-                  selectedDate={selectedDate}
-                  onDateChange={setSelectedDate}
-                />
-              </div>
-
-              {/* Main Content (Right Column) */}
-              <AdminView
+            <AdminView
                 currentDay={currentAdminDay}
                 days={DAYS}
                 onDayChange={setCurrentAdminDay}
@@ -821,6 +794,14 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 setGroupByPriority={setGroupByPriority}
                 selectedTasks={selectedTasks}
                 tasks={tasks}
+                stats={stats}
+                quickActions={{
+                  onClearCompleted: clearCompleted,
+                  onBulkAdd: () => setShowBulkModal(true),
+                  onExportWhatsApp: exportToWhatsApp,
+                  onSendDailySummary: handleSendDailySummary,
+                  isSendingDailySummary: isSendingSummary,
+                }}
                 onToggleSelection={handleToggleSelection}
                 onToggleComplete={toggleComplete}
                 onEdit={editTask}
@@ -843,7 +824,6 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 onDeleteCalendarEvent={handleDeleteCalendarEvent}
                 onTimelineScheduleChange={handleTimelineScheduleChange}
               />
-            </>
           ) : (
             // User View (Full Width)
             <div className="lg:col-span-12">

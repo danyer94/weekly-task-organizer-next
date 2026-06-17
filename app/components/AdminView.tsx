@@ -13,6 +13,9 @@ import {
   SquareCheck,
   SquareX,
   Layers,
+  Bell,
+  FilePlus2,
+  MessageCircle,
 } from "lucide-react";
 
 const readAdminViewMode = (): TaskViewMode => {
@@ -41,6 +44,14 @@ interface AdminViewProps {
   setGroupByPriority: (val: boolean) => void;
   selectedTasks: Set<string>;
   tasks: any;
+  stats: { total: number; completed: number };
+  quickActions: {
+    onClearCompleted: () => void;
+    onBulkAdd: () => void;
+    onExportWhatsApp: () => void;
+    onSendDailySummary: () => void;
+    isSendingDailySummary?: boolean;
+  };
   // Handlers passed down to TaskList
   onToggleSelection: (id: string) => void;
   onToggleComplete: (day: Day, id: string) => void;
@@ -73,6 +84,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
   setGroupByPriority,
   selectedTasks,
   tasks,
+  stats,
+  quickActions,
   onToggleSelection,
   onToggleComplete,
   onEdit,
@@ -99,7 +112,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
   }, [viewMode]);
 
   return (
-    <div className="order-1 space-y-4 lg:order-2 lg:col-span-9 lg:space-y-6">
+    <div className="order-1 space-y-4 lg:col-span-12 lg:space-y-5">
 
       <div className="admin-board rounded-2xl p-4 sm:p-6">
         <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -115,6 +128,95 @@ export const AdminView: React.FC<AdminViewProps> = ({
           </div>
         </div>
 
+        <section className="admin-ops-strip mb-5 rounded-2xl p-3 sm:p-4">
+          <div className="grid gap-3 xl:grid-cols-[minmax(260px,0.72fr)_minmax(0,1.35fr)_minmax(280px,0.9fr)]">
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] xl:grid-cols-1">
+              <DatePicker selectedDate={selectedDate} onChange={onDateChange} />
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 xl:grid-cols-2">
+                <div className="admin-stat-chip rounded-xl px-3 py-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Total</span>
+                  <strong className="block text-xl text-text-primary">{stats.total}</strong>
+                </div>
+                <div className="admin-stat-chip rounded-xl px-3 py-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Done</span>
+                  <strong className="block text-xl text-emerald-500 dark:text-emerald-400">{stats.completed}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="min-w-0">
+              <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
+                Week days
+              </p>
+              <div className="flex snap-x gap-2 overflow-x-auto pb-1 scrollbar-hide xl:grid xl:grid-cols-7 xl:overflow-visible xl:pb-0">
+                {days.map((day) => {
+                  const tasksForDay = tasks[day] || [];
+                  const completedCount = tasksForDay.filter((task: any) => task.completed).length;
+                  const isActive = currentDay === day;
+
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      aria-label={`Show ${day} tasks`}
+                      title={day}
+                      onClick={() => onDayChange(day)}
+                      className={`admin-week-chip min-w-[5.6rem] snap-start rounded-xl px-3 py-2 text-left transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:min-w-28 xl:min-w-0 ${
+                        isActive ? "is-active" : ""
+                      }`}
+                    >
+                      <span className="block text-sm font-semibold text-text-primary">{day.slice(0, 3)}</span>
+                      <span className="text-xs text-text-tertiary">{completedCount}/{tasksForDay.length}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
+                Admin actions
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={quickActions.onSendDailySummary}
+                  disabled={quickActions.isSendingDailySummary}
+                  className={`admin-action-button admin-action-button--notice col-span-2 ${
+                    quickActions.isSendingDailySummary ? "is-disabled" : ""
+                  }`}
+                >
+                  <Bell className="h-4 w-4" />
+                  <span>{quickActions.isSendingDailySummary ? "Sending..." : "Send Daily Summary"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={quickActions.onBulkAdd}
+                  className="admin-action-button text-[13px] sm:text-sm"
+                >
+                  <FilePlus2 className="h-4 w-4" />
+                  <span>Bulk Add</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={quickActions.onClearCompleted}
+                  className="admin-action-button"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="whitespace-nowrap text-[12px] sm:text-sm">Clear Completed</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={quickActions.onExportWhatsApp}
+                  className="admin-action-button admin-action-button--export col-span-2"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>WhatsApp</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <div className="admin-compose mb-5 grid gap-3 md:grid-cols-[180px_1fr_auto]">
           <PrioritySelector 
