@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import heroImage from "../../images/homepage-admin-hero-dark_new.png";
 import {
   ArrowRight,
   Bell,
@@ -191,16 +190,97 @@ export default function HomePage() {
 
           <div id="product" className="hp-product-stage reveal">
             <div className="hp-product-stage__halo" aria-hidden="true" />
+            <div
+              className="hp-tech-panel hp-tech-panel--sync"
+              aria-hidden="true"
+            >
+              <span className="hp-tech-panel__eyebrow">Calendar pipeline</span>
+              <strong>Live sync</strong>
+              <span>2-way event mapping</span>
+            </div>
+            <div
+              className="hp-tech-panel hp-tech-panel--queue"
+              aria-hidden="true"
+            >
+              <span className="hp-tech-panel__eyebrow">Dispatch queue</span>
+              <strong>Daily brief ready</strong>
+              <span>Email, SMS, WhatsApp</span>
+            </div>
+            <div
+              className="hp-tech-panel hp-tech-panel--rules"
+              aria-hidden="true"
+            >
+              <span className="hp-tech-panel__eyebrow">Week rules</span>
+              <strong>Carry-over protected</strong>
+              <span>ISO week paths locked</span>
+            </div>
             <figure className="hp-product-frame">
-              <Image
-                src={heroImage}
-                alt="Weekly Task Organizer admin dashboard showing the Friday operations board with task groups, timeline, quick actions, and weekly stats."
-                width={1920}
-                height={1080}
-                sizes="(max-width: 640px) 820px, min(1120px, 100vw)"
-                priority
-              />
+              <picture>
+                <source
+                  media="(max-width: 640px)"
+                  srcSet="/images/homepage-saas-hero-mobile.png"
+                  width="520"
+                  height="1040"
+                />
+                <source
+                  media="(max-width: 980px)"
+                  srcSet="/images/homepage-saas-hero-tablet.png"
+                  width="980"
+                  height="1320"
+                />
+                <img
+                  className="hp-product-frame__image"
+                  src="/images/homepage-saas-hero-desktop.png"
+                  alt="Weekly Task Organizer admin dashboard in dark mode showing the weekly operations board, task groups, quick actions, and account controls."
+                  width={1800}
+                  height={1160}
+                  decoding="async"
+                  loading="eager"
+                  fetchPriority="high"
+                />
+              </picture>
             </figure>
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="hp-section hp-section--stack"
+        aria-label="Operational stack"
+      >
+        <div className="hp-section__inner">
+          <div className="hp-stack-shell reveal">
+            <div className="hp-stack-copy">
+              <p className="hp-section-kicker">Operational stack</p>
+              <h2>A calmer control layer for weekly execution.</h2>
+              <p>
+                The board keeps weekly execution front and center, then exposes
+                the system underneath: week state, calendar mapping, dispatch
+                surfaces, and role-aware views.
+              </p>
+            </div>
+            <div className="hp-stack-grid" aria-label="System modules">
+              <article>
+                <span>01</span>
+                <h3>Week state</h3>
+                <p>Stable ISO week storage keeps every day anchored.</p>
+              </article>
+              <article>
+                <span>02</span>
+                <h3>Calendar bridge</h3>
+                <p>Tasks can become scheduled events without leaving flow.</p>
+              </article>
+              <article>
+                <span>03</span>
+                <h3>Summary dispatch</h3>
+                <p>Daily briefs are shaped for the channels the team uses.</p>
+              </article>
+              <article>
+                <span>04</span>
+                <h3>Role surfaces</h3>
+                <p>Admin and user views stay focused on their jobs.</p>
+              </article>
+            </div>
           </div>
         </div>
       </section>
