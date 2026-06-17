@@ -782,7 +782,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
           {isAdmin ? (
             <>
               {/* Sidebar (Left Column) */}
-              <div className="order-2 lg:order-1 lg:col-span-3">
+              <div className="order-2 lg:sticky lg:top-36 lg:order-1 lg:col-span-3 lg:self-start">
                 <Sidebar
                   days={DAYS}
                   currentDay={currentAdminDay}

@@ -90,6 +90,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<TaskViewMode>(readAdminViewMode);
   const dayTasks = tasks[currentDay] || [];
+  const showList = viewMode === "list" || viewMode === "timeline-list";
+  const showTimeline = viewMode === "timeline" || viewMode === "timeline-list";
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -171,62 +173,75 @@ export const AdminView: React.FC<AdminViewProps> = ({
         )}
 
 
-        {(viewMode === "list" || viewMode === "timeline-list") && (
-          <>
-            {/* Task List Header with Options */}
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              {/* Select All / Deselect All Button */}
-              <button
-                onClick={onSelectAll}
-                className="glass-pill text-xs font-semibold text-text-secondary hover:text-text-primary px-3 py-2 sm:py-1 rounded-full transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
-              >
-                {dayTasks.length > 0 && dayTasks.every((t: any) => selectedTasks.has(t.id))
-                  ? <><SquareX className="w-3.5 h-3.5" /> Unselect All</>
-                  : <><SquareCheck className="w-3.5 h-3.5" /> Select All</>}
-              </button>
+        <div
+          className={
+            showList && showTimeline
+              ? "grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.72fr)]"
+              : "grid gap-4"
+          }
+        >
+          {showList && (
+            <section className="admin-work-pane rounded-2xl p-3 sm:p-4">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  onClick={onSelectAll}
+                  className="glass-pill text-xs font-semibold text-text-secondary hover:text-text-primary px-3 py-2 sm:py-1 rounded-full transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+                >
+                  {dayTasks.length > 0 && dayTasks.every((t: any) => selectedTasks.has(t.id))
+                    ? <><SquareX className="w-3.5 h-3.5" /> Unselect All</>
+                    : <><SquareCheck className="w-3.5 h-3.5" /> Select All</>}
+                </button>
 
-              {/* View Toggle */}
-              <button
-                onClick={() => setGroupByPriority(!groupByPriority)}
-                className="glass-pill text-xs font-semibold text-text-primary px-3 py-2 sm:py-1 rounded-full transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span>{groupByPriority ? "Grouped by Priority" : "Custom Order"}</span>
-              </button>
-            </div>
+                <button
+                  onClick={() => setGroupByPriority(!groupByPriority)}
+                  className="glass-pill text-xs font-semibold text-text-primary px-3 py-2 sm:py-1 rounded-full transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>{groupByPriority ? "Grouped by Priority" : "Custom Order"}</span>
+                </button>
+              </div>
 
-            <TaskList
-              day={currentDay}
-              tasks={dayTasks}
-              groupByPriority={groupByPriority}
-              isAdmin={true}
-              selectedTasks={selectedTasks}
-              onToggleSelection={onToggleSelection}
-              onToggleComplete={onToggleComplete}
-              onEdit={onEdit}
-              onDragStart={onDragStart}
-              onDrop={onDrop}
-              editingTaskId={editingTaskId}
-              setEditingTaskId={setEditingTaskId}
-              onCreateCalendarEvent={onCreateCalendarEvent}
-              onDeleteCalendarEvent={onDeleteCalendarEvent}
-            />
-          </>
-        )}
+              <TaskList
+                day={currentDay}
+                tasks={dayTasks}
+                groupByPriority={groupByPriority}
+                isAdmin={true}
+                selectedTasks={selectedTasks}
+                onToggleSelection={onToggleSelection}
+                onToggleComplete={onToggleComplete}
+                onEdit={onEdit}
+                onDragStart={onDragStart}
+                onDrop={onDrop}
+                editingTaskId={editingTaskId}
+                setEditingTaskId={setEditingTaskId}
+                onCreateCalendarEvent={onCreateCalendarEvent}
+                onDeleteCalendarEvent={onDeleteCalendarEvent}
+              />
+            </section>
+          )}
 
-        {(viewMode === "timeline" || viewMode === "timeline-list") && (
-          <div className={viewMode === "timeline-list" ? "mt-8" : ""}>
-            <TaskTimeline
-              tasks={dayTasks}
-              onScheduleChange={
-                onTimelineScheduleChange
-                  ? (task, startTime, endTime) =>
-                      onTimelineScheduleChange(currentDay, task, startTime, endTime)
-                  : undefined
-              }
-            />
-          </div>
-        )}
+          {showTimeline && (
+            <aside className="admin-agenda-pane rounded-2xl p-3 sm:p-4">
+              <div className="mb-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
+                  Time plan
+                </p>
+                <h3 className="mt-1 text-lg font-semibold text-text-primary">
+                  Schedule context
+                </h3>
+              </div>
+              <TaskTimeline
+                tasks={dayTasks}
+                onScheduleChange={
+                  onTimelineScheduleChange
+                    ? (task, startTime, endTime) =>
+                        onTimelineScheduleChange(currentDay, task, startTime, endTime)
+                    : undefined
+                }
+              />
+            </aside>
+          )}
+        </div>
 
       </div>
     </div>

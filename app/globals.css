@@ -402,6 +402,8 @@
 
 .admin-input,
 .admin-day-button,
+.admin-work-pane,
+.admin-agenda-pane,
 .admin-timeline-empty,
 .admin-empty-state {
   border: 1px solid var(--admin-border);
@@ -411,6 +413,8 @@
 
 .dark .admin-input,
 .dark .admin-day-button,
+.dark .admin-work-pane,
+.dark .admin-agenda-pane,
 .dark .admin-timeline-empty,
 .dark .admin-empty-state {
   background: rgba(12, 20, 32, 0.68);
