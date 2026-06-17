@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, addMonths, subMonths, getISOWeek, getISOWeekYear, addWeeks } from "date-fns";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 
@@ -11,21 +12,64 @@ interface DatePickerProps {
 
 export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, className = "" }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
   const [viewDate, setViewDate] = useState(new Date(selectedDate));
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const isoWeek = getISOWeek(selectedDate);
   const isoWeekYear = getISOWeekYear(selectedDate);
 
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        popoverRef.current &&
+        !popoverRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || !containerRef.current) return;
+
+    const updatePopoverPosition = () => {
+      if (!containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const gap = 8;
+      const width = Math.min(Math.max(rect.width, 304), window.innerWidth - 24);
+      const left = Math.min(Math.max(12, rect.left), window.innerWidth - width - 12);
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const estimatedHeight = 386;
+      const top =
+        spaceBelow < estimatedHeight && rect.top > estimatedHeight
+          ? rect.top - estimatedHeight - gap
+          : rect.bottom + gap;
+
+      setPopoverStyle({
+        position: "fixed",
+        top,
+        left,
+        width,
+      });
+    };
+
+    updatePopoverPosition();
+    window.addEventListener("resize", updatePopoverPosition);
+    window.addEventListener("scroll", updatePopoverPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePopoverPosition);
+      window.removeEventListener("scroll", updatePopoverPosition, true);
+    };
+  }, [isOpen]);
 
   const togglePicker = () => {
     if (!isOpen) {
@@ -145,8 +189,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
         </button>
       </div>
 
-      {isOpen && (
-        <div className="glass-panel absolute top-full left-0 right-0 mt-2 p-4 rounded-2xl z-[100] animate-in fade-in zoom-in duration-200 motion-reduce:animate-none motion-reduce:transition-none max-w-[calc(100vw-2rem)]">
+      {isOpen && typeof document !== "undefined" && createPortal(
+        <div
+          ref={popoverRef}
+          style={popoverStyle}
+          className="glass-panel p-4 rounded-2xl z-[1000] animate-in fade-in zoom-in duration-200 motion-reduce:animate-none motion-reduce:transition-none"
+        >
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={prevMonth}
@@ -179,7 +227,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
           >
             Today
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -403,6 +403,7 @@
 
 .admin-input,
 .admin-day-button,
+.admin-ops-card,
 .admin-week-chip,
 .admin-stat-chip,
 .admin-action-button,
@@ -417,6 +418,7 @@
 
 .dark .admin-input,
 .dark .admin-day-button,
+.dark .admin-ops-card,
 .dark .admin-week-chip,
 .dark .admin-stat-chip,
 .dark .admin-action-button,

@@ -129,26 +129,37 @@ export const AdminView: React.FC<AdminViewProps> = ({
         </div>
 
         <section className="admin-ops-strip mb-5 rounded-2xl p-3 sm:p-4">
-          <div className="grid gap-3 xl:grid-cols-[minmax(260px,0.72fr)_minmax(0,1.35fr)_minmax(280px,0.9fr)]">
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] xl:grid-cols-1">
-              <DatePicker selectedDate={selectedDate} onChange={onDateChange} />
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-1 xl:grid-cols-2">
-                <div className="admin-stat-chip rounded-xl px-3 py-2">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Total</span>
-                  <strong className="block text-xl text-text-primary">{stats.total}</strong>
-                </div>
-                <div className="admin-stat-chip rounded-xl px-3 py-2">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Done</span>
-                  <strong className="block text-xl text-emerald-500 dark:text-emerald-400">{stats.completed}</strong>
+          <div className="grid gap-3 xl:grid-cols-[minmax(280px,0.85fr)_minmax(360px,1.15fr)_minmax(300px,0.95fr)] xl:items-stretch">
+            <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-1">
+              <div className="admin-ops-card rounded-2xl p-3">
+                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
+                  Calendar
+                </p>
+                <DatePicker selectedDate={selectedDate} onChange={onDateChange} />
+              </div>
+
+              <div className="admin-ops-card rounded-2xl p-3">
+                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
+                  Weekly stats
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="admin-stat-chip rounded-xl px-3 py-4">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Total</span>
+                    <strong className="block text-2xl text-text-primary">{stats.total}</strong>
+                  </div>
+                  <div className="admin-stat-chip rounded-xl px-3 py-4">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Done</span>
+                    <strong className="block text-2xl text-emerald-500 dark:text-emerald-400">{stats.completed}</strong>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="min-w-0">
+            <div className="admin-ops-card min-w-0 rounded-2xl p-3">
               <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
                 Week days
               </p>
-              <div className="flex snap-x gap-2 overflow-x-auto pb-1 scrollbar-hide xl:grid xl:grid-cols-7 xl:overflow-visible xl:pb-0">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2 xl:gap-3">
                 {days.map((day) => {
                   const tasksForDay = tasks[day] || [];
                   const completedCount = tasksForDay.filter((task: any) => task.completed).length;
@@ -161,11 +172,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       aria-label={`Show ${day} tasks`}
                       title={day}
                       onClick={() => onDayChange(day)}
-                      className={`admin-week-chip min-w-[5.6rem] snap-start rounded-xl px-3 py-2 text-left transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:min-w-28 xl:min-w-0 ${
+                      className={`admin-week-chip min-h-[4.75rem] rounded-xl px-3 py-3 text-left transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 ${
                         isActive ? "is-active" : ""
                       }`}
                     >
-                      <span className="block text-sm font-semibold text-text-primary">{day.slice(0, 3)}</span>
+                      <span className="block text-base font-semibold text-text-primary">{day.slice(0, 3)}</span>
                       <span className="text-xs text-text-tertiary">{completedCount}/{tasksForDay.length}</span>
                     </button>
                   );
@@ -173,11 +184,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
               </div>
             </div>
 
-            <div>
+            <div className="admin-ops-card rounded-2xl p-3 xl:flex xl:flex-col">
               <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
                 Admin actions
               </p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 xl:flex xl:flex-1 xl:flex-col">
                 <button
                   type="button"
                   onClick={quickActions.onSendDailySummary}
@@ -208,7 +219,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 <button
                   type="button"
                   onClick={quickActions.onExportWhatsApp}
-                  className="admin-action-button admin-action-button--export col-span-2"
+                  className="admin-action-button admin-action-button--export col-span-2 xl:mt-auto"
                 >
                   <MessageCircle className="h-4 w-4" />
                   <span>WhatsApp</span>
