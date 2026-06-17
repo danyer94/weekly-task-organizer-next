@@ -128,111 +128,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
           </div>
         </div>
 
-        <section className="admin-ops-strip mb-5 rounded-2xl p-3 sm:p-4">
-          <div className="grid gap-3 xl:grid-cols-[minmax(280px,0.85fr)_minmax(360px,1.15fr)_minmax(300px,0.95fr)] xl:items-stretch">
-            <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-1">
-              <div className="admin-ops-card rounded-2xl p-3">
-                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
-                  Calendar
-                </p>
-                <DatePicker selectedDate={selectedDate} onChange={onDateChange} />
-              </div>
-
-              <div className="admin-ops-card rounded-2xl p-3">
-                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
-                  Weekly stats
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="admin-stat-chip rounded-xl px-3 py-4">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Total</span>
-                    <strong className="block text-2xl text-text-primary">{stats.total}</strong>
-                  </div>
-                  <div className="admin-stat-chip rounded-xl px-3 py-4">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Done</span>
-                    <strong className="block text-2xl text-emerald-500 dark:text-emerald-400">{stats.completed}</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="admin-ops-card min-w-0 rounded-2xl p-3 xl:self-start">
-              <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
-                Week days
-              </p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {days.map((day) => {
-                  const tasksForDay = tasks[day] || [];
-                  const completedCount = tasksForDay.filter((task: any) => task.completed).length;
-                  const isActive = currentDay === day;
-
-                  return (
-                    <button
-                      key={day}
-                      type="button"
-                      aria-label={`Show ${day} tasks`}
-                      title={day}
-                      onClick={() => onDayChange(day)}
-                      className={`admin-week-chip min-h-14 rounded-xl px-3 py-2.5 text-left transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 ${
-                        isActive ? "is-active" : ""
-                      }`}
-                    >
-                      <span className="block text-base font-semibold text-text-primary">{day.slice(0, 3)}</span>
-                      <span className="text-xs text-text-tertiary">{completedCount}/{tasksForDay.length}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="admin-ops-card rounded-2xl p-3 xl:flex xl:flex-col">
-              <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
-                Admin actions
-              </p>
-              <div className="grid grid-cols-2 gap-2 xl:flex xl:flex-1 xl:flex-col">
-                <button
-                  type="button"
-                  onClick={quickActions.onSendDailySummary}
-                  disabled={quickActions.isSendingDailySummary}
-                  className={`admin-action-button admin-action-button--notice col-span-2 ${
-                    quickActions.isSendingDailySummary ? "is-disabled" : ""
-                  }`}
-                >
-                  <Bell className="h-4 w-4" />
-                  <span>{quickActions.isSendingDailySummary ? "Sending..." : "Send Daily Summary"}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={quickActions.onBulkAdd}
-                  className="admin-action-button text-[13px] sm:text-sm"
-                >
-                  <FilePlus2 className="h-4 w-4" />
-                  <span>Bulk Add</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={quickActions.onClearCompleted}
-                  className="admin-action-button"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span className="whitespace-nowrap text-[12px] sm:text-sm">Clear Completed</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={quickActions.onExportWhatsApp}
-                  className="admin-action-button admin-action-button--export col-span-2 xl:mt-auto"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  <span>WhatsApp</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="admin-compose mb-5 grid gap-3 md:grid-cols-[180px_1fr_auto]">
-          <PrioritySelector 
-            priority={priority} 
-            setPriority={setPriority} 
+        <div className="admin-compose mb-4 grid gap-3 md:grid-cols-[180px_1fr_auto]">
+          <PrioritySelector
+            priority={priority}
+            setPriority={setPriority}
             className="w-full min-w-[180px]"
           />
           <input
@@ -254,6 +153,111 @@ export const AdminView: React.FC<AdminViewProps> = ({
             <span>Add Task</span>
           </button>
         </div>
+
+        <section className="admin-ops-strip mb-5 rounded-2xl p-3 sm:p-4">
+          <div className="flex flex-col gap-3">
+            <div className="grid gap-3 xl:grid-cols-[minmax(250px,0.74fr)_minmax(0,1.26fr)] xl:items-center">
+              <div className="admin-ops-card rounded-2xl p-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between xl:flex-col xl:items-stretch">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
+                      Management
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-text-primary">
+                      {selectedDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <DatePicker selectedDate={selectedDate} onChange={onDateChange} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="admin-stat-chip rounded-xl px-3 py-2.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Total</span>
+                  <strong className="block text-lg text-text-primary sm:text-xl">{stats.total}</strong>
+                </div>
+                <div className="admin-stat-chip rounded-xl px-3 py-2.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Done</span>
+                  <strong className="block text-lg text-emerald-500 dark:text-emerald-400 sm:text-xl">{stats.completed}</strong>
+                </div>
+                <div className="admin-stat-chip rounded-xl px-3 py-2.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">Open</span>
+                  <strong className="block text-lg text-text-primary sm:text-xl">{Math.max(stats.total - stats.completed, 0)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-ops-card rounded-2xl p-2.5">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                {days.map((day) => {
+                  const tasksForDay = tasks[day] || [];
+                  const completedCount = tasksForDay.filter((task: any) => task.completed).length;
+                  const isActive = currentDay === day;
+
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      aria-label={`Show ${day} tasks`}
+                      title={day}
+                      onClick={() => onDayChange(day)}
+                      className={`admin-week-chip min-w-[6.4rem] rounded-xl px-3 py-2 text-left transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:min-w-0 sm:flex-1 ${
+                        isActive ? "is-active" : ""
+                      }`}
+                    >
+                      <span className="block text-sm font-semibold text-text-primary sm:text-base">{day.slice(0, 3)}</span>
+                      <span className="text-xs text-text-tertiary">{completedCount}/{tasksForDay.length}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid gap-2 lg:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.2fr)_auto] lg:items-center">
+              <button
+                type="button"
+                onClick={quickActions.onSendDailySummary}
+                disabled={quickActions.isSendingDailySummary}
+                className={`admin-action-button admin-action-button--notice ${
+                  quickActions.isSendingDailySummary ? "is-disabled" : ""
+                }`}
+              >
+                <Bell className="h-4 w-4" />
+                <span>{quickActions.isSendingDailySummary ? "Sending..." : "Send Daily Summary"}</span>
+              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={quickActions.onBulkAdd}
+                  className="admin-action-button text-[13px] sm:text-sm"
+                >
+                  <FilePlus2 className="h-4 w-4" />
+                  <span>Bulk Add</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={quickActions.onExportWhatsApp}
+                  className="admin-action-button admin-action-button--export"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>WhatsApp</span>
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={quickActions.onClearCompleted}
+                className="admin-action-button border-red-300/60 bg-red-50/70 text-red-700 hover:bg-red-50 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="whitespace-nowrap text-[12px] sm:text-sm">Clear Completed</span>
+              </button>
+            </div>
+          </div>
+        </section>
 
         {/* Selection Actions Toolbar */}
         {selectedTasks.size > 0 && (
