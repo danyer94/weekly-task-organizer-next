@@ -3,7 +3,7 @@ import { Day, Priority, Task } from "@/types";
 import { TaskList } from "./TaskList";
 import { PrioritySelector } from "./PrioritySelector";
 import { TaskTimeline } from "./TaskTimeline";
-import { TaskViewToggle, TaskViewMode } from "./TaskViewToggle";
+import { TaskViewMode } from "./TaskViewToggle";
 import { DatePicker } from "./DatePicker";
 import {
   Plus,
@@ -29,6 +29,12 @@ const readAdminViewMode = (): TaskViewMode => {
     ? stored
     : "timeline-list";
 };
+
+const viewModeOptions: Array<{ value: TaskViewMode; label: string }> = [
+  { value: "list", label: "List" },
+  { value: "timeline", label: "Timeline" },
+  { value: "timeline-list", label: "Both" },
+];
 interface AdminViewProps {
   currentDay: Day;
   days: Day[];
@@ -103,6 +109,15 @@ export const AdminView: React.FC<AdminViewProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<TaskViewMode>(readAdminViewMode);
   const dayTasks = tasks[currentDay] || [];
+  const dayCompleted = dayTasks.filter((task: any) => task.completed).length;
+  const dayOpen = Math.max(dayTasks.length - dayCompleted, 0);
+  const weekOpen = Math.max(stats.total - stats.completed, 0);
+  const dayProgress = dayTasks.length > 0 ? Math.round((dayCompleted / dayTasks.length) * 100) : 0;
+  const formattedSelectedDate = selectedDate.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
   const showList = viewMode === "list" || viewMode === "timeline-list";
   const showTimeline = viewMode === "timeline" || viewMode === "timeline-list";
 
@@ -115,18 +130,92 @@ export const AdminView: React.FC<AdminViewProps> = ({
     <div className="order-1 space-y-4 lg:col-span-12 lg:space-y-5">
 
       <div className="admin-board rounded-2xl p-4 sm:p-6">
-        <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
-              Today&apos;s command center
-            </p>
-            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-text-primary sm:text-4xl">{currentDay}</h2>
-            <p className="mt-1 text-sm font-medium text-text-secondary sm:text-base">Operations Board - Weekly overview</p>
+        <header className="mb-5 overflow-hidden rounded-[1.5rem] border border-white/60 bg-gradient-to-br from-white/90 via-white/70 to-sapphire-500/10 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] dark:border-white/10 dark:from-white/[0.09] dark:via-white/[0.055] dark:to-sapphire-500/15 sm:p-5">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div className="max-w-2xl">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-border-brand/30 bg-sapphire-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-sapphire-500 dark:bg-sapphire-500/15 dark:text-blue-200">
+                  Admin dashboard
+                </span>
+                <span className="rounded-full border border-white/60 bg-white/60 px-3 py-1 text-xs font-semibold text-text-secondary dark:border-white/10 dark:bg-white/10 dark:text-text-tertiary">
+                  {formattedSelectedDate}
+                </span>
+                {selectedTasks.size > 0 && (
+                  <span className="rounded-full border border-amber-300/60 bg-amber-50/80 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-300/30 dark:bg-amber-300/10 dark:text-amber-100">
+                    {selectedTasks.size} selected
+                  </span>
+                )}
+              </div>
+              <h2 className="text-3xl font-semibold leading-[0.95] tracking-[-0.055em] text-text-primary sm:text-5xl">
+                {currentDay} command center
+              </h2>
+              <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-text-secondary sm:text-base">
+                Create, schedule, move, and broadcast the week&apos;s work from one focused admin surface.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 xl:min-w-[360px]">
+              <div className="rounded-2xl border border-white/60 bg-white/60 p-3 dark:border-white/10 dark:bg-white/10">
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-tertiary">Today</span>
+                <strong className="mt-1 block text-2xl font-semibold tabular-nums text-text-primary">{dayTasks.length}</strong>
+              </div>
+              <div className="rounded-2xl border border-emerald-300/40 bg-emerald-50/70 p-3 dark:border-emerald-300/20 dark:bg-emerald-400/10">
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">Done</span>
+                <strong className="mt-1 block text-2xl font-semibold tabular-nums text-emerald-700 dark:text-emerald-100">{dayCompleted}</strong>
+              </div>
+              <div className="rounded-2xl border border-white/60 bg-white/60 p-3 dark:border-white/10 dark:bg-white/10">
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-tertiary">Open</span>
+                <strong className="mt-1 block text-2xl font-semibold tabular-nums text-text-primary">{dayOpen}</strong>
+              </div>
+            </div>
           </div>
-          <div className="w-full md:max-w-xl">
-            <TaskViewToggle value={viewMode} onChange={setViewMode} />
+
+          <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)] lg:items-center">
+            <div className="rounded-2xl border border-white/60 bg-white/55 p-3 dark:border-white/10 dark:bg-white/10">
+              <div className="mb-2 flex items-center justify-between gap-3 text-xs font-semibold text-text-secondary">
+                <span>Day completion</span>
+                <span className="tabular-nums">{dayProgress}%</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+                <div
+                  className="h-full rounded-full bg-sapphire-500 transition-all duration-300"
+                  style={{ width: `${dayProgress}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-text-tertiary">
+                Week open: <span className="font-semibold tabular-nums text-text-secondary">{weekOpen}</span>
+              </p>
+            </div>
+
+            <div
+              className="rounded-2xl border border-white/60 bg-white/55 p-1.5 dark:border-white/10 dark:bg-white/10"
+              role="tablist"
+              aria-label="Task view mode"
+            >
+              <div className="grid grid-cols-3 gap-1">
+                {viewModeOptions.map((option) => {
+                  const isActive = viewMode === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setViewMode(option.value)}
+                      aria-pressed={isActive}
+                      className={`rounded-xl px-2 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:px-3 sm:text-sm ${
+                        isActive
+                          ? "bg-white text-text-primary shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:bg-white/15"
+                          : "text-text-secondary hover:bg-white/45 hover:text-text-primary dark:hover:bg-white/10"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        </div>
+        </header>
 
         <div className="admin-compose mb-4 grid gap-3 md:grid-cols-[180px_1fr_auto]">
           <PrioritySelector

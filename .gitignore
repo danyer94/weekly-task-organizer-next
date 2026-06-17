@@ -44,6 +44,7 @@ next-env.d.ts
 /firebase_data
 .atl
 .od-skills
+.playwright*
 
 #cache
 .temp
