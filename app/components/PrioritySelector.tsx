@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Priority } from "@/types";
 import { Circle, ChevronDown } from "lucide-react";
 
@@ -16,7 +17,9 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
   isSmall = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   const priorities: { value: Priority; label: string; color: string }[] = [
     { value: "high", label: "High", color: "text-red-500" },
@@ -28,13 +31,54 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        popoverRef.current &&
+        !popoverRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || !containerRef.current) return;
+
+    const updatePopoverPosition = () => {
+      if (!containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const gap = 8;
+      const width = Math.min(Math.max(rect.width, 180), window.innerWidth - 24);
+      const left = Math.min(Math.max(12, rect.left), window.innerWidth - width - 12);
+      const estimatedHeight = isSmall ? 132 : 156;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const top =
+        spaceBelow < estimatedHeight && rect.top > estimatedHeight
+          ? rect.top - estimatedHeight - gap
+          : rect.bottom + gap;
+
+      setPopoverStyle({
+        position: "fixed",
+        top,
+        left,
+        width,
+      });
+    };
+
+    updatePopoverPosition();
+    window.addEventListener("resize", updatePopoverPosition);
+    window.addEventListener("scroll", updatePopoverPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePopoverPosition);
+      window.removeEventListener("scroll", updatePopoverPosition, true);
+    };
+  }, [isOpen, isSmall]);
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
@@ -55,9 +99,11 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
         <ChevronDown className={`${isSmall ? "w-3 h-3" : "w-4 h-4"} text-text-secondary transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
-      {isOpen && (
+      {isOpen && typeof document !== "undefined" && createPortal(
         <div
-          className="glass-panel absolute top-full left-0 right-0 mt-2 rounded-xl shadow-xl z-[60] overflow-hidden animate-fade-in motion-reduce:animate-none"
+          ref={popoverRef}
+          style={popoverStyle}
+          className="glass-panel rounded-xl shadow-xl z-[1000] overflow-hidden animate-fade-in motion-reduce:animate-none"
           role="listbox"
           aria-label="Priority options"
         >
@@ -81,7 +127,8 @@ export const PrioritySelector: React.FC<PrioritySelectorProps> = ({
               </span>
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

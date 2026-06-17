@@ -155,11 +155,11 @@ export const AdminView: React.FC<AdminViewProps> = ({
               </div>
             </div>
 
-            <div className="admin-ops-card min-w-0 rounded-2xl p-3">
+            <div className="admin-ops-card min-w-0 rounded-2xl p-3 xl:self-start">
               <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
                 Week days
               </p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-2 xl:gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {days.map((day) => {
                   const tasksForDay = tasks[day] || [];
                   const completedCount = tasksForDay.filter((task: any) => task.completed).length;
@@ -172,7 +172,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       aria-label={`Show ${day} tasks`}
                       title={day}
                       onClick={() => onDayChange(day)}
-                      className={`admin-week-chip min-h-[4.75rem] rounded-xl px-3 py-3 text-left transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 ${
+                      className={`admin-week-chip min-h-14 rounded-xl px-3 py-2.5 text-left transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 ${
                         isActive ? "is-active" : ""
                       }`}
                     >
