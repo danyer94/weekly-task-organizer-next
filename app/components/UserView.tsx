@@ -87,6 +87,8 @@ export const UserView: React.FC<UserViewProps> = ({
              return (
               <button
                 key={day}
+                type="button"
+                aria-pressed={currentDay === day}
                 onClick={() => onDayChange(day)}
                 className={`flex w-28 snap-start flex-shrink-0 flex-col rounded-xl px-3 py-2.5 transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:w-32 sm:p-3 ${
                   currentDay === day

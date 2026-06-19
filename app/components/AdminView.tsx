@@ -120,6 +120,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
   });
   const showList = viewMode === "list" || viewMode === "timeline-list";
   const showTimeline = viewMode === "timeline" || viewMode === "timeline-list";
+  const layoutMode = viewMode === "timeline-list" ? "both" : viewMode;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -127,10 +128,12 @@ export const AdminView: React.FC<AdminViewProps> = ({
   }, [viewMode]);
 
   return (
-    <div className="order-1 space-y-4 lg:col-span-12 lg:space-y-5">
-
-      <div className="admin-board rounded-2xl p-4 sm:p-6">
-        <header className="mb-5 overflow-hidden rounded-[1.5rem] border border-white/60 bg-gradient-to-br from-white/90 via-white/70 to-sapphire-500/10 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] dark:border-white/10 dark:from-white/[0.09] dark:via-white/[0.055] dark:to-sapphire-500/15 sm:p-5">
+    <div
+      className={`admin-dashboard-grid admin-dashboard-grid--${layoutMode} order-1 lg:col-span-12`}
+      data-view-mode={viewMode}
+    >
+      <main className="admin-operational-stack">
+        <header className="admin-command-panel rounded-xl p-4 sm:p-5">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-2xl">
               <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -146,7 +149,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   </span>
                 )}
               </div>
-              <h2 className="text-3xl font-semibold leading-[0.95] tracking-[-0.055em] text-text-primary sm:text-5xl">
+              <h2 className="text-3xl font-medium leading-none tracking-[-0.045em] text-text-primary sm:text-4xl">
                 {currentDay} command center
               </h2>
               <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-text-secondary sm:text-base">
@@ -155,15 +158,15 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </div>
 
             <div className="grid grid-cols-3 gap-2 xl:min-w-[360px]">
-              <div className="rounded-2xl border border-white/60 bg-white/60 p-3 dark:border-white/10 dark:bg-white/10">
+              <div className="admin-command-metric rounded-2xl p-3">
                 <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-tertiary">Today</span>
                 <strong className="mt-1 block text-2xl font-semibold tabular-nums text-text-primary">{dayTasks.length}</strong>
               </div>
-              <div className="rounded-2xl border border-emerald-300/40 bg-emerald-50/70 p-3 dark:border-emerald-300/20 dark:bg-emerald-400/10">
+              <div className="admin-command-metric admin-command-metric--success rounded-2xl p-3">
                 <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">Done</span>
                 <strong className="mt-1 block text-2xl font-semibold tabular-nums text-emerald-700 dark:text-emerald-100">{dayCompleted}</strong>
               </div>
-              <div className="rounded-2xl border border-white/60 bg-white/60 p-3 dark:border-white/10 dark:bg-white/10">
+              <div className="admin-command-metric rounded-2xl p-3">
                 <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-tertiary">Open</span>
                 <strong className="mt-1 block text-2xl font-semibold tabular-nums text-text-primary">{dayOpen}</strong>
               </div>
@@ -171,12 +174,12 @@ export const AdminView: React.FC<AdminViewProps> = ({
           </div>
 
           <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)] lg:items-center">
-            <div className="rounded-2xl border border-white/60 bg-white/55 p-3 dark:border-white/10 dark:bg-white/10">
+            <div className="admin-progress-surface rounded-2xl p-3">
               <div className="mb-2 flex items-center justify-between gap-3 text-xs font-semibold text-text-secondary">
                 <span>Day completion</span>
                 <span className="tabular-nums">{dayProgress}%</span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+              <div className="admin-progress-track h-2 overflow-hidden rounded-full">
                 <div
                   className="h-full rounded-full bg-sapphire-500 transition-all duration-300"
                   style={{ width: `${dayProgress}%` }}
@@ -188,8 +191,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </div>
 
             <div
-              className="rounded-2xl border border-white/60 bg-white/55 p-1.5 dark:border-white/10 dark:bg-white/10"
-              role="tablist"
+              className="admin-view-tabs rounded-2xl p-1.5"
+              role="group"
               aria-label="Task view mode"
             >
               <div className="grid grid-cols-3 gap-1">
@@ -202,10 +205,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       type="button"
                       onClick={() => setViewMode(option.value)}
                       aria-pressed={isActive}
-                      className={`rounded-xl px-2 py-2 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:px-3 sm:text-sm ${
-                        isActive
-                          ? "bg-white text-text-primary shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:bg-white/15"
-                          : "text-text-secondary hover:bg-white/45 hover:text-text-primary dark:hover:bg-white/10"
+                      className={`admin-view-tab rounded-xl px-2 py-2 text-xs font-semibold text-text-secondary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:px-3 sm:text-sm ${
+                        isActive ? "is-active text-text-primary" : "hover:text-text-primary"
                       }`}
                     >
                       {option.label}
@@ -217,7 +218,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
           </div>
         </header>
 
-        <div className="admin-compose mb-4 grid gap-3 md:grid-cols-[180px_1fr_auto]">
+        <div className="admin-compose grid gap-3 md:grid-cols-[188px_1fr_auto]">
           <PrioritySelector
             priority={priority}
             setPriority={setPriority}
@@ -236,14 +237,14 @@ export const AdminView: React.FC<AdminViewProps> = ({
           />
           <button
             onClick={onAddTask}
-            className="admin-primary-action flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-text-primary transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand active:scale-95 md:w-auto"
+            className="admin-primary-action flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-colors transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand md:w-auto"
           >
             <Plus className="w-5 h-5" />
             <span>Add Task</span>
           </button>
         </div>
 
-        <section className="admin-ops-strip mb-5 rounded-2xl p-3 sm:p-4">
+        <section className="admin-ops-strip rounded-xl p-3 sm:p-4">
           <div className="flex flex-col gap-3">
             <div className="grid gap-3 xl:grid-cols-[minmax(250px,0.74fr)_minmax(0,1.26fr)] xl:items-center">
               <div className="admin-ops-card rounded-2xl p-3">
@@ -281,7 +282,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </div>
 
             <div className="admin-ops-card rounded-2xl p-2.5">
-              <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              <div className="flex items-center gap-2 overflow-x-auto overflow-y-hidden pb-3">
                 {days.map((day) => {
                   const tasksForDay = tasks[day] || [];
                   const completedCount = tasksForDay.filter((task: any) => task.completed).length;
@@ -292,6 +293,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       key={day}
                       type="button"
                       aria-label={`Show ${day} tasks`}
+                      aria-pressed={isActive}
                       title={day}
                       onClick={() => onDayChange(day)}
                       className={`admin-week-chip min-w-[6.4rem] rounded-xl px-3 py-2 text-left transition-colors transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:min-w-0 sm:flex-1 ${
@@ -379,15 +381,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
         )}
 
 
-        <div
-          className={
-            showList && showTimeline
-              ? "grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.72fr)]"
-              : "grid gap-4"
-          }
-        >
-          {showList && (
-            <section className="admin-work-pane rounded-2xl p-3 sm:p-4">
+        {showList && (
+            <section className="admin-work-pane min-h-[260px] rounded-xl p-3 sm:p-4">
               <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   onClick={onSelectAll}
@@ -424,32 +419,30 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 onDeleteCalendarEvent={onDeleteCalendarEvent}
               />
             </section>
-          )}
+        )}
+      </main>
 
-          {showTimeline && (
-            <aside className="admin-agenda-pane rounded-2xl p-3 sm:p-4">
-              <div className="mb-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
-                  Time plan
-                </p>
-                <h3 className="mt-1 text-lg font-semibold text-text-primary">
-                  Schedule context
-                </h3>
-              </div>
-              <TaskTimeline
-                tasks={dayTasks}
-                onScheduleChange={
-                  onTimelineScheduleChange
-                    ? (task, startTime, endTime) =>
-                        onTimelineScheduleChange(currentDay, task, startTime, endTime)
-                    : undefined
-                }
-              />
-            </aside>
-          )}
-        </div>
-
-      </div>
+      {showTimeline && (
+        <aside className="admin-agenda-pane rounded-xl p-4 sm:p-5" aria-label="Schedule context">
+          <div className="mb-7">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
+              Time plan
+            </p>
+            <h3 className="mt-2 text-xl font-semibold text-text-primary">
+              Schedule context
+            </h3>
+          </div>
+          <TaskTimeline
+            tasks={dayTasks}
+            onScheduleChange={
+              onTimelineScheduleChange
+                ? (task, startTime, endTime) =>
+                    onTimelineScheduleChange(currentDay, task, startTime, endTime)
+                : undefined
+            }
+          />
+        </aside>
+      )}
     </div>
   );
 };

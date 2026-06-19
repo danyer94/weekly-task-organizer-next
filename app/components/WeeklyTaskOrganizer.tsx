@@ -222,7 +222,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
         setHeaderOffset(22);
         setMinHeaderHeight(96);
       } else {
-        setHeaderOffset(24);
+        setHeaderOffset(12);
         setMinHeaderHeight(88);
       }
     };
@@ -685,16 +685,11 @@ const WeeklyTaskOrganizer: React.FC = () => {
   if (!isClient || authLoading || !user || !selectedDate) return null;
 
   return (
-    <div className="admin-shell min-h-screen bg-bg-main p-3 font-sans transition-colors duration-300 relative overflow-hidden sm:p-4">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_circle_at_50%_8%,_rgba(15,139,255,0.13),_transparent_54%),radial-gradient(760px_circle_at_8%_72%,_rgba(109,93,252,0.1),_transparent_48%),radial-gradient(640px_circle_at_92%_18%,_rgba(15,139,255,0.1),_transparent_50%)] dark:bg-[radial-gradient(900px_circle_at_12%_-18%,_rgba(96,165,250,0.18),_transparent_60%),radial-gradient(780px_circle_at_88%_-12%,_rgba(59,130,246,0.14),_transparent_58%)]"></div>
-      <div className="pointer-events-none absolute inset-0 opacity-30 dark:opacity-45 bg-[linear-gradient(rgba(16,24,40,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(16,24,40,0.055)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:108px_108px]"></div>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(255,255,255,0.58),_transparent_40%)] dark:bg-[radial-gradient(circle_at_50%_0%,_rgba(96,165,250,0.22),_transparent_42%)]"></div>
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-border-brand/40 to-transparent opacity-25 dark:opacity-40"></div>
-        <div className="absolute left-8 top-20 bottom-10 w-px bg-gradient-to-b from-transparent via-border-brand/30 to-transparent opacity-20 dark:opacity-30"></div>
-      </div>
+    <div
+      className={`admin-shell ${isAdmin ? "admin-mode" : "user-mode"} relative min-h-screen overflow-hidden p-3 font-sans transition-colors duration-200 sm:p-4`}
+    >
       <div className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="mx-auto max-w-[1500px]">
           <header
             ref={headerRef}
             className="admin-topbar rounded-2xl px-3 py-2 sm:px-4 sm:py-3"
@@ -748,6 +743,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 <div className="admin-segmented grid flex-1 grid-cols-2 items-center gap-1 rounded-xl p-0.5 sm:flex sm:flex-none sm:rounded-2xl sm:p-1">
                   <button
                     onClick={() => setIsAdmin(true)}
+                    aria-pressed={isAdmin}
                     className={`flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm ${
                       isAdmin
                         ? "glass-control text-text-primary"
@@ -760,6 +756,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setIsAdmin(false)}
+                    aria-pressed={!isAdmin}
                     className={`flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm ${
                       !isAdmin
                         ? "glass-control text-text-primary"
@@ -799,7 +796,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
 
       <div
-        className="max-w-7xl mx-auto relative z-10"
+        className="relative z-10 mx-auto max-w-[1500px]"
         style={{ paddingTop: Math.max(headerHeight, minHeaderHeight) + headerOffset }}
       >
 
