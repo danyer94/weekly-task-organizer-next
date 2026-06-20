@@ -1,13 +1,21 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UserView } from "./UserView";
 import type { Day, TasksByDay } from "@/types";
 
-const days: Day[] = ["Monday", "Tuesday", "Wednesday"];
+const days: Day[] = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 const tasks: TasksByDay = {
   Monday: [
@@ -43,19 +51,37 @@ describe("UserView", () => {
     window.localStorage.clear();
   });
 
-  it("exposes the selected weekday with pressed-button semantics", () => {
+  it("renders the shared seven-day Admin strip contract", () => {
     const props = createProps();
     render(<UserView {...props} />);
 
-    const mondayButton = screen.getByRole("button", {
-      name: /^Monday 0\/1 tasks$/i,
-    });
-    const tuesdayButton = screen.getByRole("button", {
-      name: /^Tuesday 0\/0 tasks$/i,
-    });
+    const group = screen.getByRole("group", { name: "Week days" });
+    const buttons = within(group).getAllByRole("button");
+    const mondayButton = screen.getByRole("button", { name: "Show Monday tasks" });
+    const tuesdayButton = screen.getByRole("button", { name: "Show Tuesday tasks" });
 
+    expect(group).toHaveAttribute("data-slot", "week-day-strip");
+    expect(buttons).toHaveLength(7);
+    expect(buttons.map((button) => button.textContent)).toEqual([
+      "MonJun 150/1",
+      "TueJun 160/0",
+      "WedJun 170/0",
+      "ThuJun 180/0",
+      "FriJun 190/0",
+      "SatJun 200/0",
+      "SunJun 210/0",
+    ]);
+    expect(mondayButton.querySelector('[data-slot="week-day-date"]')).toHaveTextContent(
+      "Jun 15",
+    );
+    expect(mondayButton.querySelector('[data-slot="week-day-count"]')).toHaveTextContent(
+      "0/1",
+    );
     expect(mondayButton).toHaveAttribute("aria-pressed", "true");
     expect(tuesdayButton).toHaveAttribute("aria-pressed", "false");
+    expect(
+      buttons.filter((button) => button.getAttribute("aria-pressed") === "true"),
+    ).toHaveLength(1);
 
     fireEvent.click(tuesdayButton);
     expect(props.onDayChange).toHaveBeenCalledWith("Tuesday");

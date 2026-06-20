@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AdminView } from "./AdminView";
@@ -132,6 +132,35 @@ describe("AdminView", () => {
       new Date(2026, 5, 24, 12)
     );
     expect(props.onDayChange).toHaveBeenCalledWith("Thursday");
+  });
+
+  it("renders the selected week as one seven-day calendar strip", () => {
+    render(<AdminView {...createProps()} />);
+
+    const group = screen.getByRole("group", { name: "Week days" });
+    const buttons = within(group).getAllByRole("button");
+
+    expect(group).toHaveAttribute("data-slot", "week-day-strip");
+    expect(buttons).toHaveLength(7);
+    expect(buttons.map((button) => button.textContent)).toEqual([
+      "MonJun 150/0",
+      "TueJun 160/0",
+      "WedJun 171/2",
+      "ThuJun 180/1",
+      "FriJun 190/0",
+      "SatJun 200/0",
+      "SunJun 210/0",
+    ]);
+    expect(
+      buttons.filter((button) => button.getAttribute("aria-pressed") === "true")
+    ).toHaveLength(1);
+    expect(buttons[2]).toHaveAttribute("aria-pressed", "true");
+    expect(buttons[2].querySelector('[data-slot="week-day-date"]')).toHaveTextContent(
+      "Jun 17"
+    );
+    expect(buttons[2].querySelector('[data-slot="week-day-count"]')).toHaveTextContent(
+      "1/2"
+    );
   });
 
   it("runs every management action and exposes selection actions only when selected", () => {

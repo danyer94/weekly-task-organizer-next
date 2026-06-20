@@ -375,6 +375,10 @@
   --admin-warning: #f0a000;
   --admin-danger: #ff7185;
   --admin-shadow: none;
+  background:
+    radial-gradient(circle at 50% 8%, rgba(0, 110, 219, 0.11), transparent 28%),
+    radial-gradient(circle at 8% 72%, rgba(109, 93, 252, 0.08), transparent 24%),
+    linear-gradient(180deg, #f8fbff 0%, #eef4fb 48%, #e3edf7 100%);
 }
 
 .admin-topbar,
@@ -417,7 +421,7 @@
 
 .admin-input,
 .admin-ops-card,
-.admin-week-chip,
+.admin-week-day,
 .admin-stat-chip,
 .admin-action-button,
 .admin-command-metric,
@@ -484,7 +488,6 @@
 
 .admin-shell.admin-mode .glass-control:hover,
 .admin-shell.admin-mode .glass-pill:hover,
-.admin-week-chip:hover,
 .admin-action-button:hover {
   border-color: color-mix(in srgb, var(--admin-accent) 42%, var(--admin-border));
   background: var(--admin-surface-muted);
@@ -549,6 +552,27 @@
   opacity: 0.1;
 }
 
+.admin-shell.user-mode .user-view-controls {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-shell.user-mode .user-weekday-divider {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid color-mix(in srgb, var(--admin-border) 68%, transparent);
+}
+
+.admin-shell.user-mode .user-weekday-divider::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: min(280px, 62%);
+  height: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--admin-accent) 42%, transparent), transparent);
+}
+
 .admin-shell.user-mode .admin-day-button {
   border: 1px solid var(--admin-border);
   background: rgba(255, 255, 255, 0.92);
@@ -580,34 +604,149 @@
 
 .admin-primary-action:active,
 .admin-action-button:active,
-.admin-week-chip:active {
+.admin-week-day:active {
   transform: translateY(1px) scale(0.99);
 }
 
-.admin-week-chip {
-  position: relative;
-  min-height: 60px;
+.admin-week-strip-wrap {
+  min-width: 0;
+  padding-bottom: 10px;
 }
 
-.admin-week-chip.is-active {
-  border-color: var(--admin-accent);
+.admin-week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  overflow: visible;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: var(--admin-surface);
+}
+
+.admin-week-day {
+  position: relative;
+  min-width: 0;
+  height: 94px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 3px;
+  border: 0;
+  border-left: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  color: var(--admin-ink);
+  text-align: center;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.admin-week-day:first-child {
+  border-left: 0;
+  border-radius: 11px 0 0 11px;
+}
+
+.admin-week-day:last-child {
+  border-radius: 0 11px 11px 0;
+}
+
+.admin-week-day:hover:not(.is-active) {
+  background: var(--admin-surface-muted);
+}
+
+.admin-week-day:focus-visible {
+  z-index: 2;
+  outline: 2px solid color-mix(in srgb, var(--admin-accent) 72%, white);
+  outline-offset: -3px;
+}
+
+.admin-week-day:active {
+  transform: none;
+  background: color-mix(in srgb, var(--admin-accent) 8%, var(--admin-surface));
+}
+
+.admin-week-day.is-active {
+  z-index: 1;
   background: var(--admin-accent);
   color: white;
 }
 
-.admin-week-chip.is-active span {
-  color: white;
-}
-
-.admin-week-chip.is-active::after {
+.admin-week-day.is-active::after {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -8px;
-  width: 14px;
-  height: 14px;
+  bottom: -10px;
+  width: 0;
+  height: 0;
+  border-right: 10px solid transparent;
+  border-left: 10px solid transparent;
+  border-top: 10px solid var(--admin-accent);
+  transform: translateX(-50%);
+}
+
+.admin-week-day__label,
+.admin-week-day__date,
+.admin-week-day__count {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+}
+
+.admin-week-day__label {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.admin-week-day__date {
+  color: var(--admin-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.admin-week-day__count {
+  color: var(--admin-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.admin-week-day.is-active .admin-week-day__date,
+.admin-week-day.is-active .admin-week-day__count {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.dark .admin-week-day {
+  background: var(--admin-surface);
+}
+
+.dark .admin-week-day:hover:not(.is-active) {
+  background: var(--admin-surface-muted);
+}
+
+.dark .admin-week-day.is-active {
   background: var(--admin-accent);
-  transform: translateX(-50%) rotate(45deg);
+  color: white;
+}
+
+@media (max-width: 639px) {
+  .admin-week-day {
+    height: 82px;
+    gap: 4px;
+    padding-inline: 1px;
+  }
+
+  .admin-week-day__label {
+    font-size: 11px;
+  }
+
+  .admin-week-day__date,
+  .admin-week-day__count {
+    font-size: 9px;
+    letter-spacing: -0.02em;
+  }
 }
 
 .admin-stat-chip {
@@ -688,30 +827,28 @@
   outline-offset: 2px;
 }
 
+.admin-content-grid {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+}
+
 @media (min-width: 1024px) {
-  .admin-dashboard-grid--both {
-    grid-template-columns: minmax(0, 3fr) minmax(300px, 1fr);
-    align-items: stretch;
-  }
-
-  .admin-dashboard-grid--both .admin-agenda-pane {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .admin-dashboard-grid--both .admin-operational-stack {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
+  .admin-dashboard-grid,
+  .admin-dashboard-grid--both,
   .admin-dashboard-grid--list,
   .admin-dashboard-grid--timeline {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .admin-content-grid--both {
+    grid-template-columns: minmax(0, 3fr) minmax(300px, 1fr);
+    align-items: start;
+  }
 }
 
 @media (min-width: 1536px) {
-  .admin-dashboard-grid--both {
+  .admin-content-grid--both {
     grid-template-columns: minmax(0, 3fr) minmax(340px, 1fr);
   }
 }

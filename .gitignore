@@ -46,6 +46,7 @@ next-env.d.ts
 .od-skills
 .playwright*
 output
+.pi
 
 #cache
 .temp
