@@ -842,14 +842,14 @@
   }
 
   .admin-content-grid--both {
-    grid-template-columns: minmax(0, 3fr) minmax(300px, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 1fr);
     align-items: start;
   }
 }
 
 @media (min-width: 1536px) {
   .admin-content-grid--both {
-    grid-template-columns: minmax(0, 3fr) minmax(340px, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 1fr);
   }
 }
 

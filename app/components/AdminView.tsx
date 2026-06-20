@@ -249,32 +249,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
 					</div>
 				</header>
 
-				<div className="admin-compose grid gap-3 md:grid-cols-[188px_1fr_auto]">
-					<PrioritySelector
-						priority={priority}
-						setPriority={setPriority}
-						className="w-full min-w-[180px]"
-					/>
-					<input
-						type="text"
-						value={newTaskText}
-						onChange={(e) => setNewTaskText(e.target.value)}
-						onKeyDown={(e) => e.key === "Enter" && onAddTask()}
-						placeholder="Add new task…"
-						name="newTask"
-						autoComplete="off"
-						aria-label="New task"
-						className="admin-input w-full rounded-xl p-3 text-text-primary placeholder-text-tertiary transition-colors focus:border-border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30"
-					/>
-					<button
-						onClick={onAddTask}
-						className="admin-primary-action flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-colors transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand md:w-auto"
-					>
-						<Plus className="w-5 h-5" />
-						<span>Add Task</span>
-					</button>
-				</div>
-
 				<section className="admin-ops-strip rounded-xl p-3 sm:p-4">
 					<div className="flex flex-col gap-3">
 						<div className="grid gap-3 xl:grid-cols-[minmax(250px,0.74fr)_minmax(0,1.26fr)] xl:items-center">
@@ -382,6 +356,32 @@ export const AdminView: React.FC<AdminViewProps> = ({
 						</div>
 					</div>
 				</section>
+
+				<div className="admin-compose grid gap-3 md:grid-cols-[188px_1fr_auto]">
+					<PrioritySelector
+						priority={priority}
+						setPriority={setPriority}
+						className="w-full min-w-[180px]"
+					/>
+					<input
+						type="text"
+						value={newTaskText}
+						onChange={(e) => setNewTaskText(e.target.value)}
+						onKeyDown={(e) => e.key === "Enter" && onAddTask()}
+						placeholder="Add new task…"
+						name="newTask"
+						autoComplete="off"
+						aria-label="New task"
+						className="admin-input w-full rounded-xl p-3 text-text-primary placeholder-text-tertiary transition-colors focus:border-border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30"
+					/>
+					<button
+						onClick={onAddTask}
+						className="admin-primary-action flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-colors transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand md:w-auto"
+					>
+						<Plus className="w-5 h-5" />
+						<span>Add Task</span>
+					</button>
+				</div>
 
 				{/* Selection Actions Toolbar */}
 				{selectedTasks.size > 0 && (
