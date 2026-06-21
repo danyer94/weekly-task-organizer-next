@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Day, Priority, Task } from "@/types";
+import { Day, Priority, Task, TasksByDay } from "@/types";
 import { TaskList } from "./TaskList";
-import { PrioritySelector } from "./PrioritySelector";
 import { TaskTimeline } from "./TaskTimeline";
 import { TaskViewMode } from "./TaskViewToggle";
 import { DatePicker } from "./DatePicker";
 import { WeekdaySelector } from "./WeekdaySelector";
+import { AddTaskComposer } from "./AddTaskComposer";
 import {
-	Plus,
 	Trash2,
 	ArrowRight,
 	Copy,
@@ -46,13 +45,18 @@ interface AdminViewProps {
 	onDateChange: (date: Date) => void;
 	newTaskText: string;
 	setNewTaskText: (text: string) => void;
+	taskStartTime: string;
+	setTaskStartTime: (time: string) => void;
+	taskEndTime: string;
+	setTaskEndTime: (time: string) => void;
 	priority: Priority;
 	setPriority: (priority: Priority) => void;
 	onAddTask: () => void;
+	isAddingTask?: boolean;
 	groupByPriority: boolean;
 	setGroupByPriority: (val: boolean) => void;
 	selectedTasks: Set<string>;
-	tasks: any;
+	tasks: TasksByDay;
 	stats: { total: number; completed: number };
 	quickActions: {
 		onClearCompleted: () => void;
@@ -65,7 +69,7 @@ interface AdminViewProps {
 	onToggleSelection: (id: string) => void;
 	onToggleComplete: (day: Day, id: string) => void;
 	onEdit: (day: Day, id: string, text: string, priority: Priority) => void;
-	onDragStart: (task: any, index: number, day: Day) => void;
+	onDragStart: (task: Task, index: number, day: Day) => void;
 	onDrop: (targetDay: Day, targetIndex: number) => void;
 	onDeleteSelected: () => void;
 	onSelectAll: () => void;
@@ -91,9 +95,14 @@ export const AdminView: React.FC<AdminViewProps> = ({
 	onDateChange,
 	newTaskText,
 	setNewTaskText,
+	taskStartTime,
+	setTaskStartTime,
+	taskEndTime,
+	setTaskEndTime,
 	priority,
 	setPriority,
 	onAddTask,
+	isAddingTask = false,
 	groupByPriority,
 	setGroupByPriority,
 	selectedTasks,
@@ -117,7 +126,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 }) => {
 	const [viewMode, setViewMode] = useState<TaskViewMode>(readAdminViewMode);
 	const dayTasks = tasks[currentDay] || [];
-	const dayCompleted = dayTasks.filter((task: any) => task.completed).length;
+	const dayCompleted = dayTasks.filter((task) => task.completed).length;
 	const dayOpen = Math.max(dayTasks.length - dayCompleted, 0);
 	const weekOpen = Math.max(stats.total - stats.completed, 0);
 	const dayProgress =
@@ -222,6 +231,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
 						<div
 							className="admin-view-tabs rounded-2xl p-1.5"
+							role="group"
 							aria-label="Task view mode"
 						>
 							<div className="grid grid-cols-3 gap-1">
@@ -357,31 +367,20 @@ export const AdminView: React.FC<AdminViewProps> = ({
 					</div>
 				</section>
 
-				<div className="admin-compose grid gap-3 md:grid-cols-[188px_1fr_auto]">
-					<PrioritySelector
-						priority={priority}
-						setPriority={setPriority}
-						className="w-full min-w-[180px]"
-					/>
-					<input
-						type="text"
-						value={newTaskText}
-						onChange={(e) => setNewTaskText(e.target.value)}
-						onKeyDown={(e) => e.key === "Enter" && onAddTask()}
-						placeholder="Add new task…"
-						name="newTask"
-						autoComplete="off"
-						aria-label="New task"
-						className="admin-input w-full rounded-xl p-3 text-text-primary placeholder-text-tertiary transition-colors focus:border-border-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/30"
-					/>
-					<button
-						onClick={onAddTask}
-						className="admin-primary-action flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-colors transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand md:w-auto"
-					>
-						<Plus className="w-5 h-5" />
-						<span>Add Task</span>
-					</button>
-				</div>
+				<AddTaskComposer
+					taskText={newTaskText}
+					onTaskTextChange={setNewTaskText}
+					selectedDate={selectedDate}
+					onDateChange={onDateChange}
+					startTime={taskStartTime}
+					onStartTimeChange={setTaskStartTime}
+					endTime={taskEndTime}
+					onEndTimeChange={setTaskEndTime}
+					priority={priority}
+					onPriorityChange={setPriority}
+					onSubmit={onAddTask}
+					isSubmitting={isAddingTask}
+				/>
 
 				{/* Selection Actions Toolbar */}
 				{selectedTasks.size > 0 && (
@@ -422,7 +421,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 									className="glass-pill text-xs font-semibold text-text-secondary hover:text-text-primary px-3 py-2 sm:py-1 rounded-full transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
 								>
 									{dayTasks.length > 0 &&
-									dayTasks.every((t: any) => selectedTasks.has(t.id)) ? (
+									dayTasks.every((t) => selectedTasks.has(t.id)) ? (
 										<>
 											<SquareX className="w-3.5 h-3.5" /> Unselect All
 										</>

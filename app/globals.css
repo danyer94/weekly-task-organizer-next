@@ -602,6 +602,292 @@
   transform: translateY(-1px);
 }
 
+.admin-task-composer {
+  --composer-surface: #ffffff;
+  --composer-control: #f4f7fb;
+  --composer-control-hover: #eaf1f8;
+  --composer-border: #c9d7e8;
+  --composer-ink: #101828;
+  --composer-muted: #667085;
+  --composer-helper: #475467;
+  --composer-accent: #0862f4;
+  --composer-accent-hover: #0754d8;
+  --composer-focus: rgba(16, 24, 40, 0.18);
+  --composer-focus-ring: rgba(16, 24, 40, 0.12);
+  --composer-focus-surface: color-mix(in srgb, var(--composer-control) 78%, var(--composer-surface));
+  --composer-selected-bg: color-mix(in srgb, var(--composer-accent) 11%, var(--composer-surface));
+  --composer-selected-fg: var(--composer-ink);
+  --composer-selected-border: color-mix(in srgb, var(--composer-accent) 30%, var(--composer-border));
+  border: 1px solid var(--composer-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 249, 252, 0.94)),
+    radial-gradient(circle at 8% 0%, rgba(8, 98, 244, 0.08), transparent 34%);
+  color: var(--composer-ink);
+  box-shadow: 0 10px 24px rgba(10, 24, 51, 0.06);
+}
+
+.dark .admin-task-composer {
+  --composer-surface: #0b1220;
+  --composer-control: #111827;
+  --composer-control-hover: #182235;
+  --composer-border: rgba(148, 163, 184, 0.24);
+  --composer-ink: #f8fafc;
+  --composer-muted: #cbd5e1;
+  --composer-helper: #cbd5e1;
+  --composer-accent: #2563eb;
+  --composer-accent-hover: #3b82f6;
+  --composer-focus: rgba(248, 250, 252, 0.22);
+  --composer-focus-ring: rgba(248, 250, 252, 0.14);
+  --composer-focus-surface: color-mix(in srgb, var(--composer-control-hover) 54%, var(--composer-surface));
+  --composer-selected-bg: color-mix(in srgb, var(--composer-accent) 23%, var(--composer-surface));
+  --composer-selected-fg: #f8fafc;
+  --composer-selected-border: color-mix(in srgb, #93c5fd 36%, var(--composer-border));
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.94)),
+    radial-gradient(circle at 8% 0%, rgba(59, 130, 246, 0.16), transparent 36%);
+  box-shadow: 0 18px 44px rgba(2, 6, 23, 0.36);
+}
+
+.admin-task-composer__input {
+  border-bottom: 0;
+  box-shadow: none;
+  color: var(--composer-ink);
+}
+
+.admin-task-composer__input[aria-invalid="true"] {
+  border-bottom: 0;
+  box-shadow: none;
+}
+
+.admin-task-composer__input-row {
+  background: transparent;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.admin-task-composer__segments {
+  border-top: 1px solid var(--composer-border);
+  background: var(--composer-surface);
+}
+
+.admin-task-composer__segment {
+  border-top: 1px solid var(--composer-border);
+  background: var(--composer-surface);
+  color: var(--composer-ink);
+}
+
+.admin-task-composer__segment:first-child {
+  border-top: 0;
+}
+
+.admin-task-composer__segment:hover {
+  background: var(--composer-control-hover);
+}
+
+.admin-task-composer__input::placeholder {
+  color: color-mix(in srgb, var(--composer-muted) 78%, transparent);
+}
+
+.admin-task-composer__input-row:focus-within,
+.admin-task-composer__segment:focus-within {
+  position: relative;
+  z-index: 1;
+  background: var(--composer-focus-surface);
+  box-shadow: inset 0 0 0 1px var(--composer-focus-ring);
+}
+
+.admin-task-composer__submit:focus-visible {
+  box-shadow: 0 0 0 3px var(--composer-focus);
+}
+
+.admin-task-composer .admin-task-composer__input:focus,
+.admin-task-composer .admin-task-composer__input:focus-visible,
+.admin-task-composer .admin-task-composer__native-picker-input:focus,
+.admin-task-composer .admin-task-composer__native-picker-input:focus-visible,
+.admin-task-composer .admin-task-composer__priority-trigger:focus,
+.admin-task-composer .admin-task-composer__priority-trigger:focus-visible,
+.admin-task-composer__priority-option:focus,
+.admin-task-composer__priority-option:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.admin-task-composer__helper,
+.admin-task-composer__date-input,
+.admin-task-composer__time-input,
+.admin-task-composer__priority-select,
+.admin-task-composer__priority-trigger,
+.admin-task-composer__chevron {
+  color: var(--composer-helper);
+}
+
+.admin-task-composer__helper--error {
+  border-top: 1px solid color-mix(in srgb, #ef4444 34%, var(--composer-border));
+  color: #b42318;
+  background: color-mix(in srgb, #fee2e2 52%, var(--composer-surface));
+}
+
+.dark .admin-task-composer__helper--error {
+  color: #fca5a5;
+  background: color-mix(in srgb, #7f1d1d 28%, var(--composer-surface));
+}
+
+.admin-task-composer__date-input,
+.admin-task-composer__time-input,
+.admin-task-composer__priority-select {
+  color-scheme: light;
+}
+
+.admin-task-composer__native-picker-input {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  caret-color: transparent;
+}
+
+.dark .admin-task-composer__date-input,
+.dark .admin-task-composer__time-input,
+.dark .admin-task-composer__priority-select {
+  color-scheme: dark;
+}
+
+.admin-task-composer__icon {
+  color: var(--composer-accent);
+}
+
+.admin-task-composer__segment--date,
+.admin-task-composer__segment--time,
+.admin-task-composer__priority-trigger {
+  cursor: pointer;
+}
+
+.admin-task-composer__time-label {
+  color: var(--composer-helper);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.admin-task-composer__native-picker-input::-webkit-calendar-picker-indicator,
+.admin-task-composer__time-input--native-hidden::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
+}
+
+.admin-task-composer__time-input--native-hidden::-webkit-datetime-edit,
+.admin-task-composer__time-input--native-hidden::-webkit-datetime-edit-fields-wrapper,
+.admin-task-composer__time-input--native-hidden::-webkit-datetime-edit-hour-field,
+.admin-task-composer__time-input--native-hidden::-webkit-datetime-edit-minute-field,
+.admin-task-composer__time-input--native-hidden::-webkit-datetime-edit-ampm-field,
+.admin-task-composer__time-input--native-hidden::-webkit-datetime-edit-text {
+  background: transparent;
+  color: transparent;
+}
+
+.admin-task-composer__time-input--native-hidden::-webkit-datetime-edit-hour-field:focus,
+.admin-task-composer__time-input--native-hidden::-webkit-datetime-edit-minute-field:focus,
+.admin-task-composer__time-input--native-hidden::-webkit-datetime-edit-ampm-field:focus {
+  background: transparent;
+  color: transparent;
+}
+
+.admin-task-composer__priority-trigger {
+  background: transparent;
+}
+
+.admin-task-composer__priority-menu {
+  --composer-surface: #ffffff;
+  --composer-control-hover: #eaf1f8;
+  --composer-border: #c9d7e8;
+  --composer-ink: #101828;
+  --composer-muted: #667085;
+  --composer-accent: #0862f4;
+  --composer-selected-bg: color-mix(in srgb, var(--composer-accent) 11%, var(--composer-surface));
+  --composer-selected-fg: var(--composer-ink);
+  --composer-selected-border: color-mix(in srgb, var(--composer-accent) 30%, var(--composer-border));
+  border: 1px solid var(--composer-border);
+  background: var(--composer-surface);
+  color: var(--composer-ink);
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--composer-ink) 12%, transparent);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.dark .admin-task-composer__priority-menu {
+  --composer-surface: #0b1220;
+  --composer-control-hover: #182235;
+  --composer-border: rgba(148, 163, 184, 0.24);
+  --composer-ink: #f8fafc;
+  --composer-muted: #cbd5e1;
+  --composer-accent: #2563eb;
+  --composer-selected-bg: color-mix(in srgb, var(--composer-accent) 23%, var(--composer-surface));
+  --composer-selected-fg: #f8fafc;
+  --composer-selected-border: color-mix(in srgb, #93c5fd 36%, var(--composer-border));
+  box-shadow: 0 18px 38px rgba(2, 6, 23, 0.44);
+}
+
+.admin-task-composer__priority-option {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--composer-muted);
+}
+
+.admin-task-composer__priority-option:hover,
+.admin-task-composer__priority-option:focus-visible {
+  background: var(--composer-control-hover);
+  color: var(--composer-ink);
+}
+
+.admin-task-composer__priority-option.is-selected {
+  border-color: var(--composer-selected-border);
+  background: var(--composer-selected-bg);
+  color: var(--composer-selected-fg);
+}
+
+.admin-task-composer__priority-flag {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.admin-task-composer__priority-flag--high {
+  color: #ef4444;
+}
+
+.admin-task-composer__priority-flag--medium {
+  color: #f97316;
+}
+
+.admin-task-composer__priority-flag--low {
+  color: #22c55e;
+}
+
+.admin-task-composer__submit {
+  border: 1px solid var(--composer-accent);
+  background: var(--composer-accent);
+  color: #ffffff;
+}
+
+.admin-task-composer__submit:hover:not(:disabled) {
+  background: var(--composer-accent-hover);
+}
+
+.admin-task-composer__submit:disabled {
+  border-color: var(--composer-border);
+  background: color-mix(in srgb, var(--composer-control) 82%, var(--composer-border));
+  color: var(--composer-muted);
+}
+
+@media (min-width: 640px) {
+  .admin-task-composer__segment {
+    border-top: 0;
+    border-left: 1px solid var(--composer-border);
+  }
+
+  .admin-task-composer__segment:first-child {
+    border-left: 0;
+  }
+}
+
 .admin-primary-action:active,
 .admin-action-button:active,
 .admin-week-day:active {

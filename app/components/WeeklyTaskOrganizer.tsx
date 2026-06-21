@@ -76,6 +76,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [currentUserDay, setCurrentUserDay] = useState<Day>("Monday");
 
   const [newTaskText, setNewTaskText] = useState("");
+  const [newTaskStartTime, setNewTaskStartTime] = useState("");
+  const [newTaskEndTime, setNewTaskEndTime] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
   const [groupByPriority, setGroupByPriority] = useState(true);
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(
@@ -86,6 +88,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [isCheckingGoogle, setIsCheckingGoogle] = useState(true);
   const [isSendingSummary, setIsSendingSummary] = useState(false);
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const isAddingTaskRef = useRef(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
   const [dailySummaryEnabled, setDailySummaryEnabled] = useState(false);
   const headerRef = useRef<HTMLElement | null>(null);
@@ -293,9 +297,72 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
 
   // Handlers
-  const handleAddTask = () => {
-    addTask(currentAdminDay, newTaskText, priority);
-    setNewTaskText("");
+  const handleAddTask = async () => {
+    if (isAddingTaskRef.current) return;
+    if (!newTaskText.trim()) return;
+    const startTime = newTaskStartTime.trim();
+    const endTime = newTaskEndTime.trim();
+
+    if (endTime && !startTime) {
+      alert("Select a start time before adding an end time.");
+      return;
+    }
+
+    if (startTime && endTime && endTime <= startTime) {
+      alert("End time must be after start time.");
+      return;
+    }
+
+    let calendarEvent: Task['calendarEvent'] = undefined;
+
+    isAddingTaskRef.current = true;
+    setIsAddingTask(true);
+
+    try {
+      // If time is selected and Google Calendar is connected, try to create calendar event
+      if (startTime && isGoogleConnected) {
+        try {
+          const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const draftTask: Task = {
+            id: "temp",
+            text: newTaskText,
+            completed: false,
+            priority,
+          };
+          const payload = taskToCalendarEvent(
+            currentAdminDay,
+            draftTask,
+            startTime,
+            endTime || undefined,
+            selectedDate,
+            userTimeZone
+          );
+          const { eventId } = await createTaskEventForRamon(payload);
+          calendarEvent = {
+            eventId,
+            date: payload.date,
+            startTime: payload.startTime ?? null,
+            endTime: payload.endTime ?? null,
+          };
+        } catch (error) {
+          console.error("Failed to create calendar event", error);
+          alert("Calendar event creation failed. Task was still created.");
+        }
+      }
+
+      addTask(currentAdminDay, newTaskText, priority, calendarEvent);
+      setNewTaskText("");
+      setNewTaskStartTime("");
+      setNewTaskEndTime("");
+    } finally {
+      isAddingTaskRef.current = false;
+      setIsAddingTask(false);
+    }
+  };
+
+  const handleComposerDateChange = (date: Date) => {
+    setSelectedDate(date);
+    setCurrentAdminDay(DAYS[(date.getDay() + 6) % 7]);
   };
 
   const handleToggleSelection = (id: string) => {
@@ -807,12 +874,17 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 days={DAYS}
                 onDayChange={setCurrentAdminDay}
                 selectedDate={selectedDate}
-                onDateChange={setSelectedDate}
+                onDateChange={handleComposerDateChange}
                 newTaskText={newTaskText}
                 setNewTaskText={setNewTaskText}
+                taskStartTime={newTaskStartTime}
+                setTaskStartTime={setNewTaskStartTime}
+                taskEndTime={newTaskEndTime}
+                setTaskEndTime={setNewTaskEndTime}
                 priority={priority}
                 setPriority={setPriority}
                 onAddTask={handleAddTask}
+                isAddingTask={isAddingTask}
                 groupByPriority={groupByPriority}
                 setGroupByPriority={setGroupByPriority}
                 selectedTasks={selectedTasks}
