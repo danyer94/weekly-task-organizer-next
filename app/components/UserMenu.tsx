@@ -196,7 +196,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
       <div className="relative" ref={containerRef}>
         <button
           onClick={() => setOpen((prev) => !prev)}
-          className="glass-control flex items-center gap-3 px-2 sm:px-3 py-2 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+          className="flex min-h-10 items-center gap-3 rounded-none border-0 bg-transparent px-2 py-2 transition-[background-color,color,transform] hover:bg-black/[0.04] active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 dark:hover:bg-white/[0.06] sm:px-3"
           aria-label="Open account menu"
           aria-haspopup="menu"
           aria-expanded={open}
@@ -208,18 +208,25 @@ export const UserMenu: React.FC<UserMenuProps> = ({
               width={40}
               height={40}
               unoptimized
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-border-hover shadow-lg object-cover"
+              data-slot="account-avatar"
+              className="h-9 w-9 rounded-full border border-border-hover object-cover shadow-lg sm:h-10 sm:w-10"
             />
           ) : (
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-bg-sidebar border border-border-subtle flex items-center justify-center text-text-tertiary shadow-sm">
+            <div
+              data-slot="account-avatar"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border-subtle bg-bg-sidebar text-text-tertiary shadow-sm sm:h-10 sm:w-10"
+            >
               <UserIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           )}
-          <div className="hidden sm:flex flex-col items-start min-w-0">
-            <span className="text-[10px] uppercase tracking-[0.3em] text-text-tertiary">Account</span>
+          <div
+            data-slot="account-identity"
+            className="hidden min-w-0 flex-col items-start sm:flex"
+          >
             <span className="text-sm font-semibold text-text-primary truncate max-w-[140px]">
               {displayName}
             </span>
+            <span className="text-[10px] uppercase tracking-[0.3em] text-text-tertiary">Account</span>
           </div>
           <ChevronDown className={`w-4 h-4 sm:w-4 sm:h-4 text-text-secondary transition-transform ${open ? "rotate-180" : ""}`} />
         </button>

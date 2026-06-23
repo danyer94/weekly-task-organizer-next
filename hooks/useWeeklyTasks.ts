@@ -327,7 +327,7 @@ export const useWeeklyTasks = (
 
   // --- Task Operations ---
 
-  const addTask = (day: Day, text: string, priority: Priority) => {
+  const addTask = useCallback((day: Day, text: string, priority: Priority, calendarEvent?: Task['calendarEvent']) => {
     if (!text.trim() || !uid) return;
     updateTasks((prev) => ({
       ...prev,
@@ -338,12 +338,13 @@ export const useWeeklyTasks = (
           text,
           completed: false,
           priority,
+          ...(calendarEvent ? { calendarEvent } : {}),
         },
       ],
     }));
-  };
+  }, [updateTasks, uid]);
 
-  const deleteTask = (day: Day, id: string) => {
+  const deleteTask = useCallback((day: Day, id: string) => {
     updateTasks((prev) => {
       const dayTasks = prev[day] || [];
       const newDayTasks = dayTasks.filter((t) => t.id !== id);
@@ -352,18 +353,18 @@ export const useWeeklyTasks = (
         [day]: newDayTasks,
       };
     });
-  };
+  }, [updateTasks]);
 
-  const toggleComplete = (day: Day, id: string) => {
+  const toggleComplete = useCallback((day: Day, id: string) => {
     updateTasks((prev) => ({
       ...prev,
       [day]: (prev[day] || []).map((t) =>
         t.id === id ? { ...t, completed: !t.completed } : t
       ),
     }));
-  };
+  }, [updateTasks]);
 
-  const editTask = (
+  const editTask = useCallback((
     day: Day,
     id: string,
     newText: string,
@@ -377,7 +378,7 @@ export const useWeeklyTasks = (
           : t
       ),
     }));
-  };
+  }, [updateTasks]);
 
   const updateTaskCalendarEvent = (
     day: Day,
@@ -490,7 +491,7 @@ export const useWeeklyTasks = (
   const clearCompleted = () => {
     if (!window.confirm("Clear all completed tasks from all days?")) return;
     updateTasks((prev) => {
-      const newTasks: any = {};
+      const newTasks: TasksByDay = {};
       Object.keys(prev).forEach((key) => {
         const day = key as Day;
         newTasks[day] = (prev[day] || []).filter((t) => !t.completed);
@@ -625,12 +626,9 @@ export const useWeeklyTasks = (
     const currentTargetTasks = [...(normalized[targetDay] || [])];
     normalized[targetDay] = [...currentTargetTasks, ...newTasks];
 
-    const saved = await saveTasks(uid!, normalized, targetPath);
-    if (!saved) {
-      throw new Error("Failed to save tasks to target week");
-    }
-
     if (targetPath === currentPath) {
+      // Skip direct saveTasks here — updateTasks performs the single atomic write.
+      // The previous double write (saveTasks + updateTasks) caused duplicate tasks.
       updateTasks((prev) => {
         const next = { ...prev };
         if (isMove) {
@@ -642,14 +640,20 @@ export const useWeeklyTasks = (
         next[targetDay] = [...targetTasks, ...newTasks];
         return next;
       });
-    } else if (isMove) {
-      updateTasks((prev) => {
-        const next = { ...prev };
-        next[currentDay] = (next[currentDay] || []).filter(
-          (t) => !selectedIds.has(t.id)
-        );
-        return next;
-      });
+    } else {
+      const saved = await saveTasks(uid!, normalized, targetPath);
+      if (!saved) {
+        throw new Error("Failed to save tasks to target week");
+      }
+      if (isMove) {
+        updateTasks((prev) => {
+          const next = { ...prev };
+          next[currentDay] = (next[currentDay] || []).filter(
+            (t) => !selectedIds.has(t.id)
+          );
+          return next;
+        });
+      }
     }
 
     return { createdTasks };

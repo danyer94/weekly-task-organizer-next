@@ -1,0 +1,97 @@
+schema: spec-driven
+
+project: weekly-task-organizer-next
+persistence: openspec
+strict_tdd: true
+
+context: |
+  Tech stack: Next.js 16 App Router, React 19.2, TypeScript 5.9, Tailwind CSS v4, Firebase Auth/Realtime Database/Admin SDK.
+  Architecture: UI in app/components, business rules in hooks/useWeeklyTasks.ts and lib/*, API routes under app/api/*.
+  Integrations: Google Calendar via googleapis, notifications via Nodemailer/Twilio, Vercel cron for daily summaries.
+  Testing: Vitest 4 with jsdom, React Testing Library, jest-dom setup, component/hook/lib/API route tests.
+  Style: ESLint 9 with Next core web vitals, TypeScript path alias @/*, Tailwind darkMode class and tokenized theme colors.
+  Conventions: Use getWeekPath(date), createTaskId(), lib/calendarClient.ts, lib/googleCalendar.ts, and lib/notificationsClient.ts.
+
+testing:
+  detected: 2026-06-19
+  strict_tdd: true
+  strict_tdd_source: test runner detected; no explicit marker/config found
+  runner:
+    framework: Vitest
+    command: npm run test
+    config: vitest.config.ts
+    environment: jsdom
+    setup_files:
+      - test/setup.ts
+    include:
+      - "**/*.test.ts"
+      - "**/*.test.tsx"
+  layers:
+    unit:
+      available: true
+      tool: Vitest
+      evidence:
+        - lib/*.test.ts
+    integration:
+      available: true
+      tool: React Testing Library + Vitest/jsdom + API route tests
+      evidence:
+        - app/components/*.test.tsx
+        - hooks/useWeeklyTasks.test.tsx
+        - app/api/**/*.test.ts
+    e2e:
+      available: false
+      tool: null
+      evidence: []
+  coverage:
+    available: false
+    command: null
+    notes: No package script or config for coverage was detected.
+  quality:
+    linter:
+      available: true
+      command: npm run lint
+      config: eslint.config.mjs
+    type_checker:
+      available: true
+      command: npx tsc --noEmit
+      config: tsconfig.json
+      notes: No dedicated package script was detected.
+    formatter:
+      available: false
+      command: null
+      config: null
+    build:
+      available: true
+      command: npm run build
+      config: next.config.mjs
+
+rules:
+  proposal:
+    - State user value, scope, affected modules, risks, and rollback plan.
+    - Do not propose Firebase path changes without calling out project.md updates.
+  specs:
+    - Use RFC 2119 keywords and Given/When/Then scenarios.
+    - Include persisted data and integration side effects for Firebase, Google Calendar, or notifications changes.
+  design:
+    - Keep UI logic in app/components and business rules in hooks/lib.
+    - Include sequence diagrams or step flows for OAuth, calendar sync, notification, and carry-over flows.
+    - Prefer existing helpers: getWeekPath(date), createTaskId(), calendarClient, googleCalendar, notificationsClient.
+  tasks:
+    - Group by phase and keep tasks completable in one focused session.
+    - Keep changed-line budget reviewable for the single-pr-default strategy.
+  apply:
+    tdd: true
+    test_command: npm run test
+    steps:
+      - Write or update tests before implementation when behavior changes.
+      - Run focused tests first, then broader validation before completion.
+  verify:
+    test_command: npm run test
+    build_command: npm run build
+    lint_command: npm run lint
+    typecheck_command: npx tsc --noEmit
+    coverage_threshold: 0
+  archive:
+    - Preserve completed change folders under openspec/changes/archive/YYYY-MM-DD-{change-name}/.
+    - Warn before merging destructive or data-migration deltas.

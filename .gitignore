@@ -42,6 +42,18 @@ next-env.d.ts
 
 #folders
 /firebase_data
+.atl
+.od-skills
+.playwright*
+output
+.pi
 
 #cache
 .temp
+
+# SDD artifacts
+openspec/
+sdd/
+
+# dev logs
+dev-output.log

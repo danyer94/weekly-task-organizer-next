@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { TasksByDay } from "@/types";
+import { getWeekPath } from "@/lib/calendarMapper";
 
 const {
   saveTasksMock,
@@ -163,6 +164,128 @@ describe("useWeeklyTasks", () => {
       );
     });
     expect(createTaskIdMock).toHaveBeenCalledWith("user-b");
+  });
+
+  it("persists added tasks to the selected week and day path without schema changes", async () => {
+    const selectedDate = new Date(2026, 5, 18, 12);
+    const { result } = renderHook(() =>
+      useWeeklyTasks(selectedDate, "user-123")
+    );
+
+    await waitFor(() => {
+      expect(result.current.tasks.Monday).toHaveLength(1);
+    });
+
+    await act(async () => {
+      result.current.addTask("Thursday", "Plan cross-week review", "high");
+    });
+
+    await waitFor(() => {
+      expect(saveTasksMock).toHaveBeenLastCalledWith(
+        "user-123",
+        expect.objectContaining({
+          Thursday: expect.arrayContaining([
+            expect.objectContaining({
+              id: "new-task-id",
+              text: "Plan cross-week review",
+              completed: false,
+              priority: "high",
+            }),
+          ]),
+        }),
+        getWeekPath(selectedDate)
+      );
+    });
+
+    const savedTasks = saveTasksMock.mock.lastCall?.[1] as TasksByDay;
+    const savedTask = savedTasks.Thursday?.find(
+      (task) => task.id === "new-task-id"
+    );
+    expect(savedTask).not.toHaveProperty("dueDate");
+    expect(savedTask).not.toHaveProperty("tags");
+  });
+
+  it("persists addTask with optional calendarEvent metadata", async () => {
+    const selectedDate = new Date(2026, 5, 18, 12);
+    const { result } = renderHook(() =>
+      useWeeklyTasks(selectedDate, "user-123")
+    );
+
+    await waitFor(() => {
+      expect(result.current.tasks.Monday).toHaveLength(1);
+    });
+
+    const calendarEvent = {
+      eventId: "event-123",
+      date: "2026-06-18",
+      startTime: "14:30",
+      endTime: "15:30",
+    };
+
+    await act(async () => {
+      result.current.addTask("Thursday", "Meeting with team", "high", calendarEvent);
+    });
+
+    await waitFor(() => {
+      expect(saveTasksMock).toHaveBeenLastCalledWith(
+        "user-123",
+        expect.objectContaining({
+          Thursday: expect.arrayContaining([
+            expect.objectContaining({
+              id: "new-task-id",
+              text: "Meeting with team",
+              completed: false,
+              priority: "high",
+              calendarEvent: expect.objectContaining({
+                eventId: "event-123",
+                date: "2026-06-18",
+                startTime: "14:30",
+                endTime: "15:30",
+              }),
+            }),
+          ]),
+        }),
+        getWeekPath(selectedDate)
+      );
+    });
+  });
+
+  it("persists addTask without calendarEvent omits metadata", async () => {
+    const selectedDate = new Date(2026, 5, 18, 12);
+    const { result } = renderHook(() =>
+      useWeeklyTasks(selectedDate, "user-123")
+    );
+
+    await waitFor(() => {
+      expect(result.current.tasks.Monday).toHaveLength(1);
+    });
+
+    await act(async () => {
+      result.current.addTask("Thursday", "Prepare report", "medium");
+    });
+
+    await waitFor(() => {
+      expect(saveTasksMock).toHaveBeenLastCalledWith(
+        "user-123",
+        expect.objectContaining({
+          Thursday: expect.arrayContaining([
+            expect.objectContaining({
+              id: "new-task-id",
+              text: "Prepare report",
+              completed: false,
+              priority: "medium",
+            }),
+          ]),
+        }),
+        getWeekPath(selectedDate)
+      );
+    });
+
+    const savedTasks = saveTasksMock.mock.lastCall?.[1] as TasksByDay;
+    const savedTask = savedTasks.Thursday?.find(
+      (task) => task.id === "new-task-id"
+    );
+    expect(savedTask).not.toHaveProperty("calendarEvent");
   });
 
   it("persists calendar event updates for tasks moved to another week", async () => {

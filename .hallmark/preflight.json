@@ -1,0 +1,17 @@
+{
+  "fonts": {
+    "display": "IBM Plex Sans (next/font/google)",
+    "body": "IBM Plex Sans (next/font/google)",
+    "mono": "IBM Plex Mono (next/font/google)"
+  },
+  "palette": {
+    "type": "CSS custom properties with dark mode",
+    "dark_paper": "#0a0e18",
+    "dark_surface": "#0f1826",
+    "dark_accent": "#7fb3ff"
+  },
+  "motion": "custom keyframes (float-slow, glow-pulse, gradient-pan) — no framer-motion",
+  "spacing": "Tailwind v4 default scale",
+  "framework": "Next.js 16 (App Router)",
+  "darkMode": "class-based"
+}

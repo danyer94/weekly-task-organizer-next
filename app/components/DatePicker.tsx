@@ -1,7 +1,12 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, addMonths, subMonths, getISOWeek, getISOWeekYear, addWeeks } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 
 interface DatePickerProps {
   selectedDate: Date;
@@ -11,21 +16,64 @@ interface DatePickerProps {
 
 export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, className = "" }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
   const [viewDate, setViewDate] = useState(new Date(selectedDate));
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const isoWeek = getISOWeek(selectedDate);
   const isoWeekYear = getISOWeekYear(selectedDate);
 
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        popoverRef.current &&
+        !popoverRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || !containerRef.current) return;
+
+    const updatePopoverPosition = () => {
+      if (!containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const gap = 8;
+      const width = Math.min(Math.max(rect.width, 304), window.innerWidth - 24);
+      const left = Math.min(Math.max(12, rect.left), window.innerWidth - width - 12);
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const estimatedHeight = 386;
+      const top =
+        spaceBelow < estimatedHeight && rect.top > estimatedHeight
+          ? rect.top - estimatedHeight - gap
+          : rect.bottom + gap;
+
+      setPopoverStyle({
+        position: "fixed",
+        top,
+        left,
+        width,
+      });
+    };
+
+    updatePopoverPosition();
+    window.addEventListener("resize", updatePopoverPosition);
+    window.addEventListener("scroll", updatePopoverPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePopoverPosition);
+      window.removeEventListener("scroll", updatePopoverPosition, true);
+    };
+  }, [isOpen]);
 
   const togglePicker = () => {
     if (!isOpen) {
@@ -108,11 +156,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
       <div className="flex items-center gap-2 w-full">
         <button
           onClick={() => shiftWeek(-1)}
-          className="glass-control h-11 w-11 rounded-xl text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+          className="glass-control flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-semibold text-text-secondary transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 active:scale-[0.96]"
           aria-label="Previous week"
           type="button"
         >
-          <ChevronLeft className="w-4 h-4 sm:w-4 sm:h-4" />
+          <ArrowLeft className="h-5 w-5 shrink-0 translate-x-[-0.5px]" />
+          <span>Previous</span>
         </button>
 
         <button
@@ -122,7 +171,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
         >
 
           <div className="flex items-center gap-2 overflow-hidden">
-            <CalendarIcon className="w-4 h-4 text-text-tertiary group-hover:text-text-primary shrink-0" />
+            <CalendarIcon className="h-[30px] w-[30px] shrink-0 text-sapphire-500 dark:text-blue-200" />
             <div className="flex flex-col items-start truncate">
               <span className="text-xs font-semibold text-text-primary whitespace-nowrap truncate max-w-[140px] sm:max-w-none">
                 {format(selectedDate, "EEEE, MMMM d")}
@@ -133,20 +182,25 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
             </div>
 
           </div>
-          <ChevronRight className={`w-4 h-4 text-text-tertiary transition-transform ${isOpen ? "rotate-90" : ""}`} />
+          <ArrowRight className={`w-4 h-4 text-text-tertiary transition-transform ${isOpen ? "rotate-90" : ""}`} />
         </button>
         <button
           onClick={() => shiftWeek(1)}
-          className="glass-control h-11 w-11 rounded-xl text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+          className="glass-control flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-semibold text-text-secondary transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 active:scale-[0.96]"
           aria-label="Next week"
           type="button"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ArrowRight className="h-5 w-5 shrink-0 translate-x-[0.5px]" />
+          <span>Next</span>
         </button>
       </div>
 
-      {isOpen && (
-        <div className="glass-panel absolute top-full left-0 right-0 mt-2 p-4 rounded-2xl z-[100] animate-in fade-in zoom-in duration-200 motion-reduce:animate-none motion-reduce:transition-none max-w-[calc(100vw-2rem)]">
+      {isOpen && typeof document !== "undefined" && createPortal(
+        <div
+          ref={popoverRef}
+          style={popoverStyle}
+          className="glass-panel p-4 rounded-2xl z-[1000] animate-in fade-in zoom-in duration-200 motion-reduce:animate-none motion-reduce:transition-none"
+        >
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={prevMonth}
@@ -154,7 +208,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
               aria-label="Previous month"
               type="button"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="text-sm font-semibold text-text-primary">
               {format(viewDate, "MMMM yyyy")}
@@ -165,7 +219,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
               aria-label="Next month"
               type="button"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5" />
             </button>
           </div>
           
@@ -179,7 +233,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
           >
             Today
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

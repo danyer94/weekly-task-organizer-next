@@ -28,40 +28,42 @@ export const ThemeToggle: React.FC = () => {
 
   return (
     <button
+      type="button"
       onClick={toggleTheme}
-      className={`relative w-20 h-10 rounded-full p-1 transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 border border-border-subtle ${
-        theme === "dark" ? "bg-bg-sidebar" : "bg-bg-surface/80"
+      className={`relative flex h-10 w-[4.5rem] items-center justify-center rounded-full border border-border-subtle p-1 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 ${
+        theme === "dark" ? "bg-bg-sidebar" : "bg-bg-surface"
       }`}
       aria-label="Toggle Theme"
     >
-      <div
-        className={`absolute top-1 bg-white w-7 h-7 rounded-full shadow-sm transform transition-transform duration-300 flex items-center justify-center text-xs z-10 ${
-          theme === "dark" ? "translate-x-10 left-1" : "translate-x-0 left-1"
-        }`}
-      >
-        {theme === "dark" ? (
-          <Moon className="w-3.5 h-3.5 text-text-secondary" />
-        ) : (
-          <Sun className="w-3.5 h-3.5 text-amber-500" />
-        )}
-      </div>
-      <span
-        className={`absolute top-0 bottom-0 flex items-center text-[10px] font-bold transition-opacity duration-300 ${
-          theme === "dark" 
-            ? "left-3 text-text-primary opacity-100" 
-            : "left-3 text-text-secondary opacity-0"
-        }`}
-      >
-        Dark
-      </span>
-      <span
-        className={`absolute top-0 bottom-0 flex items-center text-[10px] font-bold transition-opacity duration-300 ${
-          theme === "dark" 
-            ? "right-3 text-text-secondary opacity-0" 
-            : "right-3 text-text-secondary opacity-100"
-        }`}
-      >
-        Light
+      <span aria-hidden="true" className="pointer-events-none relative h-8 w-full">
+        <span
+          data-theme-icon="sun"
+          className={`pointer-events-none absolute top-1/2 flex -translate-y-1/2 items-center justify-center blur-0 transition-[left,transform,opacity] duration-200 ease-[cubic-bezier(0.2,0,0,1)] ${
+            theme === "light"
+              ? "left-0.5 z-10 h-7 w-7 scale-100 rounded-full border border-border-subtle bg-bg-surface opacity-100 shadow-sm"
+              : "left-1.5 h-5 w-5 scale-75 opacity-40"
+          }`}
+        >
+          <Sun
+            className={`h-3.5 w-3.5 ${
+              theme === "light" ? "text-amber-500" : "text-text-secondary"
+            }`}
+          />
+        </span>
+        <span
+          data-theme-icon="moon"
+          className={`pointer-events-none absolute top-1/2 flex -translate-y-1/2 items-center justify-center blur-0 transition-[right,transform,opacity] duration-200 ease-[cubic-bezier(0.2,0,0,1)] ${
+            theme === "dark"
+              ? "right-0.5 z-10 h-7 w-7 scale-100 rounded-full border border-border-subtle bg-bg-surface opacity-100 shadow-sm"
+              : "right-1.5 h-5 w-5 scale-75 opacity-40"
+          }`}
+        >
+          <Moon
+            className={`h-3.5 w-3.5 ${
+              theme === "dark" ? "text-text-primary" : "text-text-secondary"
+            }`}
+          />
+        </span>
       </span>
     </button>
   );

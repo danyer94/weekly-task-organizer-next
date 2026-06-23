@@ -6,7 +6,6 @@ import type { DailySummarySettings } from "@/types";
 import { Day, Priority, Task } from "@/types";
 import { AdminView } from "./AdminView";
 import { UserView } from "./UserView";
-import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { DaySelectionModal, type DaySelectionResult } from "./DaySelectionModal";
 import { BulkAddModal } from "./BulkAddModal";
@@ -67,7 +66,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
       moveOrCopyTasksToDate,
       bulkAddTasks,
     },
-    ioOperations: { exportToWhatsApp, exportToJSON, importFromJSON },
+    ioOperations: { exportToWhatsApp },
     stats,
   } = useWeeklyTasks(selectedDate, user?.uid);
 
@@ -77,6 +76,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [currentUserDay, setCurrentUserDay] = useState<Day>("Monday");
 
   const [newTaskText, setNewTaskText] = useState("");
+  const [newTaskStartTime, setNewTaskStartTime] = useState("");
+  const [newTaskEndTime, setNewTaskEndTime] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
   const [groupByPriority, setGroupByPriority] = useState(true);
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(
@@ -87,6 +88,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [isCheckingGoogle, setIsCheckingGoogle] = useState(true);
   const [isSendingSummary, setIsSendingSummary] = useState(false);
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const isAddingTaskRef = useRef(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
   const [dailySummaryEnabled, setDailySummaryEnabled] = useState(false);
   const headerRef = useRef<HTMLElement | null>(null);
@@ -217,14 +220,14 @@ const WeeklyTaskOrganizer: React.FC = () => {
     const updateOffsets = () => {
       const width = window.innerWidth;
       if (width < 640) {
-        setHeaderOffset(32);
-        setMinHeaderHeight(140);
+        setHeaderOffset(18);
+        setMinHeaderHeight(96);
       } else if (width < 1024) {
-        setHeaderOffset(28);
-        setMinHeaderHeight(120);
+        setHeaderOffset(22);
+        setMinHeaderHeight(96);
       } else {
-        setHeaderOffset(24);
-        setMinHeaderHeight(104);
+        setHeaderOffset(12);
+        setMinHeaderHeight(88);
       }
     };
 
@@ -294,9 +297,72 @@ const WeeklyTaskOrganizer: React.FC = () => {
   const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
 
   // Handlers
-  const handleAddTask = () => {
-    addTask(currentAdminDay, newTaskText, priority);
-    setNewTaskText("");
+  const handleAddTask = async () => {
+    if (isAddingTaskRef.current) return;
+    if (!newTaskText.trim()) return;
+    const startTime = newTaskStartTime.trim();
+    const endTime = newTaskEndTime.trim();
+
+    if (endTime && !startTime) {
+      alert("Select a start time before adding an end time.");
+      return;
+    }
+
+    if (startTime && endTime && endTime <= startTime) {
+      alert("End time must be after start time.");
+      return;
+    }
+
+    let calendarEvent: Task['calendarEvent'] = undefined;
+
+    isAddingTaskRef.current = true;
+    setIsAddingTask(true);
+
+    try {
+      // If time is selected and Google Calendar is connected, try to create calendar event
+      if (startTime && isGoogleConnected) {
+        try {
+          const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const draftTask: Task = {
+            id: "temp",
+            text: newTaskText,
+            completed: false,
+            priority,
+          };
+          const payload = taskToCalendarEvent(
+            currentAdminDay,
+            draftTask,
+            startTime,
+            endTime || undefined,
+            selectedDate,
+            userTimeZone
+          );
+          const { eventId } = await createTaskEventForRamon(payload);
+          calendarEvent = {
+            eventId,
+            date: payload.date,
+            startTime: payload.startTime ?? null,
+            endTime: payload.endTime ?? null,
+          };
+        } catch (error) {
+          console.error("Failed to create calendar event", error);
+          alert("Calendar event creation failed. Task was still created.");
+        }
+      }
+
+      addTask(currentAdminDay, newTaskText, priority, calendarEvent);
+      setNewTaskText("");
+      setNewTaskStartTime("");
+      setNewTaskEndTime("");
+    } finally {
+      isAddingTaskRef.current = false;
+      setIsAddingTask(false);
+    }
+  };
+
+  const handleComposerDateChange = (date: Date) => {
+    setSelectedDate(date);
+    setCurrentAdminDay(DAYS[(date.getDay() + 6) % 7]);
   };
 
   const handleToggleSelection = (id: string) => {
@@ -308,9 +374,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
     });
   };
 
-  const handleSelectAll = () => {
-    const dayTasks = tasks[currentAdminDay] || [];
-    const ids = dayTasks.map((t) => t.id);
+  const handleSelectAll = (filteredIds?: string[]) => {
+    const ids = filteredIds ?? (tasks[currentAdminDay] || []).map((t) => t.id);
 
     const allSelected = ids.length > 0 && ids.every((id) => selectedTasks.has(id));
 
@@ -686,86 +751,107 @@ const WeeklyTaskOrganizer: React.FC = () => {
   if (!isClient || authLoading || !user || !selectedDate) return null;
 
   return (
-    <div className="min-h-screen bg-bg-main p-4 font-sans transition-colors duration-300 relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(860px_circle_at_12%_-10%,_rgba(255,255,255,0.92),_transparent_52%),radial-gradient(760px_circle_at_90%_0%,_rgba(118,194,218,0.26),_transparent_48%),radial-gradient(520px_circle_at_16%_86%,_rgba(191,218,255,0.22),_transparent_52%)] dark:bg-[radial-gradient(900px_circle_at_12%_-18%,_rgba(96,165,250,0.18),_transparent_60%),radial-gradient(780px_circle_at_88%_-12%,_rgba(59,130,246,0.14),_transparent_58%)]"></div>
-      <div className="pointer-events-none absolute inset-0 opacity-20 dark:opacity-45 bg-[linear-gradient(rgba(148,163,184,0.16)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.16)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] bg-[size:160px_160px]"></div>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(255,255,255,0.66),_transparent_40%)] dark:bg-[radial-gradient(circle_at_50%_0%,_rgba(96,165,250,0.22),_transparent_42%)]"></div>
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-border-brand/40 to-transparent opacity-25 dark:opacity-40"></div>
-        <div className="absolute left-8 top-20 bottom-10 w-px bg-gradient-to-b from-transparent via-border-brand/30 to-transparent opacity-20 dark:opacity-30"></div>
-      </div>
-      <div className="fixed top-0 left-0 right-0 z-50 px-4">
-        <div className="max-w-7xl mx-auto">
+    <div
+      id="main-content"
+      className={`admin-shell ${isAdmin ? "admin-mode" : "user-mode"} relative min-h-screen overflow-x-hidden p-3 font-sans transition-colors duration-200 sm:p-4`}
+    >
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <div className="w-full">
           <header
             ref={headerRef}
-            className="glass-panel rounded-2xl px-4 sm:px-6 py-4 border border-border-subtle/70 shadow-lg"
+            className="admin-topbar w-full rounded-none px-3 py-2 sm:px-4 sm:py-3"
           >
-            <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="flex flex-wrap items-center gap-3 min-w-0 sm:flex-1 sm:flex-nowrap sm:overflow-x-auto scrollbar-hide">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Image
-                      src="/images/calendar-icon-no-background.png"
-                      alt="Calendar"
-                      width={44}
-                      height={44}
-                      className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0"
-                    />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs uppercase tracking-[0.35em] text-text-tertiary">Operations Week</span>
-                      <h1 className="text-lg sm:text-2xl md:text-3xl font-semibold text-text-primary leading-tight">
-                        Weekly Task Organizer
+            <div className="relative z-10 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center justify-between gap-2 min-w-0 sm:flex-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Image
+                    src="/images/calendar-icon-no-background.png"
+                    alt="Calendar"
+                    width={40}
+                    height={40}
+                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain shrink-0"
+                  />
+                  <div className="flex flex-col min-w-0">
+                    <span className="hidden text-[10px] uppercase tracking-[0.26em] text-text-tertiary sm:block">
+                      Operations Week
+                    </span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <h1 className="truncate text-base font-semibold leading-tight text-text-primary sm:text-xl md:text-2xl">
+                        <span className="sm:hidden">Weekly Tasks</span>
+                        <span className="hidden sm:inline">Weekly Task Organizer</span>
                       </h1>
-                      <div className="mt-2 h-px w-20 bg-gradient-to-r from-border-brand/70 via-border-brand/30 to-transparent"></div>
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full sm:h-2.5 sm:w-2.5 ${getSyncColor()}`}
+                        role="status"
+                        aria-label={`Calendar sync status: ${syncStatus}`}
+                      ></span>
                     </div>
-                  </div>
-                  <div className="glass-pill flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium shrink-0">
-                    <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
-                    <span className="capitalize text-text-secondary">{syncStatus}</span>
+                    <div className="mt-1 hidden h-px w-16 bg-gradient-to-r from-border-brand/70 via-border-brand/30 to-transparent sm:block"></div>
                   </div>
                 </div>
 
-
-                <div className="glass-subpanel flex items-center gap-1 rounded-2xl p-1 shrink-0">
-                  <button
-                    onClick={() => setIsAdmin(true)}
-                    className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand ${
-                      isAdmin
-                        ? "glass-control text-text-primary"
-                        : "text-text-secondary hover:bg-white/35 hover:text-text-primary"
-                    }`}
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Administrator</span>
-                  </button>
-                  <button
-                    onClick={() => setIsAdmin(false)}
-                    className={`px-3 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand ${
-                      !isAdmin
-                        ? "glass-control text-text-primary"
-                        : "text-text-secondary hover:bg-white/35 hover:text-text-primary"
-                    }`}
-                  >
-                    <UserIcon className="w-4 h-4" />
-                    <span className="max-w-[140px] truncate">{displayName}</span>
-                  </button>
+                <div className="flex items-center gap-1.5 sm:hidden">
+                  <ThemeToggle />
+                  <UserMenu
+                    displayName={displayName}
+                    email={user.email}
+                    photoURL={user.photoURL}
+                    onLogout={logout}
+                    onOpenSettings={() => setShowUserSettings(true)}
+                    isAdmin={isAdmin}
+                    isGoogleConnected={isGoogleConnected}
+                    isCheckingGoogle={isCheckingGoogle}
+                    onConnectGoogle={handleConnectGoogle}
+                    onSyncCalendar={handleSyncCalendar}
+                  />
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0">
-                <ThemeToggle />
-                <UserMenu
-                  displayName={displayName}
-                  email={user.email}
-                  photoURL={user.photoURL}
-                  onLogout={logout}
-                  onOpenSettings={() => setShowUserSettings(true)}
-                  isAdmin={isAdmin}
-                  isGoogleConnected={isGoogleConnected}
-                  isCheckingGoogle={isCheckingGoogle}
-                  onConnectGoogle={handleConnectGoogle}
-                  onSyncCalendar={handleSyncCalendar}
-                />
+              <div className="flex items-center gap-2 min-w-0 sm:justify-end">
+                <nav
+                  className="admin-header-nav flex flex-1 items-center justify-end gap-1.5 sm:flex-none"
+                  aria-label="Workspace views"
+                >
+                  <button
+                    onClick={() => setIsAdmin(true)}
+                    aria-pressed={isAdmin}
+                    className={`admin-header-nav__item flex min-h-10 items-center justify-center gap-1.5 px-3 text-xs font-semibold transition-[background-color,border-color,color,box-shadow,opacity,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand active:scale-[0.96] sm:gap-2 sm:text-sm ${
+                      isAdmin
+                        ? "is-active text-text-primary"
+                        : "text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span>Admin</span>
+                  </button>
+                  <button
+                    onClick={() => setIsAdmin(false)}
+                    aria-pressed={!isAdmin}
+                    className={`admin-header-nav__item flex min-h-10 items-center justify-center gap-1.5 px-3 text-xs font-semibold transition-[background-color,border-color,color,box-shadow,opacity,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand active:scale-[0.96] sm:gap-2 sm:text-sm ${
+                      !isAdmin
+                        ? "is-active text-text-primary"
+                        : "text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    <UserIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="max-w-[90px] truncate sm:max-w-[140px]">{displayName}</span>
+                  </button>
+                </nav>
+                <div className="hidden items-center gap-2 shrink-0 sm:flex">
+                  <ThemeToggle />
+                  <UserMenu
+                    displayName={displayName}
+                    email={user.email}
+                    photoURL={user.photoURL}
+                    onLogout={logout}
+                    onOpenSettings={() => setShowUserSettings(true)}
+                    isAdmin={isAdmin}
+                    isGoogleConnected={isGoogleConnected}
+                    isCheckingGoogle={isCheckingGoogle}
+                    onConnectGoogle={handleConnectGoogle}
+                    onSyncCalendar={handleSyncCalendar}
+                  />
+                </div>
               </div>
             </div>
           </header>
@@ -774,53 +860,44 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
 
       <div
-        className="max-w-7xl mx-auto relative z-10"
+        className="relative z-10 mx-auto max-w-[1500px]"
         style={{ paddingTop: Math.max(headerHeight, minHeaderHeight) + headerOffset }}
       >
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
           {isAdmin ? (
-            <>
-              {/* Sidebar (Left Column) */}
-              <div className="lg:col-span-3">
-                <Sidebar
-                  days={DAYS}
-                  currentDay={currentAdminDay}
-                  onDayChange={setCurrentAdminDay}
-                  tasks={tasks}
-                  stats={stats}
-                  quickActionsProps={{
-                    onClearCompleted: clearCompleted,
-                    onBulkAdd: () => setShowBulkModal(true),
-                    onExportWhatsApp: exportToWhatsApp,
-                    onExportJSON: exportToJSON,
-                    onSendDailySummary: handleSendDailySummary,
-                    isSendingDailySummary: isSendingSummary,
-                    onImportJSON: (e: any) => {
-                      if (e.target.files?.[0]) importFromJSON(e.target.files[0]);
-                    }
-                  }}
-                  selectedDate={selectedDate}
-                  onDateChange={setSelectedDate}
-                />
-              </div>
-
-              {/* Main Content (Right Column) */}
-              <AdminView
+            <AdminView
                 currentDay={currentAdminDay}
                 days={DAYS}
                 onDayChange={setCurrentAdminDay}
                 selectedDate={selectedDate}
-                onDateChange={setSelectedDate}
+                onDateChange={handleComposerDateChange}
                 newTaskText={newTaskText}
                 setNewTaskText={setNewTaskText}
+                taskStartTime={newTaskStartTime}
+                setTaskStartTime={setNewTaskStartTime}
+                taskEndTime={newTaskEndTime}
+                setTaskEndTime={setNewTaskEndTime}
                 priority={priority}
                 setPriority={setPriority}
                 onAddTask={handleAddTask}
+                isAddingTask={isAddingTask}
                 groupByPriority={groupByPriority}
                 setGroupByPriority={setGroupByPriority}
                 selectedTasks={selectedTasks}
                 tasks={tasks}
+                weeklyStats={stats}
+                dailyStats={{
+                  total: (tasks[currentAdminDay] || []).length,
+                  completed: (tasks[currentAdminDay] || []).filter(t => t.completed).length,
+                }}
+                quickActions={{
+                  onClearCompleted: clearCompleted,
+                  onBulkAdd: () => setShowBulkModal(true),
+                  onExportWhatsApp: exportToWhatsApp,
+                  onSendDailySummary: handleSendDailySummary,
+                  isSendingDailySummary: isSendingSummary,
+                }}
                 onToggleSelection={handleToggleSelection}
                 onToggleComplete={toggleComplete}
                 onEdit={editTask}
@@ -843,7 +920,6 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 onDeleteCalendarEvent={handleDeleteCalendarEvent}
                 onTimelineScheduleChange={handleTimelineScheduleChange}
               />
-            </>
           ) : (
             // User View (Full Width)
             <div className="lg:col-span-12">

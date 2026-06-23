@@ -129,9 +129,9 @@ const TaskCard: React.FC<{
 }> = ({ task, timeLabel, isTimed = false, compact = false }) => {
   return (
     <div
-        className={`flex h-full min-h-0 flex-col rounded-2xl border shadow-sm transition-colors ${
+        className={`admin-timeline-task flex h-full min-h-0 flex-col rounded-2xl border transition-colors ${
         isTimed
-          ? "border-[rgba(106,184,208,0.45)] bg-[linear-gradient(180deg,rgba(213,243,251,0.88)_0%,rgba(161,216,233,0.42)_100%)] shadow-[0_18px_34px_rgba(102,164,191,0.16)] dark:border-border-brand/50 dark:bg-sapphire-900/35 dark:shadow-[0_16px_30px_rgba(2,6,23,0.55)]"
+          ? "admin-timeline-task--timed"
           : "glass-control border-white/55"
       } ${compact ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"} ${
         task.completed ? "opacity-60" : ""
@@ -423,10 +423,10 @@ export const TaskTimeline: React.FC<TaskTimelineProps> = ({
 
   const renderEmpty = (label: string, description: string) => (
 
-    <div className="glass-subpanel flex items-center gap-3 rounded-2xl border border-dashed border-white/50 px-4 py-3 text-sm text-text-tertiary">
-      <Sparkles className="h-4 w-4 text-text-tertiary" />
+    <div className="admin-timeline-empty flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-text-tertiary">
+      <Sparkles className="h-4 w-4 text-border-brand" />
       <div>
-        <p className="font-semibold text-text-secondary">{label}</p>
+        <p className="font-semibold text-text-primary">{label}</p>
         <p className="text-xs text-text-tertiary">{description}</p>
       </div>
     </div>
