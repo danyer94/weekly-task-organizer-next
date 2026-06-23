@@ -50,3 +50,10 @@ output
 
 #cache
 .temp
+
+# SDD artifacts
+openspec/
+sdd/
+
+# dev logs
+dev-output.log
