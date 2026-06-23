@@ -753,13 +753,13 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
   return (
     <div
-      className={`admin-shell ${isAdmin ? "admin-mode" : "user-mode"} relative min-h-screen overflow-hidden p-3 font-sans transition-colors duration-200 sm:p-4`}
+      className={`admin-shell ${isAdmin ? "admin-mode" : "user-mode"} relative min-h-screen overflow-x-hidden p-3 font-sans transition-colors duration-200 sm:p-4`}
     >
-      <div className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-4">
-        <div className="mx-auto max-w-[1500px]">
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <div className="w-full">
           <header
             ref={headerRef}
-            className="admin-topbar rounded-2xl px-3 py-2 sm:px-4 sm:py-3"
+            className="admin-topbar w-full rounded-none px-3 py-2 sm:px-4 sm:py-3"
           >
             <div className="relative z-10 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center justify-between gap-2 min-w-0 sm:flex-1">
@@ -781,7 +781,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
                         <span className="hidden sm:inline">Weekly Task Organizer</span>
                       </h1>
                       <span
-                        className={`h-2 w-2 rounded-full ${getSyncColor()} sm:hidden`}
+                        className={`h-2 w-2 shrink-0 rounded-full sm:h-2.5 sm:w-2.5 ${getSyncColor()}`}
+                        role="status"
                         aria-label={`Calendar sync status: ${syncStatus}`}
                       ></span>
                     </div>
@@ -807,39 +808,35 @@ const WeeklyTaskOrganizer: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2 min-w-0 sm:justify-end">
-                <div className="admin-segmented grid flex-1 grid-cols-2 items-center gap-1 rounded-xl p-0.5 sm:flex sm:flex-none sm:rounded-2xl sm:p-1">
+                <nav
+                  className="admin-header-nav flex flex-1 items-center justify-end gap-1.5 sm:flex-none"
+                  aria-label="Workspace views"
+                >
                   <button
                     onClick={() => setIsAdmin(true)}
                     aria-pressed={isAdmin}
-                    className={`flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm ${
+                    className={`admin-header-nav__item flex min-h-10 items-center justify-center gap-1.5 px-3 text-xs font-semibold transition-[background-color,border-color,color,box-shadow,opacity,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand active:scale-[0.96] sm:gap-2 sm:text-sm ${
                       isAdmin
-                        ? "glass-control text-text-primary"
-                        : "text-text-secondary hover:bg-white/35 hover:text-text-primary"
+                        ? "is-active text-text-primary"
+                        : "text-text-secondary hover:text-text-primary"
                     }`}
                   >
                     <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    <span className="sm:hidden">Admin</span>
-                    <span className="hidden sm:inline">Administrator</span>
+                    <span>Admin</span>
                   </button>
                   <button
                     onClick={() => setIsAdmin(false)}
                     aria-pressed={!isAdmin}
-                    className={`flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2 sm:text-sm ${
+                    className={`admin-header-nav__item flex min-h-10 items-center justify-center gap-1.5 px-3 text-xs font-semibold transition-[background-color,border-color,color,box-shadow,opacity,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand active:scale-[0.96] sm:gap-2 sm:text-sm ${
                       !isAdmin
-                        ? "glass-control text-text-primary"
-                        : "text-text-secondary hover:bg-white/35 hover:text-text-primary"
+                        ? "is-active text-text-primary"
+                        : "text-text-secondary hover:text-text-primary"
                     }`}
                   >
                     <UserIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     <span className="max-w-[90px] truncate sm:max-w-[140px]">{displayName}</span>
                   </button>
-                </div>
-
-                <div className="glass-pill hidden items-center gap-2 rounded-full px-3 py-1 text-xs font-medium sm:flex">
-                  <span className={`w-2 h-2 rounded-full ${getSyncColor()}`}></span>
-                  <span className="capitalize text-text-secondary">{syncStatus}</span>
-                </div>
-
+                </nav>
                 <div className="hidden items-center gap-2 shrink-0 sm:flex">
                   <ThemeToggle />
                   <UserMenu
@@ -889,7 +886,11 @@ const WeeklyTaskOrganizer: React.FC = () => {
                 setGroupByPriority={setGroupByPriority}
                 selectedTasks={selectedTasks}
                 tasks={tasks}
-                stats={stats}
+                weeklyStats={stats}
+                dailyStats={{
+                  total: (tasks[currentAdminDay] || []).length,
+                  completed: (tasks[currentAdminDay] || []).filter(t => t.completed).length,
+                }}
                 quickActions={{
                   onClearCompleted: clearCompleted,
                   onBulkAdd: () => setShowBulkModal(true),

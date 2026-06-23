@@ -2,7 +2,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameDay, isSameMonth, addMonths, subMonths, getISOWeek, getISOWeekYear, addWeeks } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 
 interface DatePickerProps {
   selectedDate: Date;
@@ -152,11 +156,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
       <div className="flex items-center gap-2 w-full">
         <button
           onClick={() => shiftWeek(-1)}
-          className="glass-control h-11 w-11 rounded-xl text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+          className="glass-control flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-semibold text-text-secondary transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 active:scale-[0.96]"
           aria-label="Previous week"
           type="button"
         >
-          <ChevronLeft className="w-4 h-4 sm:w-4 sm:h-4" />
+          <ArrowLeft className="h-5 w-5 shrink-0 translate-x-[-0.5px]" />
+          <span>Previous</span>
         </button>
 
         <button
@@ -166,7 +171,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
         >
 
           <div className="flex items-center gap-2 overflow-hidden">
-            <CalendarIcon className="w-4 h-4 text-text-tertiary group-hover:text-text-primary shrink-0" />
+            <CalendarIcon className="h-[30px] w-[30px] shrink-0 text-sapphire-500 dark:text-blue-200" />
             <div className="flex flex-col items-start truncate">
               <span className="text-xs font-semibold text-text-primary whitespace-nowrap truncate max-w-[140px] sm:max-w-none">
                 {format(selectedDate, "EEEE, MMMM d")}
@@ -177,15 +182,16 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
             </div>
 
           </div>
-          <ChevronRight className={`w-4 h-4 text-text-tertiary transition-transform ${isOpen ? "rotate-90" : ""}`} />
+          <ArrowRight className={`w-4 h-4 text-text-tertiary transition-transform ${isOpen ? "rotate-90" : ""}`} />
         </button>
         <button
           onClick={() => shiftWeek(1)}
-          className="glass-control h-11 w-11 rounded-xl text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+          className="glass-control flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl px-2 text-xs font-semibold text-text-secondary transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)] hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 active:scale-[0.96]"
           aria-label="Next week"
           type="button"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ArrowRight className="h-5 w-5 shrink-0 translate-x-[0.5px]" />
+          <span>Next</span>
         </button>
       </div>
 
@@ -202,7 +208,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
               aria-label="Previous month"
               type="button"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="text-sm font-semibold text-text-primary">
               {format(viewDate, "MMMM yyyy")}
@@ -213,7 +219,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onChange, 
               aria-label="Next month"
               type="button"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5" />
             </button>
           </div>
           

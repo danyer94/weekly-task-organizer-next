@@ -30,6 +30,29 @@ describe("UserMenu", () => {
     onSyncCalendar: vi.fn(),
   });
 
+  it("renders the desktop account trigger flat with a circular avatar and name-first hierarchy", () => {
+    const { container } = render(<UserMenu {...createProps()} />);
+
+    const trigger = screen.getByRole("button", { name: /open account menu/i });
+    const avatar = trigger.querySelector('[data-slot="account-avatar"]');
+    const identity = trigger.querySelector('[data-slot="account-identity"]');
+    const labels = identity?.querySelectorAll("span");
+
+    expect(trigger).toHaveClass(
+      "min-h-10",
+      "border-0",
+      "rounded-none",
+      "focus-visible:outline-none",
+      "focus-visible:ring-2"
+    );
+    expect(trigger).not.toHaveClass("rounded-xl");
+    expect(trigger).not.toHaveClass("glass-control");
+    expect(avatar).toHaveClass("rounded-full");
+    expect(labels?.[0]).toHaveTextContent("Danyer");
+    expect(labels?.[1]).toHaveTextContent("Account");
+    expect(container.querySelector('[role="menu"]')).toBeNull();
+  });
+
   it("renders the dropdown menu as a floating overlay anchored to the trigger", async () => {
     const props = createProps();
     vi.spyOn(HTMLDivElement.prototype, "getBoundingClientRect").mockReturnValue({
