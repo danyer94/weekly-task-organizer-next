@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Day, Priority, Task, TasksByDay } from "@/types";
 import { TaskList } from "./TaskList";
 import { TaskTimeline } from "./TaskTimeline";
@@ -22,6 +22,7 @@ import {
 	EyeOff,
 	ArrowUpDown,
 } from "lucide-react";
+import { sortTasks } from "@/lib/sortTasks";
 
 interface AdminViewProps {
 	currentDay: Day;
@@ -59,7 +60,7 @@ interface AdminViewProps {
 	onDragStart: (task: Task, index: number, day: Day) => void;
 	onDrop: (targetDay: Day, targetIndex: number) => void;
 	onDeleteSelected: () => void;
-	onSelectAll: () => void;
+	onSelectAll: (filteredIds?: string[]) => void;
 	onMoveClick: () => void;
 	onCopyClick: () => void;
 	editingTaskId: string | null;
@@ -120,6 +121,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 	const visibleDayTasks = hideCompletedTasks
 		? dayTasks.filter((task) => !task.completed)
 		: dayTasks;
+	const sortedDayTasks = useMemo(() => sortTasks(visibleDayTasks, sortMode), [visibleDayTasks, sortMode]);
 	const formattedSelectedDate = selectedDate.toLocaleDateString("en-US", {
 		weekday: "short",
 		month: "short",
@@ -310,7 +312,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 							<div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 								<div className="flex flex-wrap items-center gap-2">
 									<button
-										onClick={onSelectAll}
+										onClick={() => onSelectAll(visibleDayTasks.map(t => t.id))}
 										className="glass-pill text-xs font-semibold text-text-secondary hover:text-text-primary px-3 py-2 sm:py-1 rounded-[7px] transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
 									>
 										{visibleDayTasks.length > 0 &&
@@ -391,7 +393,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 							<div className="admin-work-pane__scroll">
 							<TaskList
 								day={currentDay}
-								tasks={visibleDayTasks}
+								tasks={sortedDayTasks}
 								groupByPriority={groupByPriority}
 								isAdmin={true}
 								selectedTasks={selectedTasks}
@@ -424,7 +426,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 								</h3>
 							</div>
 							<TaskTimeline
-								tasks={visibleDayTasks}
+								tasks={sortedDayTasks}
 								onScheduleChange={
 									onTimelineScheduleChange
 										? (task, startTime, endTime) =>

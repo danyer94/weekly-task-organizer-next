@@ -374,9 +374,8 @@ const WeeklyTaskOrganizer: React.FC = () => {
     });
   };
 
-  const handleSelectAll = () => {
-    const dayTasks = tasks[currentAdminDay] || [];
-    const ids = dayTasks.map((t) => t.id);
+  const handleSelectAll = (filteredIds?: string[]) => {
+    const ids = filteredIds ?? (tasks[currentAdminDay] || []).map((t) => t.id);
 
     const allSelected = ids.length > 0 && ids.every((id) => selectedTasks.has(id));
 
@@ -753,6 +752,7 @@ const WeeklyTaskOrganizer: React.FC = () => {
 
   return (
     <div
+      id="main-content"
       className={`admin-shell ${isAdmin ? "admin-mode" : "user-mode"} relative min-h-screen overflow-x-hidden p-3 font-sans transition-colors duration-200 sm:p-4`}
     >
       <div className="fixed top-0 left-0 right-0 z-50">
