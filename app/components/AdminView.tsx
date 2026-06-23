@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Day, Priority, Task, TasksByDay } from "@/types";
 import { TaskList } from "./TaskList";
 import { TaskTimeline } from "./TaskTimeline";
-import { TaskViewMode } from "./TaskViewToggle";
+import { TodaySchedule } from "./TodaySchedule";
+import { PriorityBreakdown } from "./PriorityBreakdown";
+import { QuickActionsCard } from "./QuickActionsCard";
 import { DatePicker } from "./DatePicker";
 import { WeekdaySelector } from "./WeekdaySelector";
 import { AddTaskComposer } from "./AddTaskComposer";
+import { ProgressCard } from "./ProgressCard";
 import {
 	Trash2,
 	ArrowRight,
@@ -15,28 +18,11 @@ import {
 	Layers,
 	Bell,
 	FilePlus2,
-	MessageCircle,
+	Eye,
+	EyeOff,
+	ArrowUpDown,
 } from "lucide-react";
 
-const readAdminViewMode = (): TaskViewMode => {
-	if (typeof window === "undefined") return "timeline-list";
-
-	const stored = window.localStorage.getItem(
-		"weekly-task-organizer:view-mode-admin",
-	);
-
-	return stored === "list" ||
-		stored === "timeline" ||
-		stored === "timeline-list"
-		? stored
-		: "timeline-list";
-};
-
-const viewModeOptions: Array<{ value: TaskViewMode; label: string }> = [
-	{ value: "list", label: "List" },
-	{ value: "timeline", label: "Timeline" },
-	{ value: "timeline-list", label: "Both" },
-];
 interface AdminViewProps {
 	currentDay: Day;
 	days: Day[];
@@ -57,7 +43,8 @@ interface AdminViewProps {
 	setGroupByPriority: (val: boolean) => void;
 	selectedTasks: Set<string>;
 	tasks: TasksByDay;
-	stats: { total: number; completed: number };
+	weeklyStats: { total: number; completed: number };
+	dailyStats: { total: number; completed: number };
 	quickActions: {
 		onClearCompleted: () => void;
 		onBulkAdd: () => void;
@@ -107,7 +94,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
 	setGroupByPriority,
 	selectedTasks,
 	tasks,
-	stats,
+	weeklyStats,
+	dailyStats,
 	quickActions,
 	onToggleSelection,
 	onToggleComplete,
@@ -124,43 +112,46 @@ export const AdminView: React.FC<AdminViewProps> = ({
 	onDeleteCalendarEvent,
 	onTimelineScheduleChange,
 }) => {
-	const [viewMode, setViewMode] = useState<TaskViewMode>(readAdminViewMode);
+	const [hideCompletedTasks, setHideCompletedTasks] = useState(false);
+	const [sortMode, setSortMode] = useState<"priority" | "alphabetical" | "date">("priority");
+	const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+	const sortDropdownRef = useRef<HTMLDivElement>(null);
 	const dayTasks = tasks[currentDay] || [];
-	const dayCompleted = dayTasks.filter((task) => task.completed).length;
-	const dayOpen = Math.max(dayTasks.length - dayCompleted, 0);
-	const weekOpen = Math.max(stats.total - stats.completed, 0);
-	const dayProgress =
-		dayTasks.length > 0
-			? Math.round((dayCompleted / dayTasks.length) * 100)
-			: 0;
+	const visibleDayTasks = hideCompletedTasks
+		? dayTasks.filter((task) => !task.completed)
+		: dayTasks;
 	const formattedSelectedDate = selectedDate.toLocaleDateString("en-US", {
 		weekday: "short",
 		month: "short",
 		day: "numeric",
 	});
-	const showList = viewMode === "list" || viewMode === "timeline-list";
-	const showTimeline = viewMode === "timeline" || viewMode === "timeline-list";
-	const layoutMode = viewMode === "timeline-list" ? "both" : viewMode;
+	const showList = true;
+	const showTimeline = true;
+	const layoutMode = "both";
 
 	useEffect(() => {
-		if (typeof window === "undefined") return;
-		window.localStorage.setItem(
-			"weekly-task-organizer:view-mode-admin",
-			viewMode,
-		);
-	}, [viewMode]);
+		if (!sortDropdownOpen) return;
+		const handleClickOutside = (e: MouseEvent) => {
+			if (sortDropdownRef.current && !sortDropdownRef.current.contains(e.target as Node)) {
+				setSortDropdownOpen(false);
+			}
+		};
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => document.removeEventListener("mousedown", handleClickOutside);
+	}, [sortDropdownOpen]);
 
 	return (
 		<div
 			className={`admin-dashboard-grid admin-dashboard-grid--${layoutMode} order-1 lg:col-span-12`}
-			data-view-mode={viewMode}
+			data-view-mode="timeline-list"
 		>
 			<main className="admin-operational-stack">
-				<header className="admin-command-panel rounded-xl p-4 sm:p-5">
-					<div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-						<div className="max-w-2xl">
+				<div className="admin-command-grid">
+					<header className="admin-command-panel mr-auto w-full p-4 sm:p-5">
+						<div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-start xl:gap-8">
+							<div className="max-w-2xl">
 							<div className="mb-3 flex flex-wrap items-center gap-2">
-								<span className="rounded-full border border-border-brand/30 bg-sapphire-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-sapphire-500 dark:bg-sapphire-500/15 dark:text-blue-200">
+								<span className="text-[11px] font-bold uppercase tracking-[0.22em] text-sapphire-500 dark:text-blue-200">
 									Admin dashboard
 								</span>
 								<span className="rounded-full border border-white/60 bg-white/60 px-3 py-1 text-xs font-semibold text-text-secondary dark:border-white/10 dark:bg-white/10 dark:text-text-tertiary">
@@ -179,134 +170,44 @@ export const AdminView: React.FC<AdminViewProps> = ({
 								Create, schedule, move, and broadcast the week&apos;s work from
 								one focused admin surface.
 							</p>
-						</div>
-
-						<div className="grid grid-cols-3 gap-2 xl:min-w-[360px]">
-							<div className="admin-command-metric rounded-2xl p-3">
-								<span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-tertiary">
-									Today
-								</span>
-								<strong className="mt-1 block text-2xl font-semibold tabular-nums text-text-primary">
-									{dayTasks.length}
-								</strong>
-							</div>
-							<div className="admin-command-metric admin-command-metric--success rounded-2xl p-3">
-								<span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-200">
-									Done
-								</span>
-								<strong className="mt-1 block text-2xl font-semibold tabular-nums text-emerald-700 dark:text-emerald-100">
-									{dayCompleted}
-								</strong>
-							</div>
-							<div className="admin-command-metric rounded-2xl p-3">
-								<span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-tertiary">
-									Open
-								</span>
-								<strong className="mt-1 block text-2xl font-semibold tabular-nums text-text-primary">
-									{dayOpen}
-								</strong>
 							</div>
 						</div>
-					</div>
-
-					<div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)] lg:items-center">
-						<div className="admin-progress-surface rounded-2xl p-3">
-							<div className="mb-2 flex items-center justify-between gap-3 text-xs font-semibold text-text-secondary">
-								<span>Day completion</span>
-								<span className="tabular-nums">{dayProgress}%</span>
-							</div>
-							<div className="admin-progress-track h-2 overflow-hidden rounded-full">
-								<div
-									className="h-full rounded-full bg-sapphire-500 transition-all duration-300"
-									style={{ width: `${dayProgress}%` }}
-								/>
-							</div>
-							<p className="mt-2 text-xs text-text-tertiary">
-								Week open:{" "}
-								<span className="font-semibold tabular-nums text-text-secondary">
-									{weekOpen}
-								</span>
-							</p>
+						{/* Progress Cards */}
+						<div className="mt-5 flex flex-wrap items-start gap-4">
+							<ProgressCard
+								completed={weeklyStats.completed}
+								total={weeklyStats.total}
+								label="This Week"
+							/>
+							<ProgressCard
+								completed={dailyStats.completed}
+								total={dailyStats.total}
+								label="Today"
+							/>
 						</div>
+					</header>
 
-						<div
-							className="admin-view-tabs rounded-2xl p-1.5"
-							role="group"
-							aria-label="Task view mode"
-						>
-							<div className="grid grid-cols-3 gap-1">
-								{viewModeOptions.map((option) => {
-									const isActive = viewMode === option.value;
+				<div className="flex flex-col gap-[14px]">
+					<TodaySchedule
+						tasks={visibleDayTasks}
+						className="admin-command-schedule"
+					/>
 
-									return (
-										<button
-											key={option.value}
-											type="button"
-											onClick={() => setViewMode(option.value)}
-											aria-pressed={isActive}
-											className={`admin-view-tab rounded-xl px-2 py-2 text-xs font-semibold text-text-secondary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40 sm:px-3 sm:text-sm ${
-												isActive
-													? "is-active text-text-primary"
-													: "hover:text-text-primary"
-											}`}
-										>
-											{option.label}
-										</button>
-									);
-								})}
-							</div>
-						</div>
-					</div>
-				</header>
+					<PriorityBreakdown tasks={visibleDayTasks} />
 
-				<section className="admin-ops-strip rounded-xl p-3 sm:p-4">
+					<QuickActionsCard />
+				</div>
+				</div>
+
+				<section className="admin-ops-strip mr-auto w-full rounded-[5px] p-3 sm:p-4">
 					<div className="flex flex-col gap-3">
-						<div className="grid gap-3 xl:grid-cols-[minmax(250px,0.74fr)_minmax(0,1.26fr)] xl:items-center">
-							<div className="admin-ops-card rounded-2xl p-3">
-								<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between xl:flex-col xl:items-stretch">
-									<div>
-										<p className="text-xs font-semibold uppercase tracking-[0.24em] text-text-tertiary">
-											Management
-										</p>
-										<p className="mt-1 text-sm font-semibold text-text-primary">
-											{selectedDate.toLocaleDateString("en-US", {
-												month: "short",
-												day: "numeric",
-												year: "numeric",
-											})}
-										</p>
-									</div>
+						<div className="flex flex-wrap items-stretch gap-3">
+							<div className="admin-management-card admin-ops-card w-full max-w-[300px] rounded-[5px] p-3">
+								<div className="flex flex-col gap-3">
 									<DatePicker
 										selectedDate={selectedDate}
 										onChange={onDateChange}
 									/>
-								</div>
-							</div>
-
-							<div className="grid grid-cols-3 gap-2">
-								<div className="admin-stat-chip rounded-xl px-3 py-2.5">
-									<span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">
-										Total
-									</span>
-									<strong className="block text-lg text-text-primary sm:text-xl">
-										{stats.total}
-									</strong>
-								</div>
-								<div className="admin-stat-chip rounded-xl px-3 py-2.5">
-									<span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">
-										Done
-									</span>
-									<strong className="block text-lg text-emerald-500 dark:text-emerald-400 sm:text-xl">
-										{stats.completed}
-									</strong>
-								</div>
-								<div className="admin-stat-chip rounded-xl px-3 py-2.5">
-									<span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-text-tertiary">
-										Open
-									</span>
-									<strong className="block text-lg text-text-primary sm:text-xl">
-										{Math.max(stats.total - stats.completed, 0)}
-									</strong>
 								</div>
 							</div>
 						</div>
@@ -335,32 +236,23 @@ export const AdminView: React.FC<AdminViewProps> = ({
 										: "Send Daily Summary"}
 								</span>
 							</button>
-							<div className="grid grid-cols-2 gap-2">
-								<button
-									type="button"
-									onClick={quickActions.onBulkAdd}
-									className="admin-action-button text-[13px] sm:text-sm"
-								>
-									<FilePlus2 className="h-4 w-4" />
-									<span>Bulk Add</span>
-								</button>
-								<button
-									type="button"
-									onClick={quickActions.onExportWhatsApp}
-									className="admin-action-button admin-action-button--export"
-								>
-									<MessageCircle className="h-4 w-4" />
-									<span>WhatsApp</span>
-								</button>
-							</div>
 							<button
 								type="button"
-								onClick={quickActions.onClearCompleted}
-								className="admin-action-button border-red-300/60 bg-red-50/70 text-red-700 hover:bg-red-50 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200"
+								onClick={quickActions.onExportWhatsApp}
+								className="admin-action-button text-[13px] sm:text-sm"
 							>
-								<Trash2 className="h-4 w-4" />
+								<Copy className="h-4 w-4" />
+								<span>Copy Tasks</span>
+							</button>
+							<button
+								type="button"
+								onClick={() => setHideCompletedTasks((isHidden) => !isHidden)}
+								aria-pressed={hideCompletedTasks}
+								className="admin-action-button border-amber-300/60 bg-amber-50/70 text-amber-800 hover:bg-amber-50 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-100"
+							>
+								{hideCompletedTasks ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
 								<span className="whitespace-nowrap text-[12px] sm:text-sm">
-									Clear Completed
+									{hideCompletedTasks ? "Show Completed" : "Hide Completed"}
 								</span>
 							</button>
 						</div>
@@ -414,38 +306,92 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
 				<div className={`admin-content-grid admin-content-grid--${layoutMode}`}>
 					{showList && (
-						<section className="admin-work-pane min-h-[260px] rounded-xl p-3 sm:p-4">
-							<div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-								<button
-									onClick={onSelectAll}
-									className="glass-pill text-xs font-semibold text-text-secondary hover:text-text-primary px-3 py-2 sm:py-1 rounded-full transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
-								>
-									{dayTasks.length > 0 &&
-									dayTasks.every((t) => selectedTasks.has(t.id)) ? (
-										<>
-											<SquareX className="w-3.5 h-3.5" /> Unselect All
-										</>
-									) : (
-										<>
-											<SquareCheck className="w-3.5 h-3.5" /> Select All
-										</>
-									)}
-								</button>
+						<div className="min-w-0">
+							<div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+								<div className="flex flex-wrap items-center gap-2">
+									<button
+										onClick={onSelectAll}
+										className="glass-pill text-xs font-semibold text-text-secondary hover:text-text-primary px-3 py-2 sm:py-1 rounded-[7px] transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+									>
+										{visibleDayTasks.length > 0 &&
+										visibleDayTasks.every((t) => selectedTasks.has(t.id)) ? (
+											<>
+												<SquareX className="w-3.5 h-3.5" /> Unselect All
+											</>
+										) : (
+											<>
+												<SquareCheck className="w-3.5 h-3.5" /> Select All
+											</>
+										)}
+									</button>
 
-								<button
-									onClick={() => setGroupByPriority(!groupByPriority)}
-									className="glass-pill text-xs font-semibold text-text-primary px-3 py-2 sm:py-1 rounded-full transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
-								>
-									<Layers className="w-3.5 h-3.5" />
-									<span>
-										{groupByPriority ? "Grouped by Priority" : "Custom Order"}
-									</span>
-								</button>
+									<button
+										onClick={() => setGroupByPriority(!groupByPriority)}
+										className="glass-pill text-xs font-semibold text-text-primary px-3 py-2 sm:py-1 rounded-[7px] transition-colors flex items-center gap-1.5 justify-center w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+									>
+										<Layers className="w-3.5 h-3.5" />
+										<span>
+											{groupByPriority ? "Grouped by Priority" : "Custom Order"}
+										</span>
+									</button>
+								</div>
+
+								<div className="flex flex-wrap items-center gap-2" ref={sortDropdownRef}>
+									<div className="relative">
+										<button
+											type="button"
+											onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+											className="glass-pill text-xs font-semibold text-text-secondary hover:text-text-primary px-3 py-2 sm:py-1 rounded-[7px] transition-colors flex items-center gap-1.5 justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+											aria-haspopup="menu"
+											aria-expanded={sortDropdownOpen}
+										>
+											<ArrowUpDown className="w-3.5 h-3.5" />
+											<span>Sort: {sortMode.charAt(0).toUpperCase() + sortMode.slice(1)}</span>
+											<span className="text-[10px]">˅</span>
+										</button>
+
+									{sortDropdownOpen && (
+										<div role="menu" className="glass-dropdown absolute right-0 top-full z-dropdown mt-1 min-w-[150px] rounded-[7px] p-1">
+											{(["priority", "alphabetical", "date"] as const).map((mode) => (
+												<button
+													key={mode}
+													type="button"
+													role="menuitem"
+													onClick={() => {
+														setSortMode(mode);
+														setSortDropdownOpen(false);
+													}}
+													className={`w-full rounded-[5px] px-3 py-1.5 text-left text-xs font-semibold transition-colors ${
+														sortMode === mode
+															? "bg-border-brand/10 text-sapphire-500"
+															: "text-text-primary hover:bg-gray-50 dark:hover:bg-gray-800/50"
+													}`}
+												>
+													{mode === "priority" && "Priority"}
+													{mode === "alphabetical" && "Alphabetical"}
+													{mode === "date" && "Date Added"}
+												</button>
+											))}
+										</div>
+									)}
+									</div>
+
+									<button
+										type="button"
+										onClick={quickActions.onBulkAdd}
+										className="glass-pill text-xs font-semibold text-text-primary px-3 py-2 sm:py-1 rounded-[7px] transition-colors flex items-center gap-1.5 justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-brand/40"
+									>
+										<FilePlus2 className="w-3.5 h-3.5" />
+										<span>Bulk Add</span>
+									</button>
+								</div>
 							</div>
 
+							<section className="admin-work-pane min-h-[260px] rounded-[7px] p-3 sm:p-4">
+							<div className="admin-work-pane__scroll">
 							<TaskList
 								day={currentDay}
-								tasks={dayTasks}
+								tasks={visibleDayTasks}
 								groupByPriority={groupByPriority}
 								isAdmin={true}
 								selectedTasks={selectedTasks}
@@ -459,12 +405,14 @@ export const AdminView: React.FC<AdminViewProps> = ({
 								onCreateCalendarEvent={onCreateCalendarEvent}
 								onDeleteCalendarEvent={onDeleteCalendarEvent}
 							/>
-						</section>
+							</div>
+							</section>
+						</div>
 					)}
 
 					{showTimeline && (
 						<aside
-							className="admin-agenda-pane rounded-xl p-4 sm:p-5"
+							className="admin-agenda-pane rounded-[7px] p-4 sm:p-5"
 							aria-label="Schedule context"
 						>
 							<div className="mb-7">
@@ -476,7 +424,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 								</h3>
 							</div>
 							<TaskTimeline
-								tasks={dayTasks}
+								tasks={visibleDayTasks}
 								onScheduleChange={
 									onTimelineScheduleChange
 										? (task, startTime, endTime) =>
@@ -489,7 +437,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
 										: undefined
 								}
 							/>
-						</aside>
+
+					</aside>
 					)}
 				</div>
 			</main>

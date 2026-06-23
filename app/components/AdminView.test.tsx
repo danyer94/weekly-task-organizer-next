@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { readFileSync } from "node:fs";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,6 +10,7 @@ import type { Day, TasksByDay } from "@/types";
 
 const {
   addTaskMock,
+  exportToWhatsAppMock,
   useWeeklyTasksMock,
   getGoogleConnectionStatusMock,
   createTaskEventForRamonMock,
@@ -18,6 +20,7 @@ const {
   sendDailySummaryAutoMock,
 } = vi.hoisted(() => ({
   addTaskMock: vi.fn(),
+  exportToWhatsAppMock: vi.fn(),
   useWeeklyTasksMock: vi.fn(),
   getGoogleConnectionStatusMock: vi.fn(),
   createTaskEventForRamonMock: vi.fn(),
@@ -148,7 +151,8 @@ const createProps = () => ({
   setGroupByPriority: vi.fn(),
   selectedTasks: new Set<string>(),
   tasks,
-  stats: { total: 3, completed: 1 },
+  weeklyStats: { total: 3, completed: 1 },
+  dailyStats: { total: 3, completed: 1 },
   quickActions: {
     onClearCompleted: vi.fn(),
     onBulkAdd: vi.fn(),
@@ -215,7 +219,7 @@ describe("AdminView", () => {
         moveOrCopyTasksToDate: vi.fn().mockResolvedValue({ createdTasks: [] }),
         bulkAddTasks: vi.fn(),
       },
-      ioOperations: { exportToWhatsApp: vi.fn() },
+      ioOperations: { exportToWhatsApp: exportToWhatsAppMock },
       stats: { total: 0, completed: 0 },
     }));
   });
@@ -227,12 +231,24 @@ describe("AdminView", () => {
       screen.getByRole("heading", { name: "Wednesday command center" })
     ).toBeInTheDocument();
     expect(screen.getByText("Wed, Jun 17")).toBeInTheDocument();
-    expect(screen.getByText("Jun 17, 2026")).toBeInTheDocument();
     expect(screen.getAllByText("Prepare weekly report").length).toBeGreaterThan(0);
     expect(
       screen.getByRole("heading", { name: "Schedule context" })
     ).toBeInTheDocument();
-    expect(screen.getByText("Week open:").parentElement).toHaveTextContent("2");
+  });
+
+  it("renders the dashboard eyebrow as blue text without a pill surface", () => {
+    render(<AdminView {...createProps()} />);
+
+    const eyebrow = screen.getByText("Admin dashboard");
+
+    expect(eyebrow).toHaveClass("text-sapphire-500");
+    expect(eyebrow).not.toHaveClass(
+      "rounded-full",
+      "border",
+      "bg-sapphire-500/10",
+      "dark:bg-sapphire-500/15"
+    );
   });
 
   it("submits the composer from Enter and the Add Task button", () => {
@@ -443,6 +459,31 @@ describe("AdminView", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("End time must be after start time.");
     expect(props.onAddTask).not.toHaveBeenCalled();
+  });
+
+  it("keeps the organizer header full-width while preserving the main content max width", async () => {
+    render(<WeeklyTaskOrganizer />);
+
+    await screen.findByText("Operations Week");
+
+    const headerShell = document.querySelector("div.fixed.top-0.left-0.right-0.z-50");
+    expect(headerShell).toBeInTheDocument();
+    expect(headerShell).not.toHaveClass("px-3", "sm:px-4");
+
+    const header = headerShell?.querySelector("header.admin-topbar") as HTMLElement | null;
+    expect(header).toHaveClass("admin-topbar", "w-full", "rounded-none");
+    expect(header).not.toHaveClass("max-w-[800px]", "rounded-2xl");
+
+    const mainContent = document.querySelector('[class*="max-w-[1500px]"]');
+    expect(mainContent).toBeInTheDocument();
+  });
+
+  it("uses the weekly WhatsApp clipboard export from the Copy Tasks action", async () => {
+    render(<WeeklyTaskOrganizer />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Copy Tasks" }));
+
+    expect(exportToWhatsAppMock).toHaveBeenCalledOnce();
   });
 
   it("blocks empty composer submissions with accessible feedback", () => {
@@ -770,13 +811,17 @@ describe("AdminView", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Send Daily Summary" }));
     fireEvent.click(screen.getByRole("button", { name: "Bulk Add" }));
-    fireEvent.click(screen.getByRole("button", { name: "WhatsApp" }));
-    fireEvent.click(screen.getByRole("button", { name: "Clear Completed" }));
+    fireEvent.click(screen.getByRole("button", { name: "Copy Tasks" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hide Completed" }));
 
     expect(props.quickActions.onSendDailySummary).toHaveBeenCalledOnce();
     expect(props.quickActions.onBulkAdd).toHaveBeenCalledOnce();
     expect(props.quickActions.onExportWhatsApp).toHaveBeenCalledOnce();
-    expect(props.quickActions.onClearCompleted).toHaveBeenCalledOnce();
+    expect(props.onCopyClick).not.toHaveBeenCalled();
+    expect(props.quickActions.onClearCompleted).not.toHaveBeenCalled();
+    expect(screen.queryByText("Prepare weekly report")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Schedule client review").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "Show Completed" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
 
     rerender(
@@ -791,75 +836,70 @@ describe("AdminView", () => {
     expect(props.onCopyClick).toHaveBeenCalledOnce();
   });
 
-  it("exposes selected weekdays and view modes with pressed-button semantics", () => {
+  it("does not expose a task view mode selector anymore", () => {
     render(<AdminView {...createProps()} />);
 
-    expect(screen.getByRole("button", { name: "Show Wednesday tasks" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
-    );
-    expect(screen.getByRole("button", { name: "Show Thursday tasks" })).toHaveAttribute(
-      "aria-pressed",
-      "false"
-    );
-
-    const group = screen.getByRole("group", { name: "Task view mode" });
-    const listButton = screen.getByRole("button", { name: "List" });
-    const timelineButton = screen.getByRole("button", { name: "Timeline" });
-    const bothButton = screen.getByRole("button", { name: "Both" });
-
-    expect(group).toContainElement(bothButton);
-    expect(listButton).toHaveAttribute("aria-pressed", "false");
-    expect(timelineButton).toHaveAttribute("aria-pressed", "false");
-    expect(bothButton).toHaveAttribute("aria-pressed", "true");
-    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
-    expect(screen.queryAllByRole("tab")).toHaveLength(0);
+    expect(screen.queryByRole("group", { name: "Task view mode" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "List" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Timeline" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Both" })).not.toBeInTheDocument();
+    expect(window.localStorage.getItem("weekly-task-organizer:view-mode-admin")).toBeNull();
   });
 
-  it("keeps every view mode button in the ordinary keyboard tab order", () => {
-    render(<AdminView {...createProps()} />);
-
-    const viewButtons = ["List", "Timeline", "Both"].map((name) =>
-      screen.getByRole("button", { name })
-    );
-
-    for (const button of viewButtons) {
-      expect(button).toHaveProperty("tabIndex", 0);
-    }
-  });
-
-  it("exposes explicit layout hooks for both, list, and timeline modes", () => {
+  it("places today's schedule beside the command panel and keeps the task area to two panes", () => {
     const { container } = render(<AdminView {...createProps()} />);
-    const dashboard = container.querySelector(".admin-dashboard-grid");
+    const commandLayout = container.querySelector(".admin-command-grid");
+    const layout = container.querySelector(".admin-content-grid--both");
 
-    expect(dashboard).toHaveAttribute("data-view-mode", "timeline-list");
-    expect(dashboard).toHaveClass("admin-dashboard-grid--both");
+    expect(commandLayout).toBeInTheDocument();
+    expect(layout).toBeInTheDocument();
+    expect(layout).not.toHaveAttribute("data-view-mode");
 
-    fireEvent.click(screen.getByRole("button", { name: "List" }));
-    expect(dashboard).toHaveAttribute("data-view-mode", "list");
-    expect(dashboard).toHaveClass("admin-dashboard-grid--list");
-    expect(screen.getByRole("button", { name: "Select All" })).toBeInTheDocument();
-    expect(
-      screen.queryByRole("heading", { name: "Schedule context" })
-    ).not.toBeInTheDocument();
-    expect(window.localStorage.getItem("weekly-task-organizer:view-mode-admin")).toBe(
-      "list"
-    );
+    const commandPanel = commandLayout?.querySelector(".admin-command-panel");
+    const cardsWrapper = commandLayout?.children[1] as HTMLElement;
+    const todaySchedule = commandLayout?.querySelector(".admin-command-schedule");
+    const scheduleCards = commandLayout?.querySelectorAll(".admin-schedule-card");
+    const priorityBreakdown = scheduleCards?.[1];
+    const quickActionsCard = scheduleCards?.[2];
+    const commandChildren = Array.from(commandLayout?.children ?? []);
+    const panes = Array.from(layout?.children ?? []);
 
-    fireEvent.click(screen.getByRole("button", { name: "Timeline" }));
-    expect(dashboard).toHaveAttribute("data-view-mode", "timeline");
-    expect(dashboard).toHaveClass("admin-dashboard-grid--timeline");
-    expect(
-      screen.getByRole("heading", { name: "Schedule context" })
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Select All" })).not.toBeInTheDocument();
+    // Grid children: header + wrapper div (containing TodaySchedule, PriorityBreakdown, QuickActionsCard)
+    expect(commandChildren).toHaveLength(2);
+    expect(commandChildren[0]).toBe(commandPanel);
+    expect(commandChildren[1]).toBe(cardsWrapper);
+    expect(commandPanel).toBeInTheDocument();
+    expect(todaySchedule).toHaveClass("admin-command-schedule", "rounded-[7px]");
+    expect(within(todaySchedule as HTMLElement).getByRole("heading", { name: "Today's Schedule" })).toBeInTheDocument();
+    expect(within(todaySchedule as HTMLElement).getByText("Schedule client review")).toBeInTheDocument();
+    expect(within(todaySchedule as HTMLElement).queryByText(/^Unscheduled/i)).not.toBeInTheDocument();
+    expect(layout?.querySelector(".admin-command-schedule")).not.toBeInTheDocument();
+    expect(panes).toHaveLength(2);
+    expect(panes[0]).toHaveClass("admin-work-pane");
+    expect(panes[1]).toHaveClass("admin-agenda-pane");
+    expect(within(panes[0] as HTMLElement).getByRole("button", { name: "Select All" })).toBeInTheDocument();
+    expect(within(panes[1] as HTMLElement).getByRole("heading", { name: "Schedule context" })).toBeInTheDocument();
+    expect(within(panes[0] as HTMLElement).getByText("Prepare weekly report")).toBeInTheDocument();
+    expect(within(panes[1] as HTMLElement).getByText("Schedule client review")).toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByRole("button", { name: "Both" }));
-    expect(dashboard).toHaveAttribute("data-view-mode", "timeline-list");
-    expect(dashboard).toHaveClass("admin-dashboard-grid--both");
-    expect(screen.getByRole("button", { name: "Select All" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Schedule context" })
-    ).toBeInTheDocument();
+  it("uses a desktop two-column command row that stacks by default", () => {
+    const styles = readFileSync("app/globals.css", "utf8");
+    const commandGridRule = styles.match(/\.admin-command-grid\s*\{([^}]*)\}/)?.[1] ?? "";
+
+    expect(commandGridRule).toContain("display: grid");
+    expect(commandGridRule).not.toContain("grid-template-columns");
+    expect(styles).toMatch(/@media \(min-width: 1024px\)[\s\S]*?\.admin-command-grid\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 2fr\) minmax\(300px, 1fr\);[\s\S]*?align-items:\s*start;/);
+  });
+
+  it("defines quiet theme-aware surfaces for the fixed admin topbar", () => {
+    const styles = readFileSync("app/globals.css", "utf8");
+    const topbarRule = styles.match(/\.admin-topbar\s*\{([^}]*)\}/)?.[1] ?? "";
+
+    expect(styles).toMatch(/--admin-topbar-surface:\s*rgba\(255,\s*255,\s*255,/);
+    expect(styles).toMatch(/\.dark \.admin-shell\.admin-mode\s*\{[\s\S]*?--admin-topbar-surface:\s*rgba\(10,\s*21,\s*35,/);
+    expect(topbarRule).toContain("background: var(--admin-topbar-surface)");
+    expect(topbarRule).toContain("border-bottom: 1px solid var(--admin-topbar-separator)");
+    expect(topbarRule).not.toContain("background: transparent");
   });
 });
